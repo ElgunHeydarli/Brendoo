@@ -129,7 +129,7 @@ const Promocodes: React.FC = () => {
                       </td>
                       <td>
                         <div className="all-pays">
-                          <img src="/rubl.svg" alt="rubl" />
+                          <img src="/₼.svg" alt="₼" />
                           <p>{prom?.total_earnings}</p>
                         </div>
                       </td>

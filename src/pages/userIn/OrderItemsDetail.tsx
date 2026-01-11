@@ -1,17 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Header from '../../components/Header';
 import UserAside from '../../components/userAside';
 import GETRequest from '../../setting/Request';
 import Loading from '../../components/Loading';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Order, TranslationsKeys } from '../../setting/Types';
-import { CheckCircle2, Package } from 'lucide-react';
+import { CheckCircle2, Package, Download } from 'lucide-react';
 import { IoClose } from 'react-icons/io5';
 import RatingModal from '../../components/rating-modal/rating-modal';
 import RestoreModal from './RestoreModal';
 import SearchableSelect from '../../components/Basked/SearchableSelect';
 import SearchableSelectCity from '../../components/Basked/SearchableSelectCity';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 export interface NewOrd extends Order {
   statuses: [{ id: number; created_at: string; status: string }];
@@ -20,6 +21,7 @@ export interface NewOrd extends Order {
 const OrderItemsDetail = () => {
   const navigate = useNavigate();
   const [, setProductCommit] = useState<number>(0);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const userStr = localStorage.getItem('user-info');
   const parsedUser = userStr ? JSON.parse(userStr) : null;
   const token =
@@ -31,15 +33,12 @@ const OrderItemsDetail = () => {
     '';
 
   // Bölge ve şehir dataları
-  const [regionData, setRegionData] = useState<
-    { id: number; regionId: number; regionName: string }[]
-  >([]);
-  const [cityData, setCityData] = useState<
-    { id: number; cityId: number; cityName: string }[]
-  >([]);
-
+  const [regionData, setRegionData] = useState<{ id: number; regionId: number; regionName: string }[]>([]);
+  const [cityData, setCityData] = useState<{ id: number; cityId: number; cityName: string }[]>([]);
   const [regionId, setRegionId] = useState<number | ''>('');
   const [cityId, setCityId] = useState<number | ''>('');
+
+  const { lang, slug } = useParams<{ lang: string; page: string; slug: string }>();
 
   // API'den bölgeleri çek
   const getRegions = async () => {
@@ -54,9 +53,9 @@ const OrderItemsDetail = () => {
   };
 
   // Seçilen bölgeye göre şehirleri çek
-  const getCities = async (regionId: number) => {
+  const getCities = async (regId: number) => {
     try {
-      const res = await axios.get(`https://admin.brendoo.com/api/cities/${regionId}`, {
+      const res = await axios.get(`https://admin.brendoo.com/api/cities/${regId}`, {
         headers: { 'Accept-Language': lang, Authorization: `Bearer ${token}` },
       });
       if (res.data) setCityData(res.data);
@@ -71,7 +70,7 @@ const OrderItemsDetail = () => {
 
   useEffect(() => {
     if (regionId) {
-      getCities(regionId);
+      getCities(regionId as number);
     } else {
       setCityData([]);
       setCityId('');
@@ -83,7 +82,7 @@ const OrderItemsDetail = () => {
     const p = s ? JSON.parse(s) : null;
     if (p?.customer?.region_id) setRegionId(Number(p.customer.region_id));
     if (p?.customer?.city_id) setCityId(Number(p.customer.city_id));
-  }, []); // <-- sadece mount'ta
+  }, []);
 
   // Address change modal state
   const [changeAddress, setChangeAddress] = useState<boolean>(false);
@@ -91,31 +90,21 @@ const OrderItemsDetail = () => {
   const [savingAddress, setSavingAddress] = useState<boolean>(false);
   const [addrError, setAddrError] = useState<string>('');
 
-  const { lang, slug } = useParams<{
-    lang: string;
-    page: string;
-    slug: string;
-  }>();
-
   // auth check
   useEffect(() => {
-    const userStr = localStorage.getItem('user-info');
-    if (!userStr) {
+    const uStr = localStorage.getItem('user-info');
+    if (!uStr) {
       navigate(`/en/login`);
     }
   }, [navigate]);
 
-  // data fetch (cache key & deps slug-lı)
-  const {
-    data: order,
-    isLoading: OrderLoading,
-    refetch,
-  }: any = GETRequest<Order | any>(`/getOrderItem/${slug}`, `getOrderItem-${slug}`, [
-    lang,
-    slug,
-  ]);
+  // data fetch
+  const { data: order, isLoading: OrderLoading, refetch }: any = GETRequest<Order | any>(
+    `/getOrderItem/${slug}`,
+    `getOrderItem-${slug}`,
+    [lang, slug]
+  );
 
-  // slug dəyişəndə yenidən çək + UI state reset
   useEffect(() => {
     refetch?.();
     setChangeAddress(false);
@@ -123,14 +112,61 @@ const OrderItemsDetail = () => {
     setAddressInput('');
   }, [slug, refetch]);
 
-  const { data: tarnslation, isLoading: tarnslationLoading } =
-    GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
+  const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(
+    `/translates`,
+    'translates',
+    [lang]
+  );
+
+  // 14 gün yoxlanışı
+  const isWithin14Days = (orderDate: string): boolean => {
+    const orderD = new Date(orderDate);
+    const now = new Date();
+    const diffTime = now.getTime() - orderD.getTime();
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    return diffDays <= 14;
+  };
+
+  // Faktura yükləmə
+  const handleDownloadInvoice = async () => {
+    if (!order?.id) return;
+
+    setInvoiceLoading(true);
+    try {
+      const response = await axios.get(
+        `https://admin.brendoo.com/api/orders/${order.id}/invoice`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Accept-Language': lang,
+          },
+          responseType: 'blob',
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_${order.order_number}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success(tarnslation?.fakturani_yukle || 'Faktura yükləndi');
+    } catch (error) {
+      console.error('Invoice download error:', error);
+      toast.error(tarnslation?.xeta_bas_verdi || 'Xəta baş verdi');
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
 
   // currency
   const formatCurrency = (price: string | null) => {
     if (!price) return '0.00';
     const currencySymbol = price.replace(/[0-9.]/g, '').trim();
-    return `${Number.parseFloat(price).toFixed(2)} ${currencySymbol || '₽'}`;
+    return `${Number.parseFloat(price).toFixed(2)} ${currencySymbol || '₼'}`;
   };
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -140,13 +176,11 @@ const OrderItemsDetail = () => {
     }
   }, [order]);
 
-  const [commentModal, setCommentModal] = React.useState<boolean>(false);
-  const [restoreModal, setRestoreModal] = React.useState<boolean>(false);
+  const [commentModal, setCommentModal] = useState<boolean>(false);
+  const [restoreModal, setRestoreModal] = useState<boolean>(false);
 
-  // ID helper (order_id və ya id-dən hansısı varsa götür)
   const getOrderId = (o: any) => o?.order_id ?? o?.id ?? null;
 
-  // Ünvan modalını açanda user-in datalarını doldur
   const openAddressModal = () => {
     setAddrError('');
     setAddressInput(order?.address || '');
@@ -155,14 +189,12 @@ const OrderItemsDetail = () => {
     setChangeAddress(true);
   };
 
-  // Modal bağla
   const closeAddressModal = () => {
     if (savingAddress) return;
     setChangeAddress(false);
     setAddrError('');
   };
 
-  // Ünvanı POST ilə backend-ə göndər (token + JSON body)
   const handleSaveAddress = async () => {
     setAddrError('');
     const trimmed = addressInput.trim();
@@ -177,14 +209,14 @@ const OrderItemsDetail = () => {
       return;
     }
 
-    const userStr = localStorage.getItem('user-info');
-    const parsedUser = userStr ? JSON.parse(userStr) : null;
-    const token =
-      parsedUser?.token ||
-      parsedUser?.access_token ||
-      parsedUser?.api_token ||
-      parsedUser?.bearer ||
-      parsedUser?.user?.token ||
+    const uStr = localStorage.getItem('user-info');
+    const pUser = uStr ? JSON.parse(uStr) : null;
+    const tkn =
+      pUser?.token ||
+      pUser?.access_token ||
+      pUser?.api_token ||
+      pUser?.bearer ||
+      pUser?.user?.token ||
       '';
 
     try {
@@ -194,13 +226,13 @@ const OrderItemsDetail = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(tkn ? { Authorization: `Bearer ${tkn}` } : {}),
         },
         body: JSON.stringify({
           order_id: orderId,
           address: trimmed,
-          region_id: regionId, // 🔹 yeni əlavə
-          city_id: cityId, // 🔹 yeni əlavə
+          region_id: regionId,
+          city_id: cityId,
         }),
       });
 
@@ -223,7 +255,6 @@ const OrderItemsDetail = () => {
     }
   };
 
-  // Loading
   if (OrderLoading || tarnslationLoading) {
     return (
       <div>
@@ -239,11 +270,10 @@ const OrderItemsDetail = () => {
 
       {order && (
         <>
-          {/* Address Change Modal */}
           {changeAddress && (
             <div
               className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center"
-              onClick={e => {
+              onClick={(e) => {
                 if (e.target === e.currentTarget) closeAddressModal();
               }}
             >
@@ -256,16 +286,16 @@ const OrderItemsDetail = () => {
                   <IoClose size={22} />
                 </button>
                 <h2 className="text-xl font-semibold mb-4">
-                  {tarnslation?.Изменитьадрес ?? ''}
+                  {tarnslation?.Изменитьадрес ?? 'Ünvanı dəyiş'}
                 </h2>
 
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={tarnslation?.noviy_adress ?? ''}
+                  placeholder={tarnslation?.noviy_adress ?? 'Yeni ünvan'}
                   value={addressInput}
-                  onChange={e => setAddressInput(e.target.value)}
-                  onKeyDown={e => {
+                  onChange={(e) => setAddressInput(e.target.value)}
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter') handleSaveAddress();
                     if (e.key === 'Escape') closeAddressModal();
                   }}
@@ -285,7 +315,7 @@ const OrderItemsDetail = () => {
                   cityData={cityData}
                   value={cityId}
                   onChange={(selectedCityId: number) => setCityId(selectedCityId)}
-                  // @ts-expect-error disabled !regionId1
+                  // @ts-expect-error disabled
                   disabled={!regionId}
                 />
 
@@ -296,9 +326,7 @@ const OrderItemsDetail = () => {
                   onClick={handleSaveAddress}
                   disabled={savingAddress}
                 >
-                  {savingAddress
-                    ? tarnslation?.coxranenie ?? ''
-                    : tarnslation?.izmen_ad ?? ''}
+                  {savingAddress ? (tarnslation?.coxranenie ?? 'Saxlanılır...') : (tarnslation?.izmen_ad ?? 'Ünvanı dəyiş')}
                 </button>
               </div>
             </div>
@@ -307,7 +335,6 @@ const OrderItemsDetail = () => {
           <main className="flex max-sm:flex-col flex-row w-full gap-5 p-4">
             <UserAside active={1} />
             <div className="py-2 space-y-6">
-              {/* Order Header */}
               <div className="bg-white rounded-lg p-2 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -315,53 +342,39 @@ const OrderItemsDetail = () => {
                       <Package className="h-6 w-6 text-slate-600" />
                     </div>
                     <div>
-                      <div className="text-sm text-slate-500">
-                        {tarnslation?.Номерзаказа ?? ''}
-                      </div>
+                      <div className="text-sm text-slate-500">{tarnslation?.Номерзаказа ?? 'Sifariş nömrəsi'}</div>
                       <div className="font-semibold">{order.order_number}</div>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-sm text-slate-500">
-                      {tarnslation?.Историязаказов ?? ''}
-                    </div>
-                    <div className="font-semibold">
-                      {new Date(order.order_date).toLocaleDateString()}
-                    </div>
+                    <div className="text-sm text-slate-500">{tarnslation?.Историязаказов ?? 'Sifariş tarixi'}</div>
+                    <div className="font-semibold">{new Date(order.order_date).toLocaleDateString()}</div>
                   </div>
 
                   <div>
-                    <div className="text-sm text-slate-500">
-                      {tarnslation?.Номерпродукта ?? ''}
-                    </div>
-                    <div className="font-semibold">
-                      {order.order_items_count} {tarnslation?.продукт ?? ''}
-                    </div>
+                    <div className="text-sm text-slate-500">{tarnslation?.Номерпродукта ?? 'Məhsul sayı'}</div>
+                    <div className="font-semibold">{order.order_items_count} {tarnslation?.продукт ?? 'məhsul'}</div>
                   </div>
 
-                  <button className="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors">
-                    {tarnslation?.Загрузитьсчетфактуру ?? ''}
+                  <button
+                    onClick={handleDownloadInvoice}
+                    disabled={invoiceLoading}
+                    className="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    {invoiceLoading ? (tarnslation?.yuklenir || 'Yüklənir...') : (tarnslation?.Загрузитьсчетфактуру ?? 'Faktura yüklə')}
                   </button>
                 </div>
               </div>
 
-              {/* Order Items */}
               {order?.order_items?.map((item: any, idx: number) => (
-                <div
-                  key={item?.id ?? idx}
-                  className="bg-white rounded-lg p-6 shadow-sm"
-                >
+                <div key={item?.id ?? idx} className="bg-white rounded-lg p-6 shadow-sm">
                   <div className="flex flex-col md:flex-row gap-6">
-                    {/* Product Image and Details */}
                     <div className="flex gap-4">
                       <div className="w-24 h-24 bg-slate-100 rounded-md overflow-hidden">
                         {item?.product ? (
-                          <img
-                            src={item.product.image || '/placeholder.svg'}
-                            alt={item.product.title}
-                            className="object-cover w-full h-full"
-                          />
+                          <img src={item.product.image || '/placeholder.svg'} alt={item.product.title} className="object-cover w-full h-full" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-slate-200">
                             <span className="text-slate-500 text-xs" />
@@ -370,59 +383,35 @@ const OrderItemsDetail = () => {
                       </div>
 
                       <div className="space-y-1">
-                        <h3 className="font-semibold">
-                          {item?.product ? item.product.title : 'Product not available'}
-                        </h3>
+                        <h3 className="font-semibold">{item?.product ? item.product.title : 'Product not available'}</h3>
                         <div className="text-sm text-slate-500">
-                          {(item?.options || [])
-                            .map((opt: any) => `${opt.filter}: ${opt.option}`)
-                            .join(', ')}
+                          {(item?.options || []).map((opt: any) => `${opt.filter}: ${opt.option}`).join(', ')}
                         </div>
                         <div className="font-bold">{formatCurrency(item?.price)}</div>
                         {item?.product && (
-                          <button
-                            className="text-blue-600 text-sm"
-                            onClick={() => setProductCommit(item.id)}
-                          >
-                            {tarnslation?.Оценитепродукт ?? ''}
+                          <button className="text-blue-600 text-sm" onClick={() => setProductCommit(item.id)}>
+                            {tarnslation?.Оценитепродукт ?? 'Məhsulu qiymətləndir'}
                           </button>
                         )}
                       </div>
                     </div>
 
-                    {order?.status?.length > 0 ? (
+                    {order?.status?.length > 0 && (
                       <div className="ml-auto flex items-start">
                         <div
                           className="bg-white-100 text-black-700 px-4 py-2 rounded-full flex items-center gap-1"
-                          style={{
-                            display: order?.isCancel ? 'none' : '',
-                            border: '1px solid #cecece',
-                          }}
+                          style={{ display: order?.isCancel ? 'none' : '', border: '1px solid #cecece' }}
                         >
                           <span>{order?.status ?? ''}</span>
                         </div>
                       </div>
-                    ) : null}
+                    )}
                   </div>
 
-                  {/* Order Progress */}
-                  <div
-                    ref={scrollRef}
-                    className="mt-8 overflow-x-auto"
-                    style={{ maxWidth: '1160px', width: '100%' }}
-                  >
+                  <div ref={scrollRef} className="mt-8 overflow-x-auto" style={{ maxWidth: '1160px', width: '100%' }}>
                     <div className="relative flex items-start min-w-max gap-10 px-4 pb-4">
-                      {/* Progress line */}
-                      <div
-                        className="absolute top-3 left-4 right-4 h-1 bg-slate-200 z-0"
-                        style={{ display: order?.isCancel ? 'none' : '' }}
-                      >
-                        <div
-                          className="h-1 bg-green-500 transition-all duration-500"
-                          style={{
-                            width: '100%',
-                          }}
-                        />
+                      <div className="absolute top-3 left-4 right-4 h-1 bg-slate-200 z-0" style={{ display: order?.isCancel ? 'none' : '' }}>
+                        <div className="h-1 bg-green-500 transition-all duration-500" style={{ width: '100%' }} />
                       </div>
 
                       {order?.isCancel ? (
@@ -433,33 +422,21 @@ const OrderItemsDetail = () => {
                       ) : (
                         <div className="flex gap-4">
                           {(item?.statuses || []).map((s: any) => (
-                            <div
-                              key={s.id}
-                              className="z-10 flex flex-col items-center text-center min-w-[80px]"
-                            >
+                            <div key={s.id} className="z-10 flex flex-col items-center text-center min-w-[80px]">
                               <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
                                 <CheckCircle2 className="w-4 h-4" />
                               </div>
-                              <p className="mt-2 text-xs font-medium capitalize">
-                                {s.status}
-                              </p>
-                              <p className="text-[10px] text-slate-500 whitespace-nowrap">
-                                {s.created_at}
-                              </p>
+                              <p className="mt-2 text-xs font-medium capitalize">{s.status}</p>
+                              <p className="text-[10px] text-slate-500 whitespace-nowrap">{s.created_at}</p>
                             </div>
                           ))}
-
                           {item?.statusDelivery && (
                             <div className="z-10 flex flex-col items-center text-center min-w-[80px]">
                               <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center">
                                 <CheckCircle2 className="w-4 h-4" />
                               </div>
-                              <p className="mt-2 text-xs font-medium --capitalize">
-                                {item.statusDelivery.status}
-                              </p>
-                              <p className="text-[10px] text-slate-500 whitespace-nowrap">
-                                {item.statusDelivery.created_at}
-                              </p>
+                              <p className="mt-2 text-xs font-medium">{item.statusDelivery.status}</p>
+                              <p className="text-[10px] text-slate-500 whitespace-nowrap">{item.statusDelivery.created_at}</p>
                             </div>
                           )}
                         </div>
@@ -467,73 +444,44 @@ const OrderItemsDetail = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="mt-8 flex flex-col md:flex-row items-start gap-4">
-                    {item?.returnable && (
+                    {item?.returnable && isWithin14Days(order.order_date) ? (
                       <>
-                        <button
-                          className="border border-blue-600 text-blue-600 px-5 py-2 rounded-lg hover:bg-blue-50"
-                          onClick={() => setRestoreModal(true)}
-                        >
-                          {tarnslation?.iade_et}
+                        <button className="border border-blue-600 text-blue-600 px-5 py-2 rounded-lg hover:bg-blue-50" onClick={() => setRestoreModal(true)}>
+                          {tarnslation?.iade_et || 'İadə et'}
                         </button>
                         <button
                           onClick={() => setCommentModal(true)}
                           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg border border-blue-500 text-blue-600 text-sm font-medium hover:bg-blue-100 transition-colors"
                         >
-                          {tarnslation?.add_com}
+                          {tarnslation?.add_com || 'Rəy əlavə et'}
                         </button>
-                        {commentModal && (
-                          <RatingModal
-                            productId={item?.product?.id ? item?.product?.id : null}
-                            onClose={() => setCommentModal(false)}
-                          />
-                        )}
-                        {restoreModal && (
-                          <RestoreModal
-                            productd={item?.product}
-                            order_item_id={item?.id}
-                            onClose={() => setRestoreModal(false)}
-                          />
-                        )}
+                        {commentModal && <RatingModal productId={item?.product?.id ? item?.product?.id : null} onClose={() => setCommentModal(false)} />}
+                        {restoreModal && <RestoreModal productd={item?.product} order_item_id={item?.id} onClose={() => setRestoreModal(false)} />}
                       </>
-                    )}
+                    ) : item?.returnable ? (
+                      <div className="text-gray-500 text-sm italic flex items-center gap-2">
+                        <IoClose className="text-red-400" />
+                        {tarnslation?.qaytarilmir_text || 'İadə müddəti bitib (14 gün)'}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
 
-              {/* Delivery & Payment */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="grid md:grid-cols-2 gap-8">
-                  {/* Delivery */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">
-                      {tarnslation?.d_d ?? ''}
-                    </h3>
+                    <h3 className="text-lg font-semibold mb-4">{tarnslation?.d_d ?? 'Göndərmə məlumatı'}</h3>
                     <div className="space-y-4">
                       <div>
-                        <div className="text-sm text-slate-500">
-                          {tarnslation?.adres_key ?? ''}
-                        </div>
+                        <div className="text-sm text-slate-500">{tarnslation?.adres_key ?? 'Ünvan'}</div>
                         <div className="font-medium">{order.address}</div>
                       </div>
-
                       {order.addressChangeAble && (
-                        <button
-                          className="text-blue-600 flex items-center gap-1 text-sm"
-                          onClick={openAddressModal}
-                        >
-                          {tarnslation?.ism_ ?? ''}
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
+                        <button className="text-blue-600 flex items-center gap-1 text-sm" onClick={openAddressModal}>
+                          {tarnslation?.ism_ ?? 'Ünvanı dəyiş'}
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M5 12h14M12 5l7 7-7 7" />
                           </svg>
                         </button>
@@ -541,48 +489,27 @@ const OrderItemsDetail = () => {
                     </div>
                   </div>
 
-                  {/* Payment */}
                   <div>
-                    <h3 className="text-lg font-semibold mb-4">
-                      {tarnslation?.p_p ?? ''}
-                    </h3>
+                    <h3 className="text-lg font-semibold mb-4">{tarnslation?.p_p ?? 'Ödəniş məlumatları'}</h3>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <div className="text-slate-500">{tarnslation?.kol_ ?? ''}</div>
-                        <div className="font-medium">
-                          {formatCurrency(order.total_price)}
-                        </div>
+                        <div className="text-slate-500">{tarnslation?.kol_ ?? 'Məhsul məbləği'}</div>
+                        <div className="font-medium">{formatCurrency(order.total_price)}</div>
                       </div>
-
                       {order.discount && Number.parseFloat(order.discount) > 0 && (
                         <div className="flex justify-between items-center">
-                          <div className="text-slate-500">
-                            {tarnslation?.Скидка ?? ''}
-                          </div>
-                          <div className="font-medium text-red-500">
-                            -{formatCurrency(order.discount)}
-                          </div>
+                          <div className="text-slate-500">{tarnslation?.Скидка ?? 'Endirim'}</div>
+                          <div className="font-medium text-red-500">-{formatCurrency(order.discount)}</div>
                         </div>
                       )}
-
                       <div className="flex justify-between items-center">
-                        <div className="text-slate-500">{tarnslation?.Сумма ?? ''}</div>
-                        <div className="font-medium">
-                          {order.delivered_price
-                            ? formatCurrency(order.delivered_price)
-                            : '0.00 ₽'}
-                        </div>
+                        <div className="text-slate-500">{tarnslation?.Сумма ?? 'Çatdırılma'}</div>
+                        <div className="font-medium">{order.delivered_price ? formatCurrency(order.delivered_price) : '0.00 ₼'}</div>
                       </div>
-
                       <div className="border-t pt-4 flex justify-between items-center">
-                        <div className="text-slate-500">
-                          {tarnslation?.Суммадоставки ?? ''}
-                        </div>
-                        <div className="font-bold text-green-600">
-                          {formatCurrency(order.final_price)}
-                        </div>
+                        <div className="text-slate-500">{tarnslation?.Суммадоставки ?? 'Ümumi məbləğ'}</div>
+                        <div className="font-bold text-green-600">{formatCurrency(order.final_price)}</div>
                       </div>
-
                       {order.payment_type === 'card' && (
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-8 h-5 bg-red-500 rounded" />
@@ -590,17 +517,15 @@ const OrderItemsDetail = () => {
                           <div className="text-sm">****0000</div>
                         </div>
                       )}
-
                       {order.payment_type === 'cash' && (
                         <div className="flex items-center justify-end gap-2">
-                          <div className="text-sm">{tarnslation?.nagd_odenis}</div>
+                          <div className="text-sm">{tarnslation?.nagd_odenis || 'Nağd ödəniş'}</div>
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
               </div>
-              {/* /Delivery & Payment */}
             </div>
           </main>
         </>

@@ -1,10 +1,11 @@
 import { atom } from "recoil";
 
 export const RefetchBasked = atom({
-  key: "refetchBasked", // unique ID (with respect to other atoms/selectors)
-  default: false, // default value (aka initial value)
+  key: "refetchBasked", // unique ID
+  default: false,
 });
+
 export const RefetchLocalBasked = atom({
-  key: "refetchBasked", // unique ID (with respect to other atoms/selectors)
-  default: false, // default value (aka initial value)
+  key: "refetchLocalBasked", // ⚠️ FƏRQLI KEY OLMALIDIR!
+  default: false,
 });

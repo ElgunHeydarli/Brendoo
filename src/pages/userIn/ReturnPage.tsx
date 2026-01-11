@@ -110,7 +110,7 @@ export default function ReturnPage() {
                         {returnItem?.product?.title}
                       </div>
                       <div className="mt-1 text-xs text-gray-600">
-                        {returnItem?.product?.price && `${returnItem.product.price} ${translation?.currency || '₽'}`}
+                        {returnItem?.product?.price && `${returnItem.product.price} ${translation?.currency || '₼'}`}
                       </div>
                     </div>
                     

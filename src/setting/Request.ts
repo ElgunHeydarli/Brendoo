@@ -6,7 +6,7 @@ import { useMemo } from 'react';
 // Optimized Axios Instance
 export const axiosInstance = axios.create({
   baseURL: 'https://admin.brendoo.com/api',
-  timeout: 8000,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -19,9 +19,8 @@ let userInfoCache: {
   timestamp: number;
 } | null = null;
 
-const USER_CACHE_DURATION = 30000; // 30 seconds
+const USER_CACHE_DURATION = 30000;
 
-// Fast user info getter
 const getUserInfo = () => {
   const now = Date.now();
 
@@ -46,7 +45,34 @@ const getUserInfo = () => {
   }
 };
 
-// Check if endpoint is protected
+// ✅ YENİ: Google Translate-dən seçilmiş dili al
+const getSelectedLanguage = (): string => {
+  // 1. Əvvəlcə localStorage-dan Google Translate dilini yoxla
+  const googleLang = localStorage.getItem('selectedGoogleLangCode');
+  if (googleLang && ['az', 'en', 'ru', 'tr'].includes(googleLang)) {
+    return googleLang;
+  }
+  
+  // 2. Cookie-dən googtrans yoxla
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'googtrans' && value) {
+      // Format: /en/az veya /en/ru
+      const parts = value.split('/');
+      if (parts.length >= 3) {
+        const targetLang = parts[2];
+        if (['az', 'en', 'ru', 'tr'].includes(targetLang)) {
+          return targetLang;
+        }
+      }
+    }
+  }
+  
+  // 3. Default: en
+  return 'en';
+};
+
 const isProtectedEndpoint = (api: string): boolean => {
   return api.includes('/favorites') ||
       api.includes('/basket_items') ||
@@ -54,14 +80,15 @@ const isProtectedEndpoint = (api: string): boolean => {
       api.includes('/user');
 };
 
-// Main GETRequest hook
 export default function GETRequest<T>(
     api: string,
     querykey: string,
     dependencies: any[] = [],
     params?: Record<string, any>
 ) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  // ✅ DÜZƏLDİLDİ: Default 'en' və Google Translate dilini istifadə et
+  const { lang: urlLang } = useParams<{ lang: string }>();
+  const lang = urlLang || getSelectedLanguage();
 
   const isProtected = useMemo(() => isProtectedEndpoint(api), [api]);
   const userInfo = useMemo(() => getUserInfo(), []);
@@ -71,7 +98,7 @@ export default function GETRequest<T>(
   );
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery<T>({
-    queryKey: [querykey, ...dependencies, params],
+    queryKey: [querykey, ...dependencies, params, lang], // ✅ lang əlavə edildi
     queryFn: async () => {
       if (shouldSkipQuery) {
         return null as unknown as T;
@@ -92,13 +119,13 @@ export default function GETRequest<T>(
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: (failureCount, error) => {
       if (axios.isAxiosError(error)) {
         const status = error.response?.status;
         if (status && status >= 400 && status < 500) {
-          return false; // Don't retry 4xx errors
+          return false;
         }
       }
       return failureCount < 2;
@@ -119,18 +146,19 @@ export default function GETRequest<T>(
   };
 }
 
-// Fast request hook for critical data
 export function useFastRequest<T>(
     api: string,
     querykey: string,
     dependencies: any[] = [],
     params?: Record<string, any>
 ) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  // ✅ DÜZƏLDİLDİ: Default 'en' və Google Translate dilini istifadə et
+  const { lang: urlLang } = useParams<{ lang: string }>();
+  const lang = urlLang || getSelectedLanguage();
   const userInfo = getUserInfo();
 
   return useQuery<T>({
-    queryKey: [querykey, ...dependencies, params],
+    queryKey: [querykey, ...dependencies, params, lang], // ✅ lang əlavə edildi
     queryFn: async () => {
       const response = await axiosInstance.get<T>(api, {
         headers: {
@@ -141,22 +169,25 @@ export function useFastRequest<T>(
       });
       return response.data;
     },
-    staleTime: 30000, // 30 seconds
-    gcTime: 60000, // 1 minute
+    staleTime: 30000,
+    gcTime: 60000,
     retry: 1,
     refetchOnMount: true,
   });
 }
 
-// Mutation helper
 export const createMutation = (
     method: 'post' | 'put' | 'delete' | 'patch',
     api: string
 ) => {
   return async (data?: any) => {
     const userInfo = getUserInfo();
+    // ✅ YENİ: Mutation-larda da düzgün dili istifadə et
+    const lang = getSelectedLanguage();
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Accept-Language': lang,
     };
 
     if (userInfo.token) {
@@ -168,7 +199,9 @@ export const createMutation = (
   };
 };
 
-// Clear user cache utility
 export const clearUserCache = () => {
   userInfoCache = null;
 };
+
+// ✅ YENİ: Export et ki, başqa fayllardan da istifadə oluna bilsin
+export { getSelectedLanguage };

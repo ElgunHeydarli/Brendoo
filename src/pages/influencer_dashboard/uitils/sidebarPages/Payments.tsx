@@ -177,7 +177,7 @@ const Payments: React.FC = () => {
                     ?.filter((item) => item.amount !== null)
                     ?.map((p, idx) => (
                       <div className="input-checkbox-content" key={idx}>
-                        <label htmlFor={p?.type}>{p?.amount} Rubl</label>
+                        <label htmlFor={p?.type}>{p?.amount} ₼</label>
                         <input
                           type="checkbox"
                           id={p?.type}
@@ -247,8 +247,8 @@ const Payments: React.FC = () => {
                           <td>{item.influencer ?? "—"}</td>
                           <td>
                             <div className="all-pays">
-                              <img src="/rubl.svg" alt="rubl" />
-                              <p>{item.amount ?? "—"} Rubl</p>
+                              <img src="/₼.svg" alt="₼" />
+                              <p>{item.amount ?? "—"} ₼</p>
                             </div>
                           </td>
                           <td>{item.balance_type ?? "—"}</td>
@@ -279,8 +279,8 @@ const Payments: React.FC = () => {
           <div className="title-content">
             <div className="left-titles">
               <div className="pay-title">
-                <img src="/rubl.svg" alt="ruble" />
-                <p>{amountDatas?.totalBalance ?? 0} Rubl</p>
+                <img src="/₼.svg" alt="₼e" />
+                <p>{amountDatas?.totalBalance ?? 0} ₼</p>
               </div>
               <span>{translation?.odenilecek_mebleg ?? ""}</span>
             </div>
@@ -326,8 +326,8 @@ const Payments: React.FC = () => {
                         <tr key={data.id}>
                           <td>
                             <div className="all-pays">
-                              <img src="/rubl.svg" alt="rubl" />
-                              <p>{data?.amount} Rubl</p>
+                              <img src="/₼.svg" alt="₼" />
+                              <p>{data?.amount} ₼</p>
                             </div>
                           </td>
                           <td>{data?.earningReason ?? ""}</td>

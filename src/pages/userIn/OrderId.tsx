@@ -330,7 +330,7 @@ export default function OrderId() {
                         {tarnslation?.Məhsul_məbləği}:
                       </div>
                       <div className="font-medium text-center text-black">
-                        {Order?.total_price}₽
+                        {Order?.total_price}₼
                       </div>
                     </div>
                     <div className="shrink-0 mt-5 h-px border border-solid border-zinc-300 max-md:max-w-full" />
@@ -339,7 +339,7 @@ export default function OrderId() {
                         {tarnslation?.Endirim}:
                       </div>
                       <div className="font-medium text-center text-black">
-                        {Order?.discount} ₽
+                        {Order?.discount} ₼
                       </div>
                     </div>
                     <div className="shrink-0 mt-5 h-px border border-solid border-zinc-300 max-md:max-w-full" />
@@ -349,7 +349,7 @@ export default function OrderId() {
                         {tarnslation?.Ümumi_məbləğ}:
                       </div>
                       <div className="text-lg font-semibold text-center text-green-500">
-                        {Order?.final_price}₽
+                        {Order?.final_price}₼
                       </div>
                     </div>
                   </div>

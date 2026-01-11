@@ -92,7 +92,7 @@ export default function ProductSwipper2() {
                                             qalın pencək
                                         </div>
                                         <div className="mt-3 font-semibold">
-                                            298 ₽
+                                            298 ₼
                                         </div>
                                     </div>
                                 </div>

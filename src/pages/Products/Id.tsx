@@ -4,955 +4,747 @@ import ProductCard from '../../components/ProductCArd';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import GETRequest, { axiosInstance } from '../../setting/Request';
 import { GiHanger } from 'react-icons/gi';
-import {
-  Basket,
-  Favorite,
-  Product,
-  ProductDetail,
-  TranslationsKeys,
-} from '../../setting/Types';
+import { FiHeart, FiCheck, FiX, FiChevronLeft, FiChevronRight, FiPlay } from 'react-icons/fi';
+import { Basket, Favorite, Product, ProductDetail, TranslationsKeys } from '../../setting/Types';
 import Loading from '../../components/Loading';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import ROUTES from '../../setting/routes';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Helmet } from 'react-helmet-async';
-import ProductGallery from '../../components/product-gallery';
 import { useQueryClient } from '@tanstack/react-query';
-import { FaRubleSign } from 'react-icons/fa';
-import ProductFilters from './ProductFilters';
 import SelectSizeSidebar from './SelectSizeSidebar';
-import { Navigation, Pagination } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
-// function extractData(input: string) {
-//   const match = input.match(/(\d+)% \((\d+)\)/);
-//   if (match) {
-//     const [, procent, users] = match;
-//     return {
-//       procent: parseInt(procent, 10),
-//       users: parseInt(users, 10),
-//     };
-//   }
-//   return null;
-// }
+import SEO from '../../components/SEO';
 
-/* =======================
-   GUEST CART HELPERS
-   ======================= */
 const GUEST_CART_KEY = 'guest_cart';
+const API_URL = 'https://admin.brendoo.com';
 
-type GuestCartItem = {
-  id: number;
-  product: ProductDetail;
-  quantity: number;
-  price: string;
-  options: { filter: string; option: string }[];
+type GuestCartItem = { 
+  id: number; 
+  product: ProductDetail; 
+  quantity: number; 
+  price: string; 
+  options: { filter: string; option: string }[] 
 };
 
-type GuestCart = {
-  basket_items: GuestCartItem[];
-  total_price: number;
-  discount: number;
-  final_price: number;
+type GuestCart = { 
+  basket_items: GuestCartItem[]; 
+  total_price: number; 
+  discount: number; 
+  final_price: number 
 };
 
 const getGuestCart = (): GuestCart => {
-  try {
-    return JSON.parse(
-      localStorage.getItem(GUEST_CART_KEY) ||
-        '{"basket_items": [], "total_price": 0, "discount": 0, "final_price": 0}',
-    );
-  } catch {
-    return { basket_items: [], total_price: 0, discount: 0, final_price: 0 };
+  try { 
+    return JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '{"basket_items":[],"total_price":0,"discount":0,"final_price":0}'); 
+  } catch { 
+    return { basket_items: [], total_price: 0, discount: 0, final_price: 0 }; 
   }
 };
 
 const setGuestCart = (cart: GuestCart) => {
   localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+  window.dispatchEvent(new Event('guest_cart_updated'));
 };
 
-// const sameLine = (a: GuestCartItem, b: GuestCartItem) => {
-//   if (a.product_id !== b.product_id) return false;
-//   // yalnız bir ölçü (Size/Ölçü/Размер) üzrə müqayisə kifayətdir
-//   const ao = a.options?.[0];
-//   const bo = b.options?.[0];
-//   if (!ao || !bo) return false;
-//   return ao.filter_id === bo.filter_id && ao.option_id === bo.option_id;
-// };
+const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.png';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) return API_URL + src;
+  return '/placeholder.png';
+};
+
+const getVideoUrl = (src: string | null | undefined): string | null => {
+  if (!src) return null;
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) return API_URL + src;
+  return `${API_URL}/storage/${src}`;
+};
+
+
 
 export default function ProductId() {
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [notifyOptionId, setNotifyOptionId] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [selectedSize, setSelectedSize] = useState<{ id: number; name: string } | null>(null);
+  const [selectedColor, setSelectedColor] = useState<{ id: number; name: string; code?: string; price?: number } | null>(null);
+  const [isInStock, setIsInStock] = useState<boolean>(true);
+  const [isliked, setisliked] = useState<boolean>(false);
+  const [isinbusked, setisinbusked] = useState<boolean>(false);
+  const [openSideBar, setOpenSideBar] = useState(false);
+  const [activeTab, setActiveTab] = useState<'description' | 'details'>('description');
+  const [showVideo, setShowVideo] = useState(false);
+  
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const similarScrollRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const collectionId = localStorage.getItem('collection_id') || '';
-  const { lang = 'ru', slug } = useParams<{ lang: string; slug: string }>();
-
+  const { lang = 'en', slug } = useParams<{ lang: string; slug: string }>();
   const userStr = localStorage.getItem('user-info');
   const parse = userStr ? JSON.parse(userStr) : null;
   const token = parse?.token;
+  const collectionId = localStorage.getItem('collection_id') || '';
 
-  const { data: Productslingle, isLoading: ProductslingleLoading } =
-    GETRequest<ProductDetail>(`/productSingle/${slug}`, 'productSingle', [lang, slug]);
-
-  const { data: tarnslation, isLoading: tarnslationLoading } =
-    GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
-
-  // oxşar məhsullar
-  const [similarProducts, setSimilarProducts] = React.useState<Product[]>([]);
-  const fetchSimilarProducts = async () => {
-    try {
-      const res = await axios.get(
-        `https://admin.brendoo.com/api/more-products/${Productslingle?.id}`,
-        { headers: { 'Accept-Language': lang || 'ru' } },
-      );
-      if (res.data) setSimilarProducts(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  React.useEffect(() => {
-    if (slug && Productslingle?.id) {
-      fetchSimilarProducts();
-    }
-  }, [Productslingle?.id, slug]);
-
-  const [currentColor, setCurrentColor] = useState<string>('');
-  const [currentOption, setCurrentOption] = useState<
-    { filter_name: string; optionName: string; optionId: number }[]
-  >([{ filter_name: '', optionName: '', optionId: 0 }]);
-
-  const [isliked, setisliked] = useState<boolean>(false);
-  const [isinbusked, setisinbusked] = useState<boolean>(false);
-  const [IsSizeBarOpen, setIsSizeBarOpen] = useState<boolean>(false);
-  const [openSideBar, setOpenSideBar] = useState(false);
-
+  const { data: Productslingle, isLoading: ProductslingleLoading } = GETRequest<ProductDetail>(`/productSingle/${slug}`, 'productSingle', [lang, slug]);
+  const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
   const { data: favorites } = GETRequest<Favorite[]>(`/favorites`, 'favorites', [lang]);
-  const [isInStock, setIsInStock] = useState<boolean | null>(null);
   const { data: basked } = GETRequest<Basket>(`/basket_items`, 'basket_items', [lang]);
 
-  const checkLikedProducts = () => {
-    if (favorites?.some(item => item?.product?.id === Productslingle?.id)) {
-      setisliked(true);
-    } else {
-      setisliked(false);
-    }
-  };
-
   const queryClient = useQueryClient();
-
-  // SƏBƏTDƏ OLUB-OLMAMA (server + guest cart)
-  useEffect(() => {
-    let includes = false;
-
-    // server səbəti (loginli)
-    if (basked && Productslingle) {
-      const selectedSize = currentOption.find(option =>
-        ['Size', 'Ölçü', 'Размер'].includes(option.filter_name),
-      );
-      for (const item of basked.basket_items) {
-        if (
-          item.product?.id === Productslingle.id &&
-          item.options?.some(
-            (opt: any) => opt.option?.option_id === selectedSize?.optionId,
-          )
-        ) {
-          includes = true;
-          break;
-        }
-      }
-    }
-
-    if (!userStr && Productslingle && !includes) {
-      const cart = getGuestCart(); // { basket_items: [...] }
-
-      const sizeFilter = Productslingle.filters?.find((f: any) =>
-        ['Size', 'Ölçü', 'Размер'].includes(f.filter_name),
-      );
-
-      const selectedSize = currentOption.find(o =>
-        ['Size', 'Ölçü', 'Размер'].includes(o.filter_name),
-      );
-
-      if (sizeFilter && selectedSize) {
-        const exists = cart.basket_items?.some(
-          ci =>
-            ci.product.id === Productslingle.id &&
-            ci.options?.some(
-              o =>
-                o.filter === sizeFilter.filter_name &&
-                o.option === selectedSize.optionName,
-            ),
-        );
-
-        if (exists) includes = true;
-      }
-    }
-
-    setisinbusked(includes);
-  }, [basked, Productslingle, currentOption, userStr]);
-
-  // favorit ilkin yoxlama
-  useEffect(() => {
-    checkLikedProducts();
-  }, [favorites]);
-
-  // stok modal
-  useEffect(() => {
-    if (isInStock === false) setIsModalOpen(true);
-    else if (isInStock === true) setIsModalOpen(false);
-  }, [isInStock]);
-
-  // default opsionlar
-  useEffect(() => {
-    if (!Productslingle?.filters) return;
-
-    const colorFilter = Productslingle.filters.find(
-      item => item.filter_name === 'Color' || item.filter_name === 'Цвет',
-    );
-    const defaultColorOption = colorFilter?.options.find(option => option.is_default);
-    if (defaultColorOption) setCurrentColor(defaultColorOption.name);
-
-    const otherFilters = Productslingle?.filters.filter(
-      item => item.filter_name !== 'Color' && item.filter_name !== 'Цвет',
-    );
-
-    const defaults: { filter_name: string; optionName: string; optionId: number }[] =
-      [];
-    otherFilters.forEach(filter => {
-      const def = filter.options.find(item => item.is_default);
-      if (def) {
-        defaults.push({
-          filter_name: filter.filter_name,
-          optionName: def.name,
-          optionId: +def.option_id,
-        });
-      }
-    });
-    if (defaults.length > 0) setCurrentOption(defaults);
-  }, [Productslingle]);
-
-  const handleOptionSelect = (
-    filterName: string,
-    optionName: string,
-    optionId: number,
-  ) => {
-    const updated = currentOption.filter(option => option.filter_name !== filterName);
-    updated.push({ filter_name: filterName, optionName, optionId });
-    setCurrentOption(updated);
-
-    if (!isInStock) {
-      setNotifyOptionId(optionId);
-    }
-  };
-
-  const isOptionSelected = (filterName: string, optionName: string): boolean =>
-    currentOption.some(
-      o => o.filter_name === filterName && o.optionName === optionName,
-    );
-
-  // SERVERƏ SƏBƏTƏ ƏLAVƏ ET (loginli üçün)
-  const addToBasket = async (data: {
-    product_id: number;
-    quantity: number;
-    price: number;
-    token: string;
-    options: { filter_id: number; option_id: number | undefined }[];
-    collection_id?: string;
-  }) => {
-    const req_body = {
-      product_id: data.product_id,
-      quantity: data.quantity,
-      price: data.price,
-      options: data.options,
-      collection_id: collectionId,
-    };
-    const req_body_none_collection_id = {
-      product_id: data.product_id,
-      quantity: data.quantity,
-      price: data.price,
-      options: data.options,
-    };
-
-    const response = await axios.post(
-      'https://admin.brendoo.com/api/basket_items',
-      collectionId?.length > 0 ? req_body : req_body_none_collection_id,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Accept-Language': lang || 'ru',
-        },
-      },
-    );
-    if (collectionId && collectionId?.length > 0)
-      localStorage.removeItem('collection_id');
-    return response.data;
-  };
-
-  // LOGIN OLMADAN da SƏBƏTƏ AT
-  const handleAddToBasket = async () => {
-    if (!Productslingle) return;
-
-    // 1) ölçü seçilibmi?
-    const sizeFilter = Productslingle.filters?.find((filter: any) =>
-      ['Size', 'Ölçü', 'Размер'].includes(filter.filter_name),
-    );
-    const selectedSize = currentOption.find(option =>
-      ['Size', 'Ölçü', 'Размер'].includes(option.filter_name),
-    );
-    if (!selectedSize) {
-      toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin');
-      return;
-    }
-
-    // 2) seçilən ölçü stokdadırmı?
-    const selectedFilter = sizeFilter?.options.find(
-      (option: any) => option.name === selectedSize.optionName,
-    );
-    if (!selectedFilter || !selectedFilter.is_stock) {
-      toast.error(tarnslation?.bu_olcude_stokda_yox || 'Bu ölçü stokda yoxdur');
-      return;
-    }
-
-    const optionsForApi = [
-      { filter_id: sizeFilter!.filter_id, option_id: selectedFilter.option_id },
-    ];
-
-    console.log(optionsForApi);
-
-    // 3) LOGIN YOXDUR → guest_cart (localStorage)
-
-    if (!userStr) {
-      const currentCart = getGuestCart();
-
-      const price = +Productslingle.discounted_price || +Productslingle.price;
-      const quantity = 1;
-
-      const line: GuestCartItem = {
-        id: Productslingle.id,
-        product: Productslingle,
-        quantity,
-        price: price.toFixed(2),
-        options: optionsForApi.map((opt: any) => ({
-          filter: opt.filter_id, // backend-dən gələn filter adı
-          option: opt.option_id, // backend-dən gələn option adı
-        })),
-      };
-
-      const idx = currentCart.basket_items.findIndex(item => {
-        if (item.id !== line.id) return false;
-
-        const sizeOptA = item.options.find(o =>
-          ['Size', 'Ölçü', 'Размер'].includes(o.filter.toString()),
-        );
-        const sizeOptB = line.options.find(o =>
-          ['Size', 'Ölçü', 'Размер'].includes(o.filter.toString()),
-        );
-
-        return sizeOptA?.option === sizeOptB?.option;
-      });
-
-      if (idx === -1) {
-        currentCart.basket_items.push(line);
-      } else {
-        currentCart.basket_items[idx].quantity += 1;
-      }
-
-      let total_price = 0;
-      let discount = 0;
-      let final_price = 0;
-
-      currentCart.basket_items.forEach(item => {
-        const original = +item.product.price;
-        const discounted = +item.product.discounted_price;
-
-        total_price += original * item.quantity;
-        discount += (original - discounted) * item.quantity;
-        final_price += discounted * item.quantity;
-      });
-
-      currentCart.total_price = total_price;
-      currentCart.discount = discount;
-      currentCart.final_price = final_price;
-
-      // localStorage-yə yaz
-      setGuestCart(currentCart);
-
-      setisinbusked(true);
-      toast.success(tarnslation?.mehsul_added ?? '');
-      return;
-    }
-
-    // 4) LOGIN VAR → serverə POST
-    try {
-      if (collectionId && collectionId?.length > 0) {
-        await addToBasket({
-          product_id: Productslingle.id,
-          price: +Productslingle?.price,
-          quantity: 1,
-          token: token,
-          options: optionsForApi,
-          collection_id: collectionId,
-        });
-      } else {
-        await addToBasket({
-          product_id: Productslingle.id,
-          price: +Productslingle?.price,
-          quantity: 1,
-          token: token,
-          options: optionsForApi,
-        });
-      }
-
-      toast.success(tarnslation?.handle_added || '');
-      queryClient.invalidateQueries({ queryKey: ['basket_items'] });
-      setisinbusked(true);
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
-      toast.error('Error');
-    }
-  };
-
-  const handleNotifyMe = async () => {
-    try {
-      if (!notifyOptionId) return;
-
-      await axiosInstance.post(
-        '/notify-me',
-        {
-          product_id: Productslingle?.id,
-          option_id: notifyOptionId,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      toast.success(tarnslation?.Notification_is_success ?? '');
-      setIsModalOpen(false);
-    } catch (error) {
-      toast.error(tarnslation?.Notification_is_Error ?? '');
-    }
-  };
-
   const navigate = useNavigate();
 
-  // disable şərtini ölçünün faktiki seçiminə bağlayaq
-  const hasSize = currentOption.some(o =>
-    ['Size', 'Ölçü', 'Размер'].includes(o.filter_name),
-  );
-  const isAddToBasketDisabled = !isInStock || !hasSize;
+  const productVideo = useMemo(() => {
+    return getVideoUrl(Productslingle?.video);
+  }, [Productslingle?.video]);
 
-  const [favicon, setFavicon] = React.useState<{ image: string }>({ image: '' });
-  const [faviconLoading, setFaviconLoading] = React.useState<boolean>(false);
-  const getFavicon = async () => {
-    setFaviconLoading(true);
-    try {
-      const res = await axios.get('https://admin.brendoo.com/api/favicon');
-      if (res.data?.image) {
-        setFavicon({ image: res.data.image });
+  const productImages = useMemo(() => {
+    const images: string[] = [];
+    const addedFileNames = new Set<string>();
+    
+    // Fayl adını çıxar - güclü deduplikasiya
+    const getFileName = (url: string): string => {
+      if (!url) return '';
+      // Query params sil
+      const cleanUrl = url.split('?')[0];
+      // Son slash-ları sil
+      const trimmed = cleanUrl.replace(/\/+$/, '');
+      // Fayl adını al
+      const parts = trimmed.split('/');
+      const fileName = parts[parts.length - 1] || '';
+      // Extension-sız fayl adı (bəzi şəkillər .jpg, bəziləri .jpeg ola bilər)
+      const nameWithoutExt = fileName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '').toLowerCase();
+      return nameWithoutExt;
+    };
+    
+    const addImage = (img: string | null | undefined) => {
+      if (!img) return;
+      if (!img.startsWith('http') && !img.startsWith('/storage/')) return;
+      if (img.includes('placeholder')) return;
+      
+      const fileName = getFileName(img);
+      
+      // Çox qısa və ya boş fayl adlarını keç
+      if (!fileName || fileName.length < 3) return;
+      
+      // Artıq əlavə edilib?
+      if (addedFileNames.has(fileName)) return;
+      
+      addedFileNames.add(fileName);
+      images.push(img);
+    };
+    
+    if (Productslingle) {
+      // Əsas şəkil
+      addImage(Productslingle.image);
+      
+      // Slider şəkilləri
+      if (Productslingle.sliders && Array.isArray(Productslingle.sliders)) {
+        Productslingle.sliders.forEach(item => addImage(item?.image));
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setFaviconLoading(false);
+      
+      // Variant şəkilləri
+      if (Productslingle.variants && Array.isArray(Productslingle.variants)) {
+        Productslingle.variants.forEach(v => addImage(v?.image));
+      }
+      
+      // Thumbnail (əgər heç şəkil yoxdursa)
+      if (images.length === 0 && Productslingle.thumbnail) {
+        addImage(Productslingle.thumbnail);
+      }
+      
+      // Description-dan şəkilləri ƏLAVƏ ETMƏ - çox təkrar olur
+      // Bu hissə silinib
     }
-  };
+    
+    if (images.length === 0) images.push('/placeholder.png');
+    return images;
+  }, [Productslingle]);
 
-  React.useEffect(() => {
-    getFavicon();
+  const safeImageIndex = useMemo(() => {
+    if (selectedImageIndex >= productImages.length) return 0;
+    if (selectedImageIndex < 0) return 0;
+    return selectedImageIndex;
+  }, [selectedImageIndex, productImages.length]);
+
+  const { sizeFilter, colorFilter, otherFilters } = useMemo(() => {
+    const filters = Productslingle?.filters || [];
+    
+    const getUniqueOptions = (options: any[] | undefined) => {
+      if (!options) return [];
+      const seen = new Map();
+      return options.filter(opt => {
+        if (!opt) return false;
+        const key = opt.option_id || opt.name;
+        if (seen.has(key)) return false;
+        seen.set(key, true);
+        return true;
+      });
+    };
+
+    const rawSizeFilter = filters.find(f => f?.filter_name && ['Size', 'Ölçü', 'Размер'].includes(f.filter_name));
+    const rawColorFilter = filters.find(f => f?.filter_name && ['Color', 'Rəng', 'Цвет'].includes(f.filter_name));
+    const rawOtherFilters = filters.filter(f => f?.filter_name && !['Size', 'Ölçü', 'Размер', 'Color', 'Rəng', 'Цвет'].includes(f.filter_name));
+
+    return {
+      sizeFilter: rawSizeFilter ? { ...rawSizeFilter, options: getUniqueOptions(rawSizeFilter.options) } : undefined,
+      colorFilter: rawColorFilter ? { ...rawColorFilter, options: getUniqueOptions(rawColorFilter.options) } : undefined,
+      otherFilters: rawOtherFilters.map(f => ({ ...f, options: getUniqueOptions(f?.options) }))
+    };
+  }, [Productslingle?.filters]);
+
+  useEffect(() => {
+    if (Productslingle?.id) {
+      axios.get(`${API_URL}/api/more-products/${Productslingle.id}`, { headers: { 'Accept-Language': lang } })
+        .then(res => { if (Array.isArray(res.data)) setSimilarProducts(res.data.filter(p => p && p.id)); })
+        .catch(() => setSimilarProducts([]));
+    }
+  }, [Productslingle?.id, lang]);
+
+  useEffect(() => {
+    if (!sizeFilter || !sizeFilter.options?.length) {
+      setSelectedSize({ id: 0, name: 'Standart' });
+      setIsInStock(Productslingle?.is_stock !== false);
+      return;
+    }
+    const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
+    if (def) { setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); setIsInStock(!!def.is_stock); }
+    if (colorFilter?.options?.length) {
+      const defColor = colorFilter.options.find(o => o?.is_default) || colorFilter.options[0];
+      if (defColor) setSelectedColor({ id: defColor.option_id, name: defColor.name || '', code: defColor.color_code || undefined });
+    }
+  }, [sizeFilter, colorFilter, Productslingle?.is_stock]);
+
+  useEffect(() => { setisliked(favorites?.some(item => item?.product?.id === Productslingle?.id) || false); }, [favorites, Productslingle?.id]);
+
+  useEffect(() => {
+    if (!Productslingle || !selectedSize) { setisinbusked(false); return; }
+    if (userStr && basked?.basket_items) {
+      const found = basked.basket_items.some(item => {
+        if (item?.product?.id !== Productslingle.id) return false;
+        if (selectedSize.id === 0) return !item.options || item.options.length === 0;
+        return item.options?.some((opt: any) => opt?.option?.option_id === selectedSize.id || String(opt?.option) === String(selectedSize.id));
+      });
+      setisinbusked(found);
+      return;
+    }
+    if (!userStr) {
+      const cart = getGuestCart();
+      const found = cart.basket_items.some(ci => {
+        if (ci?.product?.id !== Productslingle.id) return false;
+        if (selectedSize.id === 0) return !ci.options || ci.options.length === 0;
+        return ci.options?.some(o => String(o?.option) === String(selectedSize.id));
+      });
+      setisinbusked(found);
+    }
+  }, [basked, Productslingle, selectedSize, userStr]);
+
+  useEffect(() => { 
+    setSelectedImageIndex(0); 
+    setShowVideo(false);
+  }, [Productslingle?.id]);
+
+  useEffect(() => {
+    if (!showVideo && videoRef.current) {
+      videoRef.current.pause();
+    }
+  }, [showVideo]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    setZoomPosition({ x: ((e.clientX - rect.left) / rect.width) * 100, y: ((e.clientY - rect.top) / rect.height) * 100 });
   }, []);
 
-  const changeFavicon = (faviconURL: string) => {
-    let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
+  const scrollSimilar = useCallback((dir: 'left' | 'right') => {
+    similarScrollRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' });
+  }, []);
+
+  const handleSizeSelect = useCallback((option: any) => {
+    if (!option) return;
+    setSelectedSize({ id: option.option_id, name: option.name || 'Unknown' });
+    setIsInStock(!!option.is_stock);
+    if (!option.is_stock) setNotifyOptionId(option.option_id);
+  }, []);
+
+  const handleColorSelect = useCallback((option: any, variantPrice?: number, variantImage?: string | null) => {
+    if (!option) return;
+    setSelectedColor({ id: option.option_id, name: option.name || '', code: option.color_code || undefined, price: variantPrice });
+    if (variantImage && productImages.length > 0) {
+      const normalizedVariant = variantImage.split('?')[0].replace(/\/+$/, '').toLowerCase();
+      const imgIdx = productImages.findIndex(img => {
+        const normalizedImg = img.split('?')[0].replace(/\/+$/, '').toLowerCase();
+        return normalizedImg === normalizedVariant || normalizedImg.includes(normalizedVariant.split('/').pop() || '___');
+      });
+      if (imgIdx >= 0 && imgIdx < productImages.length) {
+        setSelectedImageIndex(imgIdx);
+        setShowVideo(false);
+      }
     }
-    link.href = faviconURL;
+  }, [productImages]);
+
+  const handleAddToBasket = useCallback(async () => {
+    if (!Productslingle || !selectedSize) { toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin'); return; }
+    if (isAddingToCart || isinbusked) return;
+    if (selectedSize.id !== 0) {
+      const sizeOpt = sizeFilter?.options?.find(o => o?.option_id === selectedSize.id);
+      if (sizeOpt && !sizeOpt.is_stock) { toast.error(tarnslation?.bu_olcude_stokda_yox || 'Bu ölçü stokda yoxdur'); return; }
+    }
+    setIsAddingToCart(true);
+    const options = (sizeFilter && selectedSize.id !== 0) ? [{ filter_id: sizeFilter.filter_id, option_id: selectedSize.id }] : [];
+
+    if (!userStr) {
+      try {
+        const cart = getGuestCart();
+        const price = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+        const idx = cart.basket_items.findIndex(i => {
+          if (i?.id !== Productslingle.id) return false;
+          if (selectedSize.id === 0) return !i.options || i.options.length === 0;
+          return i.options?.some(o => o?.option === String(selectedSize.id));
+        });
+        if (idx === -1) {
+          cart.basket_items.push({ id: Productslingle.id, product: Productslingle, quantity, price: price.toFixed(2), options: options.map(o => ({ filter: String(o.filter_id), option: String(o.option_id) })) });
+        } else { cart.basket_items[idx].quantity += quantity; }
+        let total = 0, discount = 0, final = 0;
+        cart.basket_items.forEach(i => { const orig = Number(i?.product?.price) || 0; const disc = Number(i?.product?.discounted_price) || orig; total += orig * (i?.quantity || 1); discount += (orig - disc) * (i?.quantity || 1); final += disc * (i?.quantity || 1); });
+        cart.total_price = total; cart.discount = discount; cart.final_price = final;
+        setGuestCart(cart);
+        setisinbusked(true);
+        toast.success(tarnslation?.mehsul_added ?? 'Əlavə edildi');
+      } catch { toast.error('Xəta baş verdi'); }
+      finally { setIsAddingToCart(false); }
+      return;
+    }
+
+    try {
+      await axios.post(`${API_URL}/api/basket_items`, { product_id: Productslingle.id, quantity, price: Number(Productslingle.price) || 0, options, ...(collectionId?.length && { collection_id: collectionId }) }, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
+      if (collectionId) localStorage.removeItem('collection_id');
+      setisinbusked(true);
+      toast.success(tarnslation?.handle_added || 'Əlavə edildi');
+      queryClient.invalidateQueries({ queryKey: ['basket_items'] });
+    } catch { toast.error('Xəta'); }
+    finally { setIsAddingToCart(false); }
+  }, [Productslingle, selectedSize, sizeFilter, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked]);
+
+  const handleNotifyMe = useCallback(async () => {
+    if (!notifyOptionId || !Productslingle?.id) return;
+    try {
+      await axiosInstance.post('/notify-me', { product_id: Productslingle.id, option_id: notifyOptionId }, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success(tarnslation?.Notification_is_success ?? 'Bildiriş qeydə alındı');
+      setIsModalOpen(false);
+    } catch { toast.error(tarnslation?.Notification_is_Error ?? 'Xəta'); }
+  }, [notifyOptionId, Productslingle?.id, token, tarnslation]);
+
+  const toggleFavorite = useCallback(async () => {
+    if (!userStr) return navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`);
+    if (isTogglingFavorite || !Productslingle?.id) return;
+    setIsTogglingFavorite(true);
+    try {
+      await axiosInstance.post('/favorites/toggleFavorite', { product_id: Productslingle.id }, { headers: { Authorization: `Bearer ${token}` } });
+      setisliked(prev => !prev);
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      window.dispatchEvent(new Event('favorites_updated'));
+    } catch { }
+    finally { setIsTogglingFavorite(false); }
+  }, [userStr, lang, navigate, Productslingle?.id, token, queryClient, isTogglingFavorite]);
+
+  const goToPrevImage = () => {
+    if (showVideo) {
+      setShowVideo(false);
+      setSelectedImageIndex(productImages.length - 1);
+    } else if (selectedImageIndex === 0 && productVideo) {
+      setShowVideo(true);
+    } else {
+      setSelectedImageIndex(prev => prev === 0 ? productImages.length - 1 : prev - 1);
+    }
   };
 
-  const haslogo =
-    favicon && favicon?.image && favicon?.image?.length > 0 ? favicon?.image : '';
+  const goToNextImage = () => {
+    if (showVideo) {
+      setShowVideo(false);
+      setSelectedImageIndex(0);
+    } else if (selectedImageIndex === productImages.length - 1 && productVideo) {
+      setShowVideo(true);
+    } else {
+      setSelectedImageIndex(prev => prev === productImages.length - 1 ? 0 : prev + 1);
+    }
+  };
 
-  React.useEffect(() => {
-    changeFavicon(haslogo);
-  }, [favicon, haslogo]);
-
-  if (ProductslingleLoading || tarnslationLoading || faviconLoading) {
-    return <Loading />;
+  if (ProductslingleLoading || tarnslationLoading) return <Loading />;
+  
+  if (!Productslingle) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Məhsul tapılmadı</h1>
+          <Link to={`/${lang}`} className="text-blue-600 hover:underline">Ana səhifəyə qayıt</Link>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div className="">
-      <Helmet>
-        <title>{Productslingle?.meta_title || 'My Page Title'}</title>
-        <meta
-          name="description"
-          content={Productslingle?.meta_description || 'This is the page description'}
-        />
-        <meta
-          name="keywords"
-          content={Productslingle?.meta_keywords || 'keyword1, keyword2, keyword3'}
-        />
-      </Helmet>
-      <Header />
-      <main className=" lg:mt-[54px] mt-0 max-sm:mt-3">
-        <div className="px-[40px] max-sm:px-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Link
-              reloadDocument
-              to={`/${lang}/${ROUTES.home[lang as keyof typeof ROUTES.product]}`}
-            >
-              <h6 className="text-nowrap self-stretch max-sm:text-[12px] my-auto text-black hover:text-blue-600">
-                {tarnslation?.home}
-              </h6>
-            </Link>
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/64bb3b3dae771cd265db1accd95aa96f30bd9da3da88a57867743da53bebc0eb?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-              className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
-            />
+  const cleanDescription = Productslingle.description?.replace(/<img[^>]*>/gi, '') || '';
+  const filteredSimilar = similarProducts.filter(p => p && p.id && p.id !== Productslingle.id).slice(0, 15);
+  const currentImage = productImages[safeImageIndex] || productImages[0] || '/placeholder.png';
+  const displayPrice = selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0;
+  const originalPrice = Productslingle.price || 0;
+  const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
+  const totalMediaCount = productImages.length + (productVideo ? 1 : 0);
+  
+  // Dots üçün: maksimum 5 dot göstər
+  const maxDots = 5;
+  const remainingCount = productImages.length > maxDots ? productImages.length - maxDots : 0;
 
-            <Link
-              reloadDocument
-              to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}`}
-            >
-              <h6 className="self-stretch  max-sm:text-[12px] my-auto hover:text-blue-600">
-                {tarnslation?.Məhsullar}
-              </h6>
-            </Link>
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/64bb3b3dae771cd265db1accd95aa96f30bd9da3da88a57867743da53bebc0eb?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-              className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
-            />
-            <h6 className=" self-stretch  max-sm:text-[12px] my-auto">
-              {Productslingle?.title}
-            </h6>
+  return (
+    <div className="bg-white min-h-screen">
+      <SEO title={`${Productslingle.meta_title || Productslingle.title || 'Product'} | Brendoo`} description={Productslingle.meta_description || Productslingle.short_title || ''} image={getImageUrl(currentImage)} url={`https://brendoo.com/${lang}/product/${slug}`} type="product" price={String(displayPrice)} currency="AZN" availability={isInStock ? 'in stock' : 'out of stock'} />
+      <Header />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+          <Link to={`/${lang}`} className="hover:text-blue-600">{tarnslation?.home || 'Home'}</Link>
+          <span>/</span>
+          <Link to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}`} className="hover:text-blue-600">{tarnslation?.Məhsullar || 'Products'}</Link>
+          <span>/</span>
+          <span className="text-gray-700 truncate max-w-[200px]">{Productslingle.title || 'Product'}</span>
+        </nav>
+
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+          
+          <div className="lg:w-1/2 flex flex-col notranslate" translate="no">
+            <div className="relative mb-4">
+              {showVideo && productVideo ? (
+                <div className="relative bg-black rounded-2xl overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                  <video ref={videoRef} src={productVideo} controls playsInline autoPlay className="w-full h-full object-contain" poster={getImageUrl(currentImage)}>
+                    Brauzeriniz video dəstəkləmir.
+                  </video>
+                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1.5">
+                    <FiPlay className="w-4 h-4" />
+                    Video
+                  </div>
+                </div>
+              ) : (
+                <div 
+                  ref={imageContainerRef}
+                  className="relative bg-gray-50 rounded-2xl overflow-hidden cursor-zoom-in"
+                  style={{ aspectRatio: '1/1' }}
+                  onMouseEnter={() => setIsZoomed(true)} 
+                  onMouseLeave={() => setIsZoomed(false)} 
+                  onMouseMove={handleMouseMove}
+                  onClick={() => setIsLightboxOpen(true)}
+                >
+                  <img 
+                    src={getImageUrl(currentImage)} 
+                    alt={Productslingle.title || 'Product'}
+                    className={`w-full h-full object-contain transition-transform duration-300 ${isZoomed ? 'scale-[2]' : 'scale-100'}`}
+                    style={isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}}
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} 
+                  />
+                  
+                  <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-gray-600 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                    <span>{tarnslation?.zoom || 'Zoom'}</span>
+                  </div>
+
+                  {hasDiscount && (
+                    <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      -{Productslingle.discount}%
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button 
+                onClick={toggleFavorite} 
+                disabled={isTogglingFavorite}
+                className="absolute top-4 right-4 w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition z-10"
+              >
+                <FiHeart className={`w-5 h-5 ${isliked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+              </button>
+
+              {totalMediaCount > 1 && (
+                <>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); goToPrevImage(); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition z-10"
+                  >
+                    <FiChevronLeft className="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); goToNextImage(); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition z-10"
+                  >
+                    <FiChevronRight className="w-5 h-5 text-gray-700" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* DOTS SLIDER - Köhnə stil */}
+            {totalMediaCount > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-2">
+                {/* İlk 5 şəkil üçün dots */}
+                {productImages.slice(0, maxDots).map((_, idx) => (
+                  <button
+                    key={`dot-${idx}`}
+                    onClick={() => { setSelectedImageIndex(idx); setShowVideo(false); }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      !showVideo && safeImageIndex === idx 
+                        ? 'w-6 bg-gray-800' 
+                        : 'w-2 bg-gray-300 hover:bg-gray-400'
+                    }`}
+                    aria-label={`Image ${idx + 1}`}
+                  />
+                ))}
+                
+                {/* Əgər 5-dən çox şəkil varsa, +N göstər */}
+                {remainingCount > 0 && (
+                  <span className="text-sm text-gray-500 font-medium ml-1">
+                    +{remainingCount}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="lg:w-1/2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">{Productslingle.title || 'Product'}</h1>
+            <p className="text-sm text-gray-500 mb-4">SKU: {Productslingle.product_code || Productslingle.code || `PRD-${Productslingle.id}`}</p>
+
+            <div className="flex items-baseline gap-3 mb-6">
+              {selectedColor?.price ? (
+                <span className="text-3xl font-bold text-gray-900">{Number(selectedColor.price).toFixed(2)}₼</span>
+              ) : hasDiscount && Productslingle.discounted_price ? (
+                <>
+                  <span className="text-3xl font-bold text-blue-600">{Productslingle.discounted_price}₼</span>
+                  <span className="text-lg text-gray-400 line-through">{originalPrice}₼</span>
+                </>
+              ) : (
+                <span className="text-3xl font-bold text-gray-900">{Number(originalPrice).toFixed(2)}₼</span>
+              )}
+            </div>
+
+            {sizeFilter && sizeFilter.options && sizeFilter.options.length > 0 ? (
+              <div className="mb-5 notranslate" translate="no">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
+                  <span className="text-sm text-gray-500">( {selectedSize?.name || ''} )</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sizeFilter.options.map((option) => option && (
+                    <button 
+                      key={`size-${option.option_id}`} 
+                      onClick={() => handleSizeSelect(option)} 
+                      disabled={!option.is_stock}
+                      className={`min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium transition ${
+                        selectedSize?.id === option.option_id
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : option.is_stock 
+                            ? 'border-gray-300 hover:border-blue-400 text-gray-700' 
+                            : 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                      }`}
+                    >
+                      {option.name || 'Unknown'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
+                </div>
+                <button className="min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium border-blue-600 bg-blue-600 text-white cursor-default">
+                  {tarnslation?.standart || 'Standart'}
+                </button>
+              </div>
+            )}
+
+            {colorFilter && colorFilter.options && colorFilter.options.length > 0 && (
+              <div className="mb-5 notranslate" translate="no">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-gray-700">{tarnslation?.Rəng || 'Rəng'}</span>
+                  <span className="text-sm text-gray-500">( {selectedColor?.name || ''} )</span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {colorFilter.options.map((option) => {
+                    if (!option) return null;
+                    const variant = Productslingle.variants?.find(v => v?.color?.toLowerCase() === option.name?.toLowerCase() || v?.variantKey?.toLowerCase().includes(option.name?.toLowerCase() || ''));
+                    const variantImage = variant?.image || null;
+                    const variantPrice = variant?.price;
+                    return (
+                      <button 
+                        key={`color-${option.option_id}`} 
+                        onClick={() => handleColorSelect(option, variantPrice, variantImage)} 
+                        title={option.name || ''}
+                        className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${selectedColor?.id === option.option_id ? 'border-blue-600 shadow-lg' : 'border-gray-200 hover:border-gray-400'}`}
+                      >
+                        {variantImage ? (
+                          <img src={getImageUrl(variantImage)} alt={option.name || ''} className="w-full h-full object-cover" onError={(e) => { const t = e.target as HTMLImageElement; t.style.display = 'none'; if (t.parentElement) t.parentElement.style.backgroundColor = option.color_code || '#e5e7eb'; }} />
+                        ) : (
+                          <div className="w-full h-full" style={{ backgroundColor: option.color_code || '#e5e7eb' }} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {otherFilters.map((filter) => filter && (
+              <div key={`filter-${filter.filter_id}`} className="mb-4 flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">{filter.filter_name || ''}:</span>
+                <span className="text-sm text-gray-600">{filter.options?.map(o => o?.name).filter(Boolean).join(', ')}</span>
+              </div>
+            ))}
+
+            <div className="flex items-center gap-4 mb-5">
+              <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition text-lg font-medium">−</button>
+                <span className="w-12 text-center font-medium">{quantity}</span>
+                <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition text-lg font-medium">+</button>
+              </div>
+              <div className={`flex items-center gap-1.5 text-sm font-medium ${isInStock ? 'text-green-600' : 'text-red-500'}`}>
+                {isInStock ? <FiCheck className="w-4 h-4" /> : <FiX className="w-4 h-4" />}
+                {isInStock ? tarnslation?.Stokda_var || 'In stock' : tarnslation?.Out_of_Stock || 'Out of stock'}
+              </div>
+            </div>
+
+            <div className="flex gap-3 mb-6">
+              {isInStock ? (
+                <button 
+                  onClick={handleAddToBasket} 
+                  disabled={isinbusked || isAddingToCart}
+                  className={`flex-1 py-3.5 rounded-xl font-semibold text-white transition flex items-center justify-center gap-2 ${isinbusked ? 'bg-green-500' : isAddingToCart ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                >
+                  {isAddingToCart && <span>{tarnslation?.loading || 'Loading'}...</span>}
+                  {!isAddingToCart && isinbusked && (<><FiCheck className="w-5 h-5" /><span>{tarnslation?.added_to_cart || 'Added'}</span></>)}
+                  {!isAddingToCart && !isinbusked && <span>{tarnslation?.add_to_cart || 'Add to cart'}</span>}
+                </button>
+              ) : (
+                <button onClick={() => setIsModalOpen(true)} className="flex-1 py-3.5 rounded-xl font-semibold border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition">
+                  {tarnslation?.Notify_Me || 'Notify me'}
+                </button>
+              )}
+              <button onClick={() => setOpenSideBar(true)} className="w-14 h-14 rounded-xl border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition">
+                <GiHanger className="w-6 h-6 text-gray-600" />
+              </button>
+            </div>
+
+            {Productslingle.is_return === false && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl mb-5">
+                <p className="text-red-600 text-sm font-medium">⚠️ {tarnslation?.qaytarilmir_text || 'Bu məhsul geri qaytarılmır'}</p>
+              </div>
+            )}
+
+            <div className="border-t pt-6">
+              <div className="flex gap-6 border-b mb-4">
+                <button onClick={() => setActiveTab('description')} className={`pb-3 text-sm font-medium transition ${activeTab === 'description' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+                  {tarnslation?.Təsvir || 'Description'}
+                </button>
+                <button onClick={() => setActiveTab('details')} className={`pb-3 text-sm font-medium transition ${activeTab === 'details' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>
+                  {tarnslation?.Məlumatlar || 'Details'}
+                </button>
+              </div>
+              {activeTab === 'description' && cleanDescription && (
+                <div className="prose prose-sm max-w-none text-gray-600" dangerouslySetInnerHTML={{ __html: cleanDescription }} />
+              )}
+              {activeTab === 'details' && (
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-500">{tarnslation?.product_code || 'Product code'}</span>
+                    <span className="font-medium">{Productslingle.product_code || Productslingle.code || '-'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <section className="flex lg:flex-row flex-col gap-10 mx-[40px]  max-sm:mx-4 relative">
-          <div className=" lg:w-[40%] w-full ">
-            <div className=" sticky top-[10px]">
-              <ProductGallery
-                images={Productslingle?.sliders.map(item => item.image) || []}
-              />
-            </div>
-          </div>
-          <section className="flex flex-col max-w-[650px] mt-[24px]">
-            <div className="flex flex-col w-full max-md:max-w-full">
-              <div className="isreturn-area">
-                {typeof Productslingle?.is_return === 'boolean' &&
-                Productslingle?.is_return === false ? (
-                  <div className="return-tag noreturn">
-                    <span>{tarnslation?.qaytarilmir_text || ''}</span>
-                  </div>
-                ) : typeof Productslingle?.is_return === 'boolean' &&
-                  Productslingle?.is_return === true ? null : null}
-              </div>
-              <div
-                style={{ marginTop: '12px' }}
-                className="flex flex-col w-full text-black text-opacity-80 max-md:max-w-full"
-              >
-                {Productslingle?.discount && (
-                  <div className="gap-2.5 self-start px-3 py-2 text-xs font-medium text-white bg-[#FF3C79] rounded-[100px]">
-                    {Productslingle?.discount}% {tarnslation?.discount}
-                  </div>
-                )}
 
-                <div className="mt-4 w-full text-3xl font-semibold text-black max-md:max-w-full">
-                  {Productslingle?.title}
+        {filteredSimilar.length > 0 && (
+          <section className="mt-16 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold">{tarnslation?.Tövsiyyələr || 'Similar products'}</h2>
+              <div className="flex gap-2">
+                <button onClick={() => scrollSimilar('left')} className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition">
+                  <FiChevronLeft className="w-5 h-5" />
+                </button>
+                <button onClick={() => scrollSimilar('right')} className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition">
+                  <FiChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div ref={similarScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+              {filteredSimilar.map((product, index) => (
+                <div key={`similar-${product.id}-${index}`} className="flex-shrink-0 w-[180px] sm:w-[200px]">
+                  <ProductCard data={product} bg="grey" />
                 </div>
-                <div className="mt-4 w-full text-base max-md:max-w-full">
-                  {Productslingle?.short_title}
-                </div>
-                <div className="mt-4 w-full text-sm max-md:max-w-full">
-                  {tarnslation?.Məhsulun_kodu}:{Productslingle?.code}
-                  <br />
-                </div>
-              </div>
-              <div className="flex gap-3 items-center self-start mt-5">
-                {Productslingle &&
-                Productslingle.discount !== null &&
-                Number(Productslingle.discount) > 0 ? (
-                  <>
-                    <div className="self-stretch my-auto text-base text-black text-opacity-60">
-                      <span className="line-through flex items-center">
-                        {Productslingle.price}
-                        <FaRubleSign className="text-[13px] mt-2" />
-                      </span>
-                    </div>
-                    <div className="self-stretch my-auto flex items-center text-2xl font-semibold text-rose-500">
-                      {Productslingle.discounted_price}
-                      <FaRubleSign className="text-[13px] mt-2" />
-                    </div>
-                  </>
-                ) : (
-                  <div className="self-stretch my-auto flex items-center text-2xl font-semibold text-black">
-                    {Productslingle?.price}
-                    <FaRubleSign className="text-[13px] mt-2" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <ProductFilters
-              Productslingle={Productslingle}
-              setIsModalOpen={setIsModalOpen}
-              setNotifyOptionId={setNotifyOptionId}
-              setCurrentColor={setCurrentColor}
-              setIsInStock={setIsInStock}
-              currentColor={currentColor}
-              isOptionSelected={isOptionSelected}
-              handleOptionSelect={handleOptionSelect}
-            />
-
-            {isModalOpen && (
-              <div className="fixed inset-0 flex justify-center items-center bg-black/50 z-50">
-                <div className="bg-white p-6 rounded-lg w-[300px] shadow-lg">
-                  <h4 className="text-lg font-semibold mb-4">
-                    {tarnslation?.Out_of_Stock || 'Bu ölçü stokda yoxdur'}
-                  </h4>
-                  <button
-                    onClick={handleNotifyMe}
-                    className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  >
-                    {tarnslation?.Notify_Me || 'Notify Me'}
-                  </button>
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="w-full py-2 mt-2 border border-gray-400 rounded"
-                  >
-                    {tarnslation?.Cancel || 'Bağla'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-wrap justify-around gap-5 max-sm:justify-start items-center mt-7 w-full max-md:max-w-full">
-              <div
-                className={`flex gap-2 justify-center items-center self-stretch px-4 py-2.5 my-auto w-40 text-sm rounded-[100px] ${
-                  Productslingle?.is_stock && isInStock
-                    ? 'text-green-600 bg-emerald-50'
-                    : 'text-red-600 bg-red-100'
-                }`}
-              >
-                {Productslingle?.is_stock && isInStock ? (
-                  <>
-                    <img
-                      loading="lazy"
-                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/3b62d68e0d6115b8dd376935f9a020305d201f125a5ae0023584b7f5eddf7971?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-                      className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                    />
-                    <div className="self-stretch my-auto">
-                      {tarnslation?.Stokda_var}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                    >
-                      <path
-                        d="M15 5L5 15M5 5L15 15"
-                        stroke="#DC2626"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    <div className="self-stretch my-auto truncate">
-                      {tarnslation?.Out_of_Stock}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="flex gap-4 items-center self-stretch my-auto text-base font-semibold min-w-[240px] text-slate-800 w-[276px]">
-                <div className="flex gap-2 items-center self-stretch my-auto">
-                  <div className="flex flex-row gap-1">
-                    {Array.from({ length: Productslingle?.avg_star || 0 }).map(
-                      (_, i) => (
-                        <svg
-                          key={i}
-                          width="20"
-                          height="19"
-                          viewBox="0 0 20 19"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="..." fill="#FABD21" />
-                        </svg>
-                      ),
-                    )}
-                  </div>
-                  {/* <div className="self-stretch my-auto">
-                    {Productslingle?.avg_star}{' '}
-                    <span className="text-sm leading-4">
-                      ({Productslingle?.comments.length}) {tarnslation?.rey}
-                    </span>
-                  </div> */}
-                </div>
-              </div>
-              {/* 
-              <button onClick={() => setIsSizeBarOpen(true)} className="flex flex-row bg-none gap-2 border-none text-[14px] font-normal">
-                {tarnslation?.select_a_variant || ''}
-              </button> */}
-            </div>
-
-            <div className="flex flex-wrap gap-5 items-center mt-7 text-base font-medium max-md:max-w-full">
-              <div className="flex flex-wrap gap-3 items-center self-stretch my-auto min-w-[240px] max-md:max-w-full">
-                {!isInStock ? (
-                  <div className="n">
-                    <button
-                      onClick={handleNotifyMe}
-                      className="flex  max-sm:items-center max-sm:w-full overflow-hidden flex-row justify-center gap-[10px] items-center self-stretch  py-3.5 my-auto text-blue-600 border border-blue-600 hover:bg-blue-600 transition-colors hover:text-white bg-white min-w-[240px] rounded-[100px] w-[285px] max-md:px-5"
-                    >
-                      {tarnslation?.Notify_Me}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    disabled={isAddToBasketDisabled || isinbusked}
-                    onClick={handleAddToBasket}
-                    style={
-                      isAddToBasketDisabled || isinbusked
-                        ? { background: '#B1C7E4', cursor: 'not-allowed' }
-                        : {}
-                    }
-                    className="flex max-sm:items-center max-sm:w-full overflow-hidden flex-col justify-center items-center self-stretch  py-3.5 my-auto text-white bg-blue-600 min-w-[240px] rounded-[100px] w-[285px] max-md:px-5"
-                  >
-                    <div className="flex gap-2 items-center">
-                      {!isinbusked ? (
-                        <img
-                          loading="lazy"
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/12162e338001dffe48b2f7720205d57a300942ee6d909f5e9d356e6bce11941f?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-                          className="object-contain shrink-0 self-stretch my-auto w-5 aspect-square"
-                        />
-                      ) : (
-                        <img
-                          loading="lazy"
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/7aea5798032300cff0cb8633f827efc8d9c19b5e90bd7d2d3214a3fe5775d3b4?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-                          className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square"
-                        />
-                      )}
-                      |
-                      <div
-                        className="self-stretch my-auto text-nowrap"
-                        style={isinbusked ? { color: 'black' } : { color: 'white' }}
-                      >
-                        {!isinbusked
-                          ? tarnslation?.add_to_cart
-                          : tarnslation?.added_to_cart}
-                      </div>
-                    </div>
-                  </button>
-                )}
-              </div>
-
-              <div
-                className="bg-[##F5F5F5]  rounded-full w-11 h-11 flex justify-center items-center"
-                onClick={async () => {
-                  const userStr = localStorage.getItem('user-info');
-                  if (userStr) {
-                    const User = JSON.parse(userStr);
-                    if (User) {
-                      axiosInstance
-                        .post(
-                          '/favorites/toggleFavorite',
-                          { product_id: Productslingle?.id },
-                          {
-                            headers: {
-                              Authorization: `Bearer ${token}`,
-                              Accept: 'application/json',
-                            },
-                          },
-                        )
-                        .then(() => {
-                          setisliked(p => !p);
-                          queryClient.invalidateQueries({ queryKey: ['favorites'] });
-                        })
-                        .catch(error => console.log(error));
-                    }
-                  } else {
-                    navigate(
-                      `/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`,
-                    );
-                  }
-                }}
-              >
-                <img
-                  src={!isliked ? '/svg/hartBlack.svg' : '/svg/hartRed.svg'}
-                  alt=""
-                />
-              </div>
-
-              <div
-                onClick={() => setOpenSideBar(!openSideBar)}
-                className="cursor-pointer  gap-2 pb-2 border-b-[#3873C3] border-b-[1px] flex items-center"
-              >
-                <span className="text-[#3873C3]">
-                  <GiHanger size={24} />
-                </span>
-                <span className="text-[#3873C3] text-[14px]">
-                  {tarnslation?.na_cby ?? ''}
-                </span>
-              </div>
-            </div>
-
-            {Productslingle?.description && (
-              <div
-                className="flex rounded-3xl bg-stone-50 max-w-[670px] h-fit px-[40px] py-[48px] max-sm:mt-10 mt-[90px] flex-col"
-                dangerouslySetInnerHTML={{ __html: Productslingle?.description || '' }}
-              />
-            )}
-          </section>
-        </section>
-        {/* 
-        <section className="mt-[100px] max-sm:mt-12 bg-[#F8F8F8] max-sm:px-4 px-[40px]">
-          <div className="flex flex-wrap gap-8 justify-start max-md:justify-center items-center max-sm:pt-[24px] pt-[80px]">
-            <div className="flex flex-col justify-center items-center self-stretch p-8 my-auto bg-white rounded-3xl min-w-[240px] w-[296px] max-md:px-5">
-              <div className="text-6xl font-semibold leading-none text-center text-zinc-900 max-md:text-4xl">
-                {Productslingle?.avg_star}
-              </div>
-              <div className="flex gap-0.5 items-start mt-3">
-                {Array.from({ length: Productslingle?.avg_star || 0 }).map((_, i) => (
-                  <img
-                    key={i}
-                    loading="lazy"
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/5dca374733cb9d1aba7db23d829c0e6bad1c18b8be000a06d9f7eafe138eabb2?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-                    className="object-contain shrink-0 w-6 aspect-square"
-                  />
-                ))}
-              </div>
-              <div className="mt-3 text-sm text-center text-neutral-600">
-                {tarnslation?.İstifadəçi_dəyərləndirməsi}
-                <span className="text-neutral-600">({Productslingle?.avg_star})</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4 items-start self-stretch my-auto min-w-[240px] w-[40%] max-md:w-full">
-              {Productslingle?.rating_summary
-                .map((item) => extractData(item))
-                .filter((item) => item !== null)
-                .map((item: any, index: number) => (
-                  <div key={index} className="flex max-sm:flex-col flex-row gap-4 justify-between items-center  self-stretch w-full">
-                    <div className="flex flex-row justify-between w-full">
-                      <div className="flex gap-0.5 items-start self-stretch my-auto">
-                        {Array.from({ length: 5 - index }).map((_, j) => (
-                          <img
-                            key={j}
-                            loading="lazy"
-                            src="https://cdn.builder.io/api/v1/image/assets/TEMP/05c694f83396f923195f2ce2eefa5960a5367c7d052eb1bbeca00c5ed8157138?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-                            className="object-contain shrink-0 aspect-square w-[18px]"
-                          />
-                        ))}
-                      </div>
-                      <div className=" max-sm:flex  hidden items-start self-stretch my-auto text-sm">
-                        <div className="text-center text-zinc-900">{item.procent}%</div>
-                        <div className="text-slate-500"> {item.users} </div>
-                      </div>
-                    </div>
-
-                    <div className="flex overflow-hidden flex-col self-stretch my-auto max-md:min-w-[240px] min-w-[300px]  w-full">
-                      <div className="flex flex-col items-start bg-gray-200 rounded-[100px] max-md:pr-5 max-md:max-w-full">
-                        <div className="flex shrink-0 max-w-full h-1 bg-amber-400 rounded-[100px]" style={{ width: `${item.procent}%` }} />
-                      </div>
-                    </div>
-
-                    <div className="flex max-sm:hidden items-start self-stretch my-auto text-sm min-w-[42px]">
-                      <div className="text-center text-zinc-900">{item.procent}%</div>
-                      <div className="text-slate-500"> {item.users} </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {Productslingle && tarnslation && <CommentsSection data={Productslingle} translate={tarnslation} />}
-        </section> */}
-
-        {similarProducts && similarProducts.length > 0 && (
-          <section className="px-[40px] max-sm:px-4">
-            <h3 className="text-[28px] font-semibold max-sm:mt-[48px] mt-[100px]">
-              {tarnslation?.Tövsiyyələr}
-            </h3>
-            <div className="mt-[40px] max-sm:mt-[28px] mb-[100px]">
-              <Swiper
-                modules={[Navigation, Pagination]}
-                spaceBetween={16}
-                navigation
-                pagination={{ clickable: true }}
-                breakpoints={{
-                  320: { slidesPerView: 1.2 },
-                  640: { slidesPerView: 2 },
-                  768: { slidesPerView: 2.5 },
-                  1024: { slidesPerView: 3 },
-                  1280: { slidesPerView: 4 },
-                }}
-              >
-                {similarProducts
-                  .filter(product => product.id !== Productslingle?.id)
-                  .slice(0, 12)
-                  .map(product => (
-                    <SwiperSlide key={product.id}>
-                      <ProductCard bg="grey" data={product} />
-                    </SwiperSlide>
-                  ))}
-              </Swiper>
+              ))}
             </div>
           </section>
-        )}
-
-        {IsSizeBarOpen && (
-          <div className="bg-black bg-opacity-35 flex justify-center items-center fixed top-0 left-0 w-full h-full  z-50">
-            <div className="bg-white w-1/2 lg:w-[40%]  max-md:w-[80%] rounded-3xl max-sm:p-4 p-[50px] text-[28px] font-medium">
-              <div className="w-full flex flex-row justify-between items-center">
-                <h4>{tarnslation?.BodyMeasurements}</h4>
-                <svg
-                  className=" cursor-pointer"
-                  onClick={() => setIsSizeBarOpen(false)}
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M18 6L6 18"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M6 6L18 18"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <img className=" w-full " src={Productslingle?.size_image} alt="" />
-            </div>
-          </div>
         )}
       </main>
 
-      <SelectSizeSidebar
-        onClose={() => setOpenSideBar(false)}
-        openSidebar={openSideBar}
-      />
+      {isLightboxOpen && !showVideo && (
+        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={() => setIsLightboxOpen(false)}>
+          <button onClick={() => setIsLightboxOpen(false)} className="absolute top-4 right-4 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+            <FiX className="w-6 h-6" />
+          </button>
+          
+          {productImages.length > 1 && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); goToPrevImage(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition">
+                <FiChevronLeft className="w-7 h-7" />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); goToNextImage(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition">
+                <FiChevronRight className="w-7 h-7" />
+              </button>
+            </>
+          )}
+          
+          <img 
+            src={getImageUrl(currentImage)} 
+            alt={Productslingle.title || ''} 
+            className="max-w-[90vw] max-h-[90vh] object-contain" 
+            onClick={(e) => e.stopPropagation()}
+          />
+          
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
+            {safeImageIndex + 1} / {productImages.length}
+          </div>
+        </div>
+      )}
+
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold mb-2">{tarnslation?.Out_of_Stock || 'Out of stock'}</h3>
+            <p className="text-gray-600 text-sm mb-4">{tarnslation?.notify_text || 'Notify me when this item is back in stock'}</p>
+            <button onClick={handleNotifyMe} className="w-full py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition mb-2">
+              {tarnslation?.Notify_Me || 'Notify me'}
+            </button>
+            <button onClick={() => setIsModalOpen(false)} className="w-full py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition">
+              {tarnslation?.Cancel || 'Cancel'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <SelectSizeSidebar onClose={() => setOpenSideBar(false)} openSidebar={openSideBar} />
       <Footer />
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }

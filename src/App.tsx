@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Suspense, lazy } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { RecoilRoot } from 'recoil';
@@ -10,12 +10,13 @@ import { Toaster } from 'react-hot-toast';
 
 import Loading from './components/Loading';
 import Header from './components/Header';
+import CookieConsent from './components/CookieConsent'; // ✅ YENİ: Cookie Consent
 import { useCollectionModal } from './contexts/CollectionModalProvider';
 import { CollectionProvider } from './pages/influencer_dashboard/CollectionProvider';
 import ResetPasswordConfrim from './pages/userIn/ResetPasswordConfrim';
+import SearchResults from './pages/SearchResults';
 
-// Lazy load pages - bu hissəni dəyişmədim
-const Home = lazy(() => import('./pages/Home'));
+// Lazy load pages
 const Products = lazy(() => import('./pages/Products'));
 const ProductId = lazy(() => import('./pages/Products/Id'));
 const Aboutus = lazy(() => import('./pages/Aboutus'));
@@ -52,12 +53,12 @@ const AddProductCollection = lazy(
   () => import('./pages/influencer_dashboard/ui/AddProductCollection'),
 );
 
-// QueryClient - sadə konfiqurasiya
+// QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 dəqiqə
-      gcTime: 10 * 60 * 1000, // 10 dəqiqə
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -81,7 +82,7 @@ const App = () => {
   const [favicon, setFavicon] = useState<{ image: string }>({ image: '' });
   const [faviconLoading, setFaviconLoading] = useState(false);
 
-  // Favicon yükləmə - sadə versiya
+  // Favicon yükləmə
   useEffect(() => {
     let isMounted = true;
     const getFavicon = async () => {
@@ -128,7 +129,6 @@ const App = () => {
 
   // Favicon yüklənərkən çox uzun gözləməyək
   if (faviconLoading) {
-    // 3 saniyədən çox gözləməyək
     setTimeout(() => {
       if (faviconLoading) {
         setFaviconLoading(false);
@@ -160,10 +160,15 @@ const App = () => {
                 </Suspense>
               )}
 
-              {/* Routing - MƏHZ BURDA MƏSƏLƏ OLARAQ ÇOX MÜRƏKKƏBLƏŞDİRMİRİK */}
+              {/* Routing */}
               <Suspense fallback={<Loading />}>
                 <Routes>
-                  <Route path="/" element={<Home />} />
+                  {/* ✅ "/" URL-ə girsə "/en/home"-a redirect et */}
+                  <Route path="/" element={<Navigate to="/en/home" replace />} />
+                  
+                  {/* ✅ Search Results Page */}
+                  <Route path="/:lang/search" element={<SearchResults />} />
+                  
                   {!location.pathname?.includes('influencer') && (
                     <Route path="/:lang/:page" element={<PageByLang />} />
                   )}
@@ -221,6 +226,9 @@ const App = () => {
                   />
                 </Routes>
               </Suspense>
+
+              {/* ✅ YENİ: Cookie Consent Banner */}
+              <CookieConsent />
 
               {/* Toast */}
               <Toaster containerStyle={{ zIndex: 100000000 }} />

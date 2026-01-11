@@ -4,6 +4,7 @@ export type Category = {
   subCategories: SubCategory[];
   filters: Filter[];
 };
+
 type ThirdCategory = {
   id: number;
   title: string;
@@ -21,6 +22,7 @@ export type CatalogCategory = {
   title: string;
   subCategories: CatalogSubCategory[];
 };
+
 export type SubCategory = {
   id: number;
   title: string;
@@ -38,17 +40,20 @@ type Option = {
   title: string;
   color_code: string | null;
 };
+
 export type HomeHero = {
   id: number;
   title: string;
   description: string;
   image: string;
 };
+
 export type Advanteges = {
   id: number;
   title: string;
   icon: string;
 };
+
 export type ProductResponse = {
   data: Product[];
   count: number;
@@ -62,6 +67,7 @@ export type Product = {
   price: string;
   discount: string | null;
   discounted_price: string;
+  discount_ends_at?: string | null;
   unit: string | null;
   category: Category;
   sub_category: SubCategory;
@@ -77,6 +83,7 @@ export type Product = {
   }[];
   brand: Brand;
   image: string;
+  thumbnail?: string;
   sliders: Slider[];
   slug: {
     en: string;
@@ -101,11 +108,13 @@ type Meta = {
   per_page: number;
   total: number;
 };
+
 export type RulesType = {
   id: number;
   title: string;
-  description: string; // Since the description contains HTML-like content, you can use `string`.
+  description: string;
 };
+
 export type Translation = {
   [key: string]: string;
 };
@@ -117,6 +126,7 @@ export type Store = {
   title: string;
   address: string;
 };
+
 export type Tiktok = {
   id: number;
   title: string;
@@ -125,6 +135,7 @@ export type Tiktok = {
 };
 
 export type Tiktoks = Tiktok[];
+
 export interface SpecialOffer {
   id: number;
   title: string;
@@ -137,6 +148,7 @@ export type HomeCategory = {
   title: string;
   products: Product[];
 };
+
 export type User = {
   customer: {
     id: number;
@@ -147,18 +159,21 @@ export type User = {
   };
   token: string;
 };
+
 export type LoginBunner = {
   title: string;
-  id: string; // A string identifier or message
-  image: string; // URL to the primary image
-  second_image: string; // URL to the secondary image
+  id: string;
+  image: string;
+  second_image: string;
 };
+
 export type SocialMediaLink = {
-  id: number; // A numeric identifier
-  title: string; // The name of the social media platform
-  url: string; // URL to the social media page
-  icon: string; // URL to the icon image
+  id: number;
+  title: string;
+  url: string;
+  icon: string;
 };
+
 export type Holideys = {
   id: number;
   title: string;
@@ -166,20 +181,39 @@ export type Holideys = {
   description: string;
   video: string;
 };
+
 export type About = {
   id: number;
   title: string;
-  description: string; // Assuming this will remain an HTML string.
-  image: string; // URL to the image.
+  description: string;
+  image: string;
 };
+
 export type FaqCategory = {
   id: number;
   title: string;
 };
+
 export type FaqItem = {
   id: number;
   title: string;
   description: string;
+};
+
+// Rəng Variantı tipi
+export type ColorVariant = {
+  id: number;
+  slug: {
+    en: string;
+    ru: string;
+  };
+  color_name: string;
+  color_code: string | null;
+  image: string;
+  price: string;
+  discount: number;
+  discounted_price: string;
+  is_stock: boolean;
 };
 
 export interface ProductDetail {
@@ -192,7 +226,9 @@ export interface ProductDetail {
   is_new: boolean;
   is_stock: boolean;
   is_season: boolean;
+  discount_ends_at?: string | null;
   code: string;
+  product_code?: string;
   meta_title: string;
   meta_description: string;
   meta_keywords: string;
@@ -237,10 +273,12 @@ export interface ProductDetail {
     logo: string;
   };
   image: string;
+  thumbnail?: string;
   sliders: {
     id: number;
     image: string;
   }[];
+  video?: string | null;
   comments: {
     id: number;
     comment: string;
@@ -270,6 +308,23 @@ export interface ProductDetail {
     }[];
   }[];
   rating_summary: string[];
+  current_color?: {
+    name: string;
+    code: string | null;
+  } | null;
+  color_variants?: ColorVariant[];
+  has_variants?: boolean;
+  variants?: Array<{
+    variantKey?: string;
+    color?: string;
+    size?: string;
+    image?: string;
+    price?: number;
+    cost?: number;
+    weight?: number;
+    sku?: string;
+    cj_vid?: string;
+  }>;
 }
 
 export type ConmtactItem = {
@@ -278,6 +333,7 @@ export type ConmtactItem = {
   value: string;
   icon: string;
 };
+
 export type AuthResponse = {
   token: string;
   customer: {
@@ -346,10 +402,12 @@ type BasketItem = {
       logo: string;
     };
     image: string;
+    thumbnail?: string;
     sliders: {
       id: number;
       image: string;
     }[];
+    video?: string | null;  // ← BU SƏTRİ ƏLAVƏ ET
     comments: {
       id: number;
       comment: string | null;
@@ -379,6 +437,7 @@ export type Basket = {
   delivered_price: number;
   final_price: number;
 };
+
 export type Order = {
   order_items_count: number;
   id: number;
@@ -395,10 +454,12 @@ export type Order = {
   order_items: BasketItem[];
   address: string;
 };
+
 export type Reasons = {
   title: string;
   id: number;
 };
+
 export type TopLine = {
   data: {
     id: number;
@@ -406,10 +467,12 @@ export type TopLine = {
   } | null;
   top_line: boolean;
 };
+
 export type Favorite = {
   id: number;
   product: Product;
 };
+
 export type Seo = {
   id: number;
   type: string;
@@ -417,12 +480,14 @@ export type Seo = {
   meta_description: string;
   meta_keywords: string;
 };
+
 export type Notification = {
   id: number;
   title: string;
   body: string;
   is_read: boolean;
 };
+
 type FilterConditions = {
   category_id?: string;
   brand_id?: string;

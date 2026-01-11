@@ -47,8 +47,7 @@ export default function Basked() {
   const parsed = userStr ? JSON.parse(userStr) : null;
   const token = parsed?.token;
 
-  const { lang = 'ru' } = useParams<{ lang: string }>();
-
+const { lang = 'en' } = useParams<{ lang: string }>();
   const [baskedLoading, setBaskedLoading] = React.useState<boolean>(false);
   const [basketItemsData, setBasketItemsData] = React.useState<Basket | GuestCart>();
 
@@ -221,12 +220,11 @@ export default function Basked() {
                         <div className="flex gap-2.5 items-center self-stretch my-auto min-w-[240px]">
                           <img
                             loading="lazy"
-                            src={item.product.image}
-                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
+src={item.product.image?.startsWith('http') ? item.product.image : `https://admin.brendoo.com${item.product.image}`}                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
                           />
                           <div className="flex flex-col self-stretch my-auto w-[152px]">
                             <div className="gap-1 self-start text-base font-semibold text-center text-black">
-                              {item.product.price} ₽
+                              {item.product.price} ₼
                             </div>
                             <div className="mt-2.5 w-full text-sm text-black">
                               {item.product.title}
@@ -432,8 +430,8 @@ export default function Basked() {
                         <div className="self-stretch my-auto text-black text-opacity-60">
                           {tarnslation?.Məbləğ}:
                         </div>
-                        <div className="self-stretch my-auto text-right text-black">
-                          {basketItemsData?.total_price}₽
+                        <div className={`self-stretch my-auto text-right text-black ${basketItemsData?.discount && basketItemsData?.discount>0 ? 'line-through opacity-60' : '' }`}>
+                          {basketItemsData?.total_price}₼
                         </div>
                       </div>
 
@@ -442,7 +440,7 @@ export default function Basked() {
                           {tarnslation?.Endirim}:
                         </div>
                         <div className="self-stretch my-auto text-right">
-                          {basketItemsData?.discount}₽
+                          {basketItemsData?.discount}₼
                         </div>
                       </div>
                     </div>
@@ -452,7 +450,7 @@ export default function Basked() {
                         {tarnslation?.Cəmi_məbləğ}:
                       </div>
                       <div className="self-stretch my-auto text-base font-semibold text-blue-600">
-                        {basketItemsData?.final_price}₽
+                        {basketItemsData?.final_price}₼
                       </div>
                     </div>
                   </div>

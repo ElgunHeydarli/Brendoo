@@ -106,6 +106,7 @@ export default function Login() {
     try {
       const response = await axios.post(endpoint, values);
       const data = response.data;
+      console.log(data,'data')
 
       localStorage.setItem('user-info', JSON.stringify(data));
       toast.success(tarnslation?.success_login ?? '');
@@ -207,7 +208,7 @@ export default function Login() {
                   />
                   {tarnslation?.istifadeci_key}
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="hidden items-center gap-2">
                   <input
                     style={{
                       minWidth: '21px',

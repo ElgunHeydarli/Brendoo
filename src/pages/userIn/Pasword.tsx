@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Formik, Field, Form, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import GETRequest from '../../setting/Request';
-import { TranslationsKeys } from '../../setting/Types';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import ROUTES from '../../setting/routes';
+import { useState } from "react";
+import { Formik, Field, Form, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import GETRequest from "../../setting/Request";
+import { TranslationsKeys } from "../../setting/Types";
+import axios from "axios";
+import toast from "react-hot-toast";
+import ROUTES from "../../setting/routes";
 
 export default function Password() {
-  const { lang } = useParams<{ lang: string }>() || { lang: 'ru' };
+  const { lang } = useParams<{ lang: string }>() || { lang: "ru" };
   const [searchParams] = useSearchParams();
-  const type = searchParams.get('type');
-  const isUser = type === 'user';
-  const isInfluencer = type === 'influencer';
+  const type = searchParams.get("type");
+  const isUser = type === "user";
+  const isInfluencer = type === "influencer";
 
   const { data: tarnslation } = GETRequest<TranslationsKeys>(
     `/translates`,
-    'translates',
-    [lang],
+    "translates",
+    [lang]
   );
 
   const [loading, setLoading] = useState(false);
@@ -28,14 +28,14 @@ export default function Password() {
   } | null>(null);
 
   const initialValues = {
-    email: '',
+    email: "",
     // password: '',
   };
 
   const validationSchema = Yup.object({
     email: Yup.string()
-      .email(tarnslation?.is_r_12 ?? '')
-      .required(tarnslation?.is_r_7 ?? ''),
+      .email(tarnslation?.is_r_12 ?? "")
+      .required(tarnslation?.is_r_7 ?? ""),
     // password: Yup.string()
     //     .min(6, 'Password must be at least 6 characters')
     //     .required('Password is required'),
@@ -43,15 +43,15 @@ export default function Password() {
   const navigate = useNavigate();
   const { data: registerImage } = GETRequest<{ image: string }>(
     `/registerImage`,
-    'registerImage',
-    [lang],
+    "registerImage",
+    [lang]
   );
 
   const REQ_ENDPOINT = isUser
-    ? '/api/password-reset/request'
+    ? "/api/password-reset/request"
     : isInfluencer
-    ? '/api/influencers/password-reset/request'
-    : '';
+    ? "/api/influencers/password-reset/request"
+    : "";
   const handleSubmit = async (values: { email: string }) => {
     setLoading(true);
     setFormStatus(null); // Reset status message
@@ -63,32 +63,34 @@ export default function Password() {
         },
         {
           headers: {
-            'Accept-Language': lang,
+            "Accept-Language": lang,
           },
-        },
+        }
       )
       .then(() => {
-        toast.success(tarnslation?.cc ?? '');
+        toast.success(tarnslation?.cc ?? "");
         setFormStatus(null);
         setLoading(false);
-        localStorage.setItem('EmailForReset', values.email);
+        localStorage.setItem("EmailForReset", values.email);
         navigate(
           `/${lang}/${
-            ROUTES.resetPaswordSucses[lang as keyof typeof ROUTES.resetPaswordSucses]
-          }`,
+            ROUTES.resetPaswordSucses[
+              lang as keyof typeof ROUTES.resetPaswordSucses
+            ]
+          }`
         );
       })
-      .catch(error => {
+      .catch((error) => {
         if (axios.isAxiosError(error)) {
           if (
             error.response &&
             error.response.data?.errors &&
             error.response.data?.errors[0]
           ) {
-            toast.error(error?.response?.data?.errors[0]?.toString() ?? '');
+            toast.error(error?.response?.data?.errors[0]?.toString() ?? "");
           }
         }
-        toast.error(tarnslation?.ss ?? '');
+        toast.error(tarnslation?.ss ?? "");
       });
   };
 
@@ -134,7 +136,7 @@ export default function Password() {
                         <Field
                           type="email"
                           name="email"
-                          placeholder={tarnslation?.Email ?? ''}
+                          placeholder={tarnslation?.Email ?? ""}
                           className="w-full bg-transparent outline-none"
                         />
                       </div>
@@ -148,10 +150,12 @@ export default function Password() {
                       type="submit"
                       disabled={loading}
                       className={`gap-2.5 self-stretch px-10 py-4 mt-7 w-full text-base font-medium text-black border border-solid ${
-                        loading ? 'bg-gray-400' : 'bg-slate-300'
+                        loading ? "bg-gray-400" : "bg-slate-300"
                       } border-slate-300 rounded-full max-md:px-5 max-md:max-w-full`}
                     >
-                      {loading ? tarnslation?.loading_main_key : tarnslation?.send}
+                      {loading
+                        ? tarnslation?.loading_main_key
+                        : tarnslation?.send}
                     </button>
                   </Form>
                 )}
@@ -160,7 +164,7 @@ export default function Password() {
               {formStatus && (
                 <div
                   className={`mt-4 text-sm text-center ${
-                    formStatus.success ? 'text-green-500' : 'text-red-500'
+                    formStatus.success ? "text-green-500" : "text-red-500"
                   }`}
                 >
                   {formStatus.message}

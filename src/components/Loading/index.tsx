@@ -1,152 +1,214 @@
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, memo } from 'react';
 
-// Simple in-memory cache
-let simpleCache: Record<string, Record<string, string>> = {};
+// ============================================================================
+// ULTRA FAST CACHE - IN-MEMORY ONLY
+// ============================================================================
 
-// Ultra fast hook - minimum logic
+const cache: Record<string, Record<string, string>> = {};
+const pending: Record<string, Promise<any>> = {};
+
+// ============================================================================
+// INSTANT TRANSLATIONS HOOK
+// ============================================================================
+
 export const useQuickTranslations = (lang: string = 'ru') => {
-  const [translations, setTranslations] = useState<Record<string, string>>(() => {
-    return simpleCache[lang] || {};
-  });
+  const [t, setT] = useState<Record<string, string>>(() => cache[lang] || {});
 
   useEffect(() => {
-    if (simpleCache[lang]) {
-      setTranslations(simpleCache[lang]);
+    if (cache[lang]) {
+      setT(cache[lang]);
       return;
     }
 
-    const loadTranslations = async () => {
-      try {
-        const response = await axios.get('https://admin.brendoo.com/api/translates', {
+    if (!pending[lang]) {
+      pending[lang] = axios
+        .get('https://admin.brendoo.com/api/translates', {
           headers: { 'Accept-Language': lang },
-          timeout: 3000,
-        });
+          timeout: 1500,
+        })
+        .then((res) => {
+          cache[lang] = res.data;
+          setT(res.data);
+        })
+        .catch(() => {})
+        .finally(() => delete pending[lang]);
+    }
 
-        if (response.data) {
-          simpleCache[lang] = response.data;
-          setTranslations(response.data);
-        }
-      } catch (error) {
-        console.warn(`Translation load failed for ${lang}`);
-      }
-    };
-
-    loadTranslations();
+    pending[lang].then(() => setT(cache[lang] || {}));
   }, [lang]);
 
-  return translations;
+  return t;
 };
 
-// Ultra fast loading component
-const Loading: React.FC = () => {
+// ============================================================================
+// MAIN LOADING - ULTRA MINIMAL
+// ============================================================================
+
+const Loading: React.FC = memo(() => {
   const { lang = 'ru' } = useParams<{ lang: string }>();
-  const translations = useQuickTranslations(lang);
-
-  const loadingText = useMemo(() => {
-    return translations?.loading_main_key_isload || '';
-  }, [translations]);
+  const t = useQuickTranslations(lang);
+  
+  const text = useMemo(() => t?.loading_main_key_isload || 'Загрузка...', [t]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-100 z-50">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <div className="text-lg font-medium text-gray-700">{loadingText}</div>
+    <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+      <div className="flex flex-col items-center gap-4">
+        {/* Ultra minimal spinner */}
+        <div className="w-10 h-10 border-3 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+        
+        {/* Simple text */}
+        <div className="text-sm text-gray-600 font-medium">{text}</div>
       </div>
     </div>
   );
-};
+});
+Loading.displayName = 'Loading';
 
-// Inline loading - page içinde
-export const LoadingNoFix: React.FC = () => {
-  return (
-    <section className="dots-container-mmm">
-      <div className="dot-mmm-key-vl"></div>
-      <div className="dot-mmm-key-vl"></div>
-      <div className="dot-mmm-key-vl"></div>
-      <div className="dot-mmm-key-vl"></div>
-      <div className="dot-mmm-key-vl"></div>
-    </section>
-  );
-};
+// ============================================================================
+// COMPACT LOADING - MINIMAL
+// ============================================================================
 
-// Instant loading - hiç API beklemez
-export const InstantLoading: React.FC<{ lang?: string }> = ({ lang = 'ru' }) => {
-  const translations = useQuickTranslations(lang);
-  const loadingText = translations?.loading_main_key_isload;
-
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-50 z-50">
-      <div className="flex flex-col items-center space-y-3">
-        <div className="w-14 h-14 border-3 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-        <div className="text-lg font-medium text-gray-600">{loadingText}</div>
-      </div>
+export const CompactLoading: React.FC = memo(() => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/5 backdrop-blur-sm z-50">
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="w-8 h-8 border-3 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
     </div>
-  );
-};
-
-// Micro loading - küçük spinner
-export const MicroLoading: React.FC = () => (
-  <div className="flex items-center justify-center p-4">
-    <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
   </div>
-);
+));
+CompactLoading.displayName = 'CompactLoading';
 
-// Button loading
-export const ButtonLoading: React.FC<{ text?: string }> = ({}) => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
-  const translations = useQuickTranslations(lang);
-  const loadingText = translations?.loading_main_key_isload;
+// ============================================================================
+// NO FIX LOADING
+// ============================================================================
 
-  return (
-    <div className="flex items-center gap-2">
-      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-      <span>{loadingText}</span>
-    </div>
-  );
-};
+export const LoadingNoFix: React.FC = memo(() => (
+  <div className="flex items-center justify-center py-8">
+    <div className="w-8 h-8 border-3 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+  </div>
+));
+LoadingNoFix.displayName = 'LoadingNoFix';
 
-// Skeleton box
+// ============================================================================
+// MICRO LOADING
+// ============================================================================
+
+export const MicroLoading: React.FC = memo(() => (
+  <div className="flex items-center justify-center p-2">
+    <div className="w-5 h-5 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+  </div>
+));
+MicroLoading.displayName = 'MicroLoading';
+
+// ============================================================================
+// BUTTON LOADING
+// ============================================================================
+
+export const ButtonLoading: React.FC<{ text?: string }> = memo(({ text }) => (
+  <div className="flex items-center gap-2">
+    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+    {text && <span>{text}</span>}
+  </div>
+));
+ButtonLoading.displayName = 'ButtonLoading';
+
+// ============================================================================
+// SKELETON - ULTRA FAST
+// ============================================================================
+
 export const SkeletonBox: React.FC<{
-  width?: string;
-  height?: string;
   className?: string;
-}> = ({ width = 'w-full', height = 'h-4', className = '' }) => (
-  <div
-    className={`bg-gray-200 rounded animate-pulse ${width} ${height} ${className}`}
-  />
-);
+}> = memo(({ className = '' }) => (
+  <div className={`bg-gray-200 animate-pulse rounded ${className}`} />
+));
+SkeletonBox.displayName = 'SkeletonBox';
 
-// Preload popular languages in background
-const preloadPopularLanguages = () => {
-  const popularLangs = ['ru', 'az', 'en'];
+// ============================================================================
+// PAGE TRANSITION - TOP BAR ONLY
+// ============================================================================
 
-  popularLangs.forEach(async lang => {
-    if (simpleCache[lang]) return;
+export const PageTransitionLoading: React.FC = memo(() => (
+  <div className="fixed top-0 left-0 right-0 h-0.5 bg-blue-600 z-50 animate-progress" />
+));
+PageTransitionLoading.displayName = 'PageTransitionLoading';
 
-    try {
-      const response = await axios.get('https://admin.brendoo.com/api/translates', {
-        headers: { 'Accept-Language': lang },
-        timeout: 5000,
-      });
+// ============================================================================
+// DOTS LOADING
+// ============================================================================
 
-      if (response.data) simpleCache[lang] = response.data;
-    } catch {
-      console.warn(`Preload failed for ${lang}`);
-    }
-  });
+export const DotsLoading: React.FC = memo(() => (
+  <div className="flex items-center gap-1">
+    {[0, 1, 2].map((i) => (
+      <div
+        key={i}
+        className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+        style={{ animationDelay: `${i * 0.15}s` }}
+      />
+    ))}
+  </div>
+));
+DotsLoading.displayName = 'DotsLoading';
+
+// ============================================================================
+// INLINE LOADING - TABLE/LIST
+// ============================================================================
+
+export const InlineLoading: React.FC = memo(() => (
+  <div className="flex items-center justify-center w-full py-4">
+    <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+  </div>
+));
+InlineLoading.displayName = 'InlineLoading';
+
+// ============================================================================
+// AGGRESSIVE PRELOAD - NON-BLOCKING
+// ============================================================================
+
+const preload = () => {
+  ['ru', 'az', 'en']
+    .filter((l) => !cache[l])
+    .forEach((l) => {
+      axios
+        .get('https://admin.brendoo.com/api/translates', {
+          headers: { 'Accept-Language': l },
+          timeout: 3000,
+        })
+        .then((res) => (cache[l] = res.data))
+        .catch(() => {});
+    });
 };
 
+// Auto-preload after page load
 if (typeof window !== 'undefined') {
-  setTimeout(preloadPopularLanguages, 1000);
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(preload, { timeout: 1000 });
+  } else {
+    setTimeout(preload, 100);
+  }
 }
 
-// Component display names
-Loading.displayName = 'Loading';
-LoadingNoFix.displayName = 'LoadingNoFix';
-InstantLoading.displayName = 'InstantLoading';
-MicroLoading.displayName = 'MicroLoading';
-ButtonLoading.displayName = 'ButtonLoading';
+// ============================================================================
+// CUSTOM ANIMATIONS - ADD TO TAILWIND
+// ============================================================================
+
+// tailwind.config.js əlavə edin:
+/*
+module.exports = {
+  theme: {
+    extend: {
+      animation: {
+        'progress': 'progress 1s ease-in-out infinite',
+      },
+      keyframes: {
+        progress: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+    },
+  },
+}
+*/
 
 export default Loading;

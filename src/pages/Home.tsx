@@ -1,9 +1,9 @@
 import { lazy, Suspense } from 'react';
 import Header from '../components/Header';
 import { Footer } from '../components/Footer/index.tsx';
-import { useEffect, useState, memo, useMemo } from 'react';
+import { useEffect, useState, useMemo, memo } from 'react';
 import GETRequest from '../setting/Request.ts';
-import { Brand, HomeHero, ItemList, Seo, TranslationsKeys } from '../setting/Types.ts';
+import { HomeHero, ItemList, Seo, TranslationsKeys } from '../setting/Types.ts';
 import Loading from '../components/Loading/index.tsx';
 import ROUTES from '../setting/routes.tsx';
 import { Helmet } from 'react-helmet-async';
@@ -15,33 +15,10 @@ const TimedSpecialNotification = lazy(
   () => import('../components/TimedNotification/index.tsx'),
 );
 const TiktokStories = lazy(() => import('../components/TiktokStories/index.tsx'));
+const FeaturedProducts = lazy(() => import('../components/FeaturedProducts.tsx'));
+const TimedDiscountSlider = lazy(() => import('../components/TimedDiscountSlider/index.tsx'));
+// ✅ YENİ: RecentlyViewedProducts lazy load
 const RecentlyViewedProducts = lazy(() => import('../components/RecentlyViewedProducts.tsx'));
-
-// Memoized BrandCard komponenti
-const BrandCard = memo(
-  ({ brand, lang, navigate }: { brand: Brand; lang: string; navigate: any }) => (
-    <div
-      onClick={() => {
-        const params = new URLSearchParams(location.search);
-        params.set('brand_id', brand.id.toString());
-        navigate(
-          `/${lang}/${
-            ROUTES.product[lang as keyof typeof ROUTES.product]
-          }?${params.toString()}`,
-        );
-      }}
-      className="flex overflow-hidden flex-col px-8 my-auto w-36 max-sm:w-full max-sm:h-[80px] items-center justify-center rounded-3xl bg-neutral-100 max-md:px-5 cursor-pointer hover:shadow-md transition-shadow duration-200"
-    >
-      <img
-        loading="lazy"
-        src={brand.logo}
-        alt={(brand as any).name || (brand as any).title || 'Brand logo'}
-        className="object-contain aspect-[1.2] w-[120px]"
-        decoding="async"
-      />
-    </div>
-  ),
-);
 
 // Memoized BannerCard komponenti
 const BannerCard = memo(
@@ -125,7 +102,7 @@ const HeroSection = memo(
     navigate: any;
     translation: any;
   }) => (
-    <section className="relative rounded-[20px] max-sm:rounded-none max-sm:overflow-visible overflow-hidden mt-[16px] mx-[40px] max-sm:mx-[16px]">
+    <section className="relative rounded-[20px] max-sm:rounded-none max-sm:overflow-visible overflow-hidden mx-[40px] max-sm:mx-[16px] mt-[16px]">
       {hero?.image && (
         <video
           autoPlay
@@ -133,7 +110,7 @@ const HeroSection = memo(
           muted
           playsInline
           preload="metadata"
-          className="absolute top-0 left-0 w-full h-full object-cover"
+          className="absolute top-0 left-0 w-full h-full object-cover rounded-[12px]"
           poster={hero.image}
           webkit-playsinline="true"
           controls={false}
@@ -144,7 +121,7 @@ const HeroSection = memo(
         </video>
       )}
 
-      <div className="flex overflow-hidden flex-col justify-center items-center px-20 py-52 max-sm:rounded-none rounded-3xl bg-black bg-opacity-20 max-md:px-5 max-md:py-24 max-sm:aspect-square relative z-10">
+      <div className="flex overflow-hidden flex-col justify-center items-center px-20 py-52 max-sm:rounded-none rounded-3xl bg-opacity-20 max-md:px-5 max-md:py-24 max-sm:aspect-square relative z-10">
         <div className="flex flex-col max-w-full w-[497px]">
           <div className="flex flex-col w-full text-center text-neutral-100 max-md:max-w-full">
             <h1 className="self-center text-5xl font-bold max-md:max-w-full max-md:text-4xl max-sm:text-[24px]">
@@ -176,7 +153,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { lang = 'ru' } = useParams<{ lang: string }>();
 
-  // Critical data first - prioritized loading
   const { data: hero, isLoading: heroLoading } = GETRequest<HomeHero>(`/hero`, 'HOMEhero', [
     lang,
   ]);
@@ -186,11 +162,6 @@ export default function Home() {
     'translates',
     [lang],
   );
-
-  // Less critical data - can load after
-  const { data: brands, isLoading: brandsLoading } = GETRequest<Brand[]>(`/brands`, 'brands', [
-    lang,
-  ]);
 
   const { data: metas } = GETRequest<Seo[]>(`/seo_pages`, 'seo_pages', [lang]);
 
@@ -214,7 +185,6 @@ export default function Home() {
     is_special: boolean;
   }>(`/special`, 'special', [lang]);
 
-  // Memoized meta data
   const homePageMeta = useMemo(() => metas?.find(meta => meta.type === 'home_page'), [metas]);
 
   useEffect(() => {
@@ -227,7 +197,6 @@ export default function Home() {
     }
   }, [special?.is_special]);
 
-  // Progressive loading - əsas məzmun yüklənəndən sonra loading göstər
   const isInitialLoading = heroLoading || translationLoading;
 
   if (isInitialLoading) {
@@ -256,8 +225,8 @@ export default function Home() {
           />
         </Suspense>
 
-        <Suspense fallback={<div className="h-16 lg:hidden" />}>
-          <section className="lg:hidden block">
+        <Suspense fallback={<div className="h-16 hidden" />}>
+          <section className="hidden">
             <Story />
           </section>
         </Suspense>
@@ -268,11 +237,11 @@ export default function Home() {
           <TiktokStories />
         </Suspense>
 
-        <Suspense fallback={<div className="h-32" />}>
-          <RecentlyViewedProducts />
+        <Suspense fallback={<div className="h-64 bg-gradient-to-r from-red-50 to-orange-50 animate-pulse" />}>
+          <TimedDiscountSlider translation={translation} />
         </Suspense>
 
-        <section className="md:py-[40px] py-[20px] lg:py-[50px]">
+        <section className="md:py-[20px]">
           <div className="mx-[15px]">
             {bannersLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[8px]">
@@ -299,39 +268,14 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="flex max-sm:px-4 flex-col px-[40px] mt-5 max-sm:mt-[52px]">
-          <div className="flex flex-wrap gap-10 justify-between items-center max-md:max-w-full">
-            <div className="self-stretch my-auto text-4xl font-semibold text-slate-900">
-              {translation?.Brendlər}
-            </div>
-            <div className="self-stretch my-auto text-base font-medium text-blue-600 underline decoration-auto decoration-solid underline-offset-auto">
-              <span
-                className="text-[#3873C3] underline cursor-pointer hover:text-blue-800 transition-colors"
-                onClick={() =>
-                  navigate(`/${lang}/${ROUTES.brends[lang as keyof typeof ROUTES.brends]}`)
-                }
-              >
-                {translation?.BRENDLER_bax}
-              </span>
-            </div>
-          </div>
+        <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
+          <FeaturedProducts translation={translation} />
+        </Suspense>
 
-          <div className="flex flex-col mt-12 w-full max-md:mt-10 max-md:max-w-full">
-            {brandsLoading ? (
-              <div className="grid max-sm:grid-cols-3 max-lg:grid-cols-5 grid-cols-7 gap-4">
-                {[1, 2, 3, 4, 5, 6, 7].map(i => (
-                  <div key={i} className="w-36 h-24 bg-gray-200 rounded-3xl animate-pulse" />
-                ))}
-              </div>
-            ) : (
-              <div className="grid flex-wrap max-sm:grid-cols-3 max-lg:grid-cols-5 grid-cols-7 gap-4 items-center w-full justify-between max-lg:justify-start max-sm:justify-center">
-                {brands?.map((brand: Brand) => (
-                  <BrandCard key={brand.id} brand={brand} lang={lang} navigate={navigate} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+        {/* ✅ YENİ: Son Baxışlar Section */}
+        <Suspense fallback={<div className="h-64 bg-gray-50 animate-pulse" />}>
+          <RecentlyViewedProducts />
+        </Suspense>
       </main>
 
       <Footer />

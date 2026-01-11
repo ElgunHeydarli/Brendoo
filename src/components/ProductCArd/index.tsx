@@ -1,17 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Basket, Favorite, Product, TranslationsKeys } from '../../setting/Types';
-import { FaRubleSign } from 'react-icons/fa';
+import { Basket, Product, TranslationsKeys } from '../../setting/Types';
+import {  } from 'react-icons/fa';
 
 import ROUTES from '../../setting/routes';
 import GETRequest, { axiosInstance } from '../../setting/Request';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import ImageSlider from './ImageSlider';
 import { useCollectionModal } from '../../contexts/CollectionModalProvider';
 import { useCollections } from '../../pages/influencer_dashboard/CollectionProvider';
+
+const API_URL = 'https://admin.brendoo.com';
+
 interface Props {
   isHome?: boolean;
   data?: Product;
@@ -33,16 +36,31 @@ export default function ProductCard({
 
   const navigate = useNavigate();
   const checkLikedProducts = () => {
-    if (
-      favorites?.some((item: any) =>
-        item && item?.product && item?.product?.id
-          ? item?.product?.id === data?.id
-          : '',
-      )
-    ) {
-      setisliked(true);
+    // Check login
+    const userStr = localStorage.getItem('user-info');
+    const isLoggedIn = !!userStr;
+    
+    if (isLoggedIn) {
+      // Logged in user - check API favorites
+      if (
+        favorites?.some((item: any) =>
+          item && item?.product && item?.product?.id
+            ? item?.product?.id === data?.id
+            : '',
+        )
+      ) {
+        setisliked(true);
+      } else {
+        setisliked(false);
+      }
     } else {
-      setisliked(false);
+      // Guest user - check localStorage
+      const guestFavs = JSON.parse(localStorage.getItem('guest_favorites') || '[]');
+      if (guestFavs.some((fav: any) => fav?.id === data?.id)) {
+        setisliked(true);
+      } else {
+        setisliked(false);
+      }
     }
   };
 
@@ -50,12 +68,32 @@ export default function ProductCard({
     lang: string;
   }>();
 
+  // Real-time favorites with useQuery
+  const userStr = localStorage.getItem('user-info');
+  const parsed = userStr ? JSON.parse(userStr) : null;
+  const token = parsed?.token;
+
+  const { data: favorites, refetch: refetchFavorites } = useQuery({
+    queryKey: ['favorites', lang, token],
+    queryFn: async () => {
+      if (!token) return [];
+      const res = await axios.get(`${API_URL}/api/favorites`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Accept-Language': lang,
+        },
+      });
+      return res.data;
+    },
+    staleTime: 0,
+    enabled: !!token,
+  });
+
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',
     [lang],
   );
-  const { data: favorites } = GETRequest<Favorite[]>(`/favorites`, 'favorites', [lang]);
 
   const { data: basked } = GETRequest<Basket>(`/basket_items`, 'basket_items', [
     lang,
@@ -143,11 +181,9 @@ export default function ProductCard({
 
   useEffect(() => {
     checkLikedProducts();
-  }, [favorites]);
+  }, [favorites, data?.id]);
 
   const hasDiscount = Number(data?.discount) > 0 && data?.discount !== null;
-
-  // const handleNavigateToProduct = useCallback(() => {
   //   if (!data) return;
 
   //   trackProductView();
@@ -296,45 +332,82 @@ export default function ProductCard({
           onClick={handleNavigateToProduct}
           className="md:rounded-3xl rounded-md hover:scale-110 duration-300"
           slides={
-            data?.sliders && data?.sliders?.length > 0
-              ? data?.sliders
-              : [{ id: data?.id, image: data?.image }]
+            (() => {
+              const filtered = data?.sliders?.filter((s: any) => {
+                if (!s?.image || s.image.includes('no-image')) return false;
+                const colorCode = s?.color_code?.toLowerCase() || '';
+                if (colorCode === '#000000' || colorCode === '#ffffff' || colorCode === '') return false;
+                return true;
+              }) || [];
+              
+              return filtered.length > 0 ? filtered : [{ id: data?.id, image: data?.image }];
+            })()
           }
         />
         <div
-          className="bg-[#FFFFFF99]  rounded-full w-[13%] aspect-square absolute top-6 right-6 flex justify-center items-center"
-          onClick={async () => {
+          className="bg-[#FFFFFF99] rounded-full w-[13%] aspect-square absolute top-6 right-6 flex justify-center items-center cursor-pointer hover:scale-110 transition-transform"
+          onClick={async (e) => {
+            e.stopPropagation();
+            
+            // Check login
             const userStr = localStorage.getItem('user-info');
-            if (userStr) {
-              const User = JSON.parse(userStr);
-              if (User) {
-                axiosInstance
-                  .post(
-                    '/favorites/toggleFavorite',
-                    { product_id: data.id },
-                    {
-                      headers: {
-                        Authorization: `Bearer ${User.token}`,
-                        Accept: 'application/json',
-                      },
+            const isLoggedIn = !!userStr;
+
+            if (isLoggedIn) {
+              // Logged in user - API call
+              try {
+                const User = JSON.parse(userStr);
+                
+                await axiosInstance.post(
+                  '/favorites/toggleFavorite',
+                  { product_id: data?.id },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${User.token}`,
+                      Accept: 'application/json',
                     },
-                  )
-                  .then(() => {
-                    if (isliked) {
-                      setisliked(false);
-                    } else {
-                      setisliked(true);
-                    }
-                    queryClient.invalidateQueries({
-                      queryKey: ['favorites'],
-                    });
-                  })
-                  .catch(error => {
-                    console.log(error);
-                  });
+                  }
+                );
+
+                // State güncəllə
+                setisliked(!isliked);
+                
+                // Refetch favorites
+                await refetchFavorites();
+                
+                // Header-ə əmr ver
+                window.dispatchEvent(new Event('favorites_updated'));
+                
+              } catch (error) {
+                console.error('Xəta:', error);
               }
             } else {
-              navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`);
+              // Guest user - localStorage-da saxla
+              try {
+                const guestFavKey = 'guest_favorites';
+                let guestFavs = JSON.parse(localStorage.getItem(guestFavKey) || '[]');
+                
+                const index = guestFavs.findIndex((fav: any) => fav?.id === data?.id);
+                
+                if (index > -1) {
+                  // Çıxar
+                  guestFavs.splice(index, 1);
+                } else {
+                  // Əlavə et - tam product object saxla
+                  guestFavs.push(data);
+                }
+                
+                localStorage.setItem(guestFavKey, JSON.stringify(guestFavs));
+                
+                // State güncəllə
+                setisliked(!isliked);
+                
+                // Event
+                window.dispatchEvent(new Event('guest_favorites_updated'));
+                
+              } catch (error) {
+                console.error('Xəta:', error);
+              }
             }
           }}
         >
@@ -394,14 +467,15 @@ export default function ProductCard({
             <>
               <div className="md:mt-3 font-semibold flex items-center text-[14px] line-through opacity-60">
                 <span className="text-[14px]">{data?.price}</span>
-                <FaRubleSign className="text-[12px] md:mt-2" />
+                <span className="text-[12px] ml-1">₼</span>
+
               </div>
               <div
                 className="md:mt-3 font-semibold flex items-center"
                 style={issale ? { color: '#FC3976' } : {}}
               >
                 <span className="text-[18px]">{data?.discounted_price}</span>
-                <FaRubleSign className="text-[13px] mt-2" />
+                ₼
               </div>
             </>
           ) : (
@@ -410,7 +484,7 @@ export default function ProductCard({
               style={issale ? { color: '#FC3976' } : {}}
             >
               <span className="text-[18px]">{data?.price}</span>
-              <FaRubleSign className="text-[13px] mt-2" />
+              ₼
             </div>
           )}
         </div>

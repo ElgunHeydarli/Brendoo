@@ -2,6 +2,18 @@ import type React from 'react';
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+const API_URL = 'https://admin.brendoo.com';
+
+// Şəkil URL-ini düzgün formata çevir
+const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.svg';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) {
+    return API_URL + src;
+  }
+  return src;
+};
+
 type Slide = {
   id: number;
   image: string;
@@ -52,7 +64,7 @@ export default function ImageSlider({ slides, onClick, className = '' }: ImageSl
       <img
         onClick={onClick}
         className={`${className} object-cover w-full h-full`}
-        src={slides[0].image || '/placeholder.svg'}
+        src={getImageUrl(slides[0].image)}
         alt="Product"
         loading="lazy"
         draggable={false}
@@ -75,7 +87,7 @@ export default function ImageSlider({ slides, onClick, className = '' }: ImageSl
           {slides.map((slide, index) => (
             <img
               key={slide.id ?? index}
-              src={slide.image || '/placeholder.svg'}
+              src={getImageUrl(slide.image)}
               alt={`Product slide ${index + 1}`}
               className={`${className} min-w-full object-contain`}
               loading={index === 0 ? 'eager' : 'lazy'}
@@ -87,7 +99,6 @@ export default function ImageSlider({ slides, onClick, className = '' }: ImageSl
         </div>
       </div>
 
-      {/* Yalnızca butonlarla kontrol */}
       {slides.length > 1 && (
         <>
           <button

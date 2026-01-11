@@ -2,18 +2,28 @@ import { useState, useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
 import { Fancybox } from '@fancyapps/ui';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import '@fancyapps/ui/dist/fancybox/fancybox.css';
 import 'swiper/swiper-bundle.css';
 import ImageMagnifier from '../magnifyImage';
 import { useShowMagnify } from '../../hooks/useShowMagnify';
 import { createPortal } from 'react-dom';
-export default function ProductGallery({ images }: { images: string[] }) {
+
+interface ProductGalleryProps {
+  images: string[];
+  video?: string | null;
+}
+
+export default function ProductGallery({ images, video }: ProductGalleryProps) {
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
-  const [index, setindex] = useState<any>(0);
+  const [index, setindex] = useState<number>(0);
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const { showMagnifier, x, y } = useShowMagnify();
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const hasVideo = !!video;
+  const allMedia = hasVideo ? [video, ...images] : images;
 
   useEffect(() => {
     Fancybox.bind('[data-fancybox="gallery"]', {
@@ -25,7 +35,6 @@ export default function ProductGallery({ images }: { images: string[] }) {
         },
       },
     });
-
     return () => {
       Fancybox.destroy();
     };
@@ -35,25 +44,31 @@ export default function ProductGallery({ images }: { images: string[] }) {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768); // 768 altı mobil olarak kabul ediliyor
+      setIsMobile(window.innerWidth <= 768);
     };
-
-    handleResize(); // İlk renderda çalıştır
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current && index !== 0) {
+      videoRef.current.pause();
+    }
+  }, [index]);
+
+  const isVideoSlide = (idx: number) => hasVideo && idx === 0;
+
   return (
     <div className="max-w-2xl mx-auto p-4 relative">
-      {/* Main Swiper */}
-      <div className="mb-4  group  relative ">
+      <div className="mb-4 group relative">
         <Swiper
           spaceBetween={10}
           navigation={{
             prevEl: prevRef.current,
             nextEl: nextRef.current,
           }}
-          onBeforeInit={swiper => {
+          onBeforeInit={(swiper) => {
             // @ts-expect-error prevRef.current
             swiper.params.navigation.prevEl = prevRef.current;
             // @ts-expect-error nextRef.current
@@ -61,15 +76,34 @@ export default function ProductGallery({ images }: { images: string[] }) {
           }}
           thumbs={{ swiper: thumbsSwiper }}
           modules={[FreeMode, Navigation, Thumbs]}
-          onSlideChange={swiper => {
+          onSlideChange={(swiper) => {
             setindex(swiper.activeIndex);
-            // You can use swiper.activeIndex to access the current slide index
           }}
-          className="aspect-square rounded-lg "
+          className="aspect-square rounded-lg"
         >
-          {images.map((img, index) => {
+          {allMedia.map((media, idx) => {
+            if (isVideoSlide(idx)) {
+              return (
+                <SwiperSlide key={`video-${idx}`} className="!overflow-visible">
+                  <div className="w-full h-full flex items-center justify-center bg-black rounded-lg">
+                    <video
+                      ref={videoRef}
+                      src={media}
+                      controls
+                      playsInline
+                      className="w-full h-full object-contain rounded-lg"
+                      poster={images[0]}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </SwiperSlide>
+              );
+            }
+
+            const img = media;
             return (
-              <SwiperSlide key={index} className=" !overflow-visible">
+              <SwiperSlide key={idx} className="!overflow-visible">
                 <a
                   href={img}
                   data-fancybox="gallery"
@@ -80,41 +114,34 @@ export default function ProductGallery({ images }: { images: string[] }) {
                   {isMobile && (
                     <img
                       src={img}
-                      alt={`Product view ${index + 1}`}
+                      alt={`Product view ${idx + 1}`}
                       className="w-full h-full object-contain"
                     />
                   )}
-
-                  {/* <ImageMagnifier src={img} width={'100%'} height={'100%'} /> */}
                 </a>
               </SwiperSlide>
             );
           })}
         </Swiper>
-        {/* <img
-          src={images[index] || '/placeholder.svg'}
-          alt={`Product view ${index + 1}`}
-          className="w-full h-full object-cover rounded-lg"
-        /> */}
 
         {!isMobile &&
           showMagnifier &&
+          !isVideoSlide(index) &&
           createPortal(
             <div
               className="fixed z-[9999] top-[100px] left-[650px] w-[500px] h-[500px] rounded-lg shadow-lg"
               style={{
-                backgroundImage: `url('${images[index]}')`,
+                backgroundImage: `url('${allMedia[index]}')`,
                 backgroundRepeat: 'no-repeat',
-                backgroundSize: `400% 400%`,
+                backgroundSize: '400% 400%',
                 backgroundPositionX: `${-x * 4 + 100}px`,
                 backgroundPositionY: `${-y * 4 + 100}px`,
                 border: '1px solid lightgray',
               }}
             ></div>,
-            document.body,
+            document.body
           )}
 
-        {/* Custom Navigation Buttons */}
         <button
           ref={prevRef}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 disabled:opacity-0"
@@ -131,7 +158,6 @@ export default function ProductGallery({ images }: { images: string[] }) {
         </button>
       </div>
 
-      {/* Thumbnail Swiper */}
       <Swiper
         onSwiper={setThumbsSwiper}
         spaceBetween={10}
@@ -141,15 +167,32 @@ export default function ProductGallery({ images }: { images: string[] }) {
         modules={[FreeMode, Navigation, Thumbs]}
         className="thumbs-swiper"
       >
-        {images.map((img, index) => (
-          <SwiperSlide key={index}>
+        {allMedia.map((media, idx) => (
+          <SwiperSlide key={idx}>
             <button className="w-full relative aspect-square rounded-md overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary">
-              <img
-                src={img || '/placeholder.svg'}
-                alt={`Thumbnail ${index + 1}`}
-                className="w-full h-full object-contain"
-                style={{ objectFit: 'contain' }}
-              />
+              {isVideoSlide(idx) ? (
+                <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
+                  {images[0] && (
+                    <img
+                      src={images[0]}
+                      alt="Video thumbnail"
+                      className="w-full h-full object-contain opacity-60"
+                    />
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center">
+                      <Play className="w-5 h-5 text-gray-900 ml-1" fill="currentColor" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={media || '/placeholder.svg'}
+                  alt={`Thumbnail ${idx + 1}`}
+                  className="w-full h-full object-contain"
+                  style={{ objectFit: 'contain' }}
+                />
+              )}
               <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors" />
             </button>
           </SwiperSlide>

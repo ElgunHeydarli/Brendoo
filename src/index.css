@@ -760,8 +760,7 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  padding: 40px 40px;
-  padding-bottom: 20px !important;
+  padding: 80px 20px;
   animation: scrollButtonAnimation 400ms ease forwards;
 }
 @keyframes scrollButtonAnimation {
@@ -775,11 +774,11 @@ body {
   }
 }
 .scroll-top .button-top {
-  min-width: 60px;
+  min-width: 50px;
   pointer-events: all;
-  width: 60px;
-  height: 60px;
-  min-height: 60px;
+  width: 50px;
+  height: 50px;
+  min-height: 50px;
   border-radius: 100px;
   display: flex;
   align-items: center;
@@ -790,6 +789,10 @@ body {
   background-color: white;
   border: 1px solid #cae0ff;
   box-shadow: 0px 0px 10px 0px rgba(0, 94, 255, 0.123);
+  svg{
+    width: 20px;
+    height: 20px;
+  }
 }
 .scroll-top .button-top:hover {
   background-color: rgb(231, 231, 231);
@@ -1361,4 +1364,154 @@ h1 {
     background-color: #b3d4fc;
     box-shadow: 0 0 0 0 rgba(178, 212, 252, 0.7);
   }
+}
+/* ============================================
+   LAZY LOAD IMAGE OPTIMIZATION STYLES
+   ============================================ */
+
+/* Lazy Load Image wrapper */
+.lazy-load-image-background {
+  display: block !important;
+  width: 100%;
+  height: 100%;
+}
+
+/* Blur effect while loading */
+.lazy-load-image-background.blur {
+  filter: blur(10px);
+  transition: filter 0.4s ease-out;
+}
+
+/* Remove blur when loaded */
+.lazy-load-image-background.blur.lazy-load-image-loaded {
+  filter: blur(0);
+}
+
+/* Shimmer loading animation */
+.lazy-load-image-background:not(.lazy-load-image-loaded) {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e8e8e8 20%,
+    #e8e8e8 40%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+/* Shimmer keyframes */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Lazy load image container - prevent layout shift */
+.lazy-load-image-background img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Smooth opacity transition */
+.lazy-load-image-background img {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.lazy-load-image-background.lazy-load-image-loaded img {
+  opacity: 1;
+}
+
+
+/* ============================================
+   GOOGLE TRANSLATE STİLLƏRİ
+   index.css-in sonuna əlavə edin
+   ============================================ */
+
+/* Google Translate banner və bütün branding-i gizlət */
+.goog-te-banner-frame,
+.goog-te-gadget-icon,
+.goog-logo-link,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-spinner-pos,
+.goog-text-highlight,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-l4eHX-hSRGPd,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-aZ2wEe-OiiCO,
+#goog-gt-tt,
+.goog-te-ftab-link {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+/* ƏSAS: Body style override - ağ səhifə problemini həll edir */
+body {
+  top: 0 !important;
+  position: static !important;
+  min-height: 100vh !important;
+  background-color: #fff !important;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+/* Skiptranslate banner gizlət */
+.skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+/* Google banner iframe gizlət */
+iframe.goog-te-banner-frame,
+iframe.skiptranslate,
+iframe[name="votingFrame"],
+.goog-te-banner-frame {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  top: -9999px !important;
+}
+
+.notranslate {
+  translate: no;
+}
+
+/* Translate gadget - tamamilə gizlət */
+.goog-te-gadget {
+  font-size: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+}
+
+/* Select dropdown - gizli amma işləyir */
+.goog-te-combo {
+  position: absolute !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+/* Google-un əlavə etdiyi boş div-ləri gizlət */
+.goog-te-spinner-pos,
+.goog-te-spinner-animation {
+  display: none !important;
+}
+
+/* Translated text highlight-ı gizlət */
+font[style*="background"] {
+  background: transparent !important;
 }

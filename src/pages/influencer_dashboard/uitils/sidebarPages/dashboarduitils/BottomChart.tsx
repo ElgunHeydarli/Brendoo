@@ -42,7 +42,6 @@ const BottomChart: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [loadingp, setLoadingp] = React.useState<boolean>(false);
 
-  // get credentials for api
   const userStr = localStorage.getItem('user-info');
   const user = userStr ? JSON.parse(userStr) : '';
   const token = user?.token;
@@ -160,7 +159,7 @@ const BottomChart: React.FC = () => {
                     boxShadow: '0 0 10px rgba(0,0,0,0.05)',
                   }}
                   labelFormatter={() => ''}
-                  formatter={(value: number) => [`${value / 1000} K`, '']}
+                  formatter={(value) => [`${(value ?? 0) as number / 1000} K`, '']}
                   cursor={{ strokeDasharray: '4 4', stroke: '#8B7EFF' }}
                 />
                 <Line

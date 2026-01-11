@@ -1,4 +1,4 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -7,68 +7,110 @@ import toast from 'react-hot-toast';
 import GETRequest from '../../setting/Request';
 import { TranslationsKeys } from '../../setting/Types';
 import ROUTES from '../../setting/routes';
-import { baseUrlInf } from '../../InfluencerBaseURL';
-// Validation Schema using Yup
 
 const Register = () => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // ✅ YENİ: Modal state və şərtlər məzmunu
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsContent, setTermsContent] = useState<string>('');
+  const [termsLoading, setTermsLoading] = useState(false);
 
   const { data: tarnslation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',
-    [lang],
+    [lang]
   );
 
-  const validationSchema = Yup.object({
-    name: Yup.string().required('Please enter your name'),
-    phone: Yup.string()
-      .required(tarnslation?.is_r_5 ?? '')
-      .matches(/^[0-9]{10}$/, tarnslation?.is_r_6 ?? ''),
-    email: Yup.string()
-      .email(tarnslation?.is_r_12 ?? '')
-      .required(tarnslation?.Pls_r ?? ''),
-    password: Yup.string()
-      .min(8, tarnslation?.long ?? '')
-      .required(tarnslation?.ps_w ?? ''),
-    acceptTerms: Yup.boolean()
-      .oneOf([true], tarnslation?.must_be_c ?? '')
-      .required(tarnslation?.must_be_c ?? ''),
-    gender: Yup.string()
-      .oneOf(['man', 'woman'], tarnslation?.gn ?? '')
-      .required(tarnslation?.gender_is_req ?? ' '),
-    birthday: Yup.date().required(tarnslation?.birt ?? ''),
-  });
-
-  const [userType, setUserType] = useState<'user' | 'influencer'>('user');
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [variant] = useState<1 | 2>(1);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(prev => !prev);
+  // ✅ YENİ: Şərtləri API-dən yüklə
+  const fetchTerms = async () => {
+    setTermsLoading(true);
+    try {
+      // page_id=4 = "Şərtlər və Qaydalar"
+      const response = await axios.get('https://admin.brendoo.com/api/pages?page_id=4', {
+        headers: { 'Accept-Language': lang }
+      });
+      
+      if (response.data?.description) {
+        setTermsContent(response.data.description);
+      } else {
+        setTermsContent(`<h2>${response.data?.title || 'Şərtlər və Qaydalar'}</h2><p>Məzmun tapılmadı.</p>`);
+      }
+    } catch (error) {
+      console.error('Terms fetch error:', error);
+      setTermsContent(tarnslation?.sertler_yuklenmedi || 'Şərtlər yüklənə bilmədi');
+    } finally {
+      setTermsLoading(false);
+    }
   };
 
-  const navigate = useNavigate();
+  // ✅ YENİ: Modal açılanda şərtləri yüklə
+  const handleOpenTermsModal = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowTermsModal(true);
+    if (!termsContent) {
+      fetchTerms();
+    }
+  };
 
-  async function handleRegister(values: {
-    name: string;
-    phone: string;
-    email: string;
-    password: string;
-    gender: string;
-    birthday: string;
-  }) {
+  // ✅ YENİ: ESC düyməsi ilə modalı bağla
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowTermsModal(false);
+    };
+    if (showTermsModal) {
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showTermsModal]);
+
+  const validationSchema = Yup.object({
+    name: Yup.string().required('Ad tələb olunur'),
+    phone: Yup.string()
+      .required('Telefon nömrəsi tələb olunur')
+      .matches(/^[0-9]{9}$/, 'Telefon nömrəsi 9 rəqəm olmalıdır'),
+    email: Yup.string()
+      .email('Düzgün email daxil edin')
+      .required('Email tələb olunur'),
+    password: Yup.string()
+      .min(8, 'Şifrə minimum 8 simvol olmalıdır')
+      .required('Şifrə tələb olunur'),
+    fin_code: Yup.string()
+      .required('FIN kod tələb olunur')
+      .matches(/^[A-Z0-9]{7}$/, 'FIN kod 7 simvol olmalıdır'),
+    id_serial: Yup.string()
+      .required('Şəxsiyyət seriyası tələb olunur')
+      .min(8, 'Minimum 8 simvol'),
+    gender: Yup.string()
+      .oneOf(['man', 'woman'], 'Cins seçin')
+      .required('Cins tələb olunur'),
+    birthday: Yup.date().required('Doğum tarixi tələb olunur'),
+    acceptTerms: Yup.boolean()
+      .oneOf([true], 'Şərtləri qəbul etməlisiniz')
+      .required(),
+  });
+
+  const handleRegister = async (values: any) => {
     try {
       const response = await axios.post('https://admin.brendoo.com/api/register', {
         name: values.name,
-        phone: `${values.phone}`,
+        phone: values.phone,
         email: values.email,
         password: values.password,
-        gender: values.gender === '' ? 'man' : values.gender,
+        fin_code: values.fin_code.toUpperCase(),
+        id_serial: values.id_serial.toUpperCase(),
+        gender: values.gender,
         birthday: values.birthday,
       });
 
       if (response.status === 200 || response.status === 201) {
+        toast.success('Qeydiyyat uğurla tamamlandı!');
         navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`);
       }
     } catch (error) {
@@ -78,445 +120,838 @@ const Register = () => {
             toast.error(item);
           });
         } else {
-          toast.error('');
+          toast.error('Xəta baş verdi');
         }
       }
-    }
-  }
-
-  const { data: registerImage } = GETRequest<{ image: string }>(
-    `/registerImage`,
-    'registerImage',
-    [lang],
-  );
-
-  // const [otpValues, setOtpValues] = React.useState(Array(6).fill(""));
-  // const [renderOtp, setRenderOtp] = React.useState<boolean>(false);
-  // const RenderOtpComponent = () => {
-  //   const inputsRef = React.useRef<HTMLInputElement[]>([]);
-
-  //   const handleChange = (index: number, value: string) => {
-  //     if (!/^[0-9]?$/.test(value)) return; // Sadece rakam
-  //     const newOtp = [...otpValues];
-  //     newOtp[index] = value;
-  //     setOtpValues(newOtp);
-
-  //     if (value && index < 5) {
-  //       inputsRef.current[index + 1]?.focus();
-  //     }
-  //   };
-
-  //   const handleSubmitCode = async () => {
-  //     const otpCode = otpValues.join("");
-  //     if (otpCode.length !== 6) {
-  //       toast.error("Zəhmət olmasa 6 rəqəmli kodu tam doldurun");
-  //       return;
-  //     }
-
-  //     try {
-  //       const data = {
-  //         verification_code: otpCode,
-  //         verification_token: localStorage.getItem("efq") || "",
-  //       };
-
-  //       const res = await axios.post(
-  //         "https://admin.brendoo.com/api/influencers/verifyEmail",
-  //         data
-  //       );
-  //       if (res.data) {
-  //         toast.success("Email təsdiqləndi!");
-  //         navigate(
-  //           `/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`
-  //         );
-  //       } else {
-  //         toast.error("Doğrulama kodu yanlışdır");
-  //       }
-  //     } catch (err) {
-  //       toast.error("Bir xəta baş verdi");
-  //       console.error(err);
-  //     }
-  //   };
-
-  //   return (
-  //     <div className="flex flex-col items-center gap-4 mt-6">
-  //       <div className="flex gap-2">
-  //         {otpValues.map((val, i) => (
-  //           <input
-  //             key={i}
-  //             ref={(el) => (inputsRef.current[i] = el!)}
-  //             type="text"
-  //             maxLength={1}
-  //             value={val}
-  //             onChange={(e) => handleChange(i, e.target.value)}
-  //             className="w-12 h-12 text-center border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-xl"
-  //           />
-  //         ))}
-  //       </div>
-  //       <button
-  //         onClick={handleSubmitCode}
-  //         className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
-  //       >
-  //         Təsdiqlə
-  //       </button>
-  //     </div>
-  //   );
-  // };
-
-  const [name, setName] = React.useState<string>('');
-  const [email, setEmail] = React.useState<string>('');
-  const [telephone, setTelephone] = React.useState<string>('');
-  const [socialProfile, setSocialProfile] = React.useState<string>('');
-  const [password, setPassword] = React.useState<string>('');
-  const handleSubmitInfluencer = async () => {
-    try {
-      const data = {
-        name,
-        email,
-        phone: telephone,
-        social_profile: socialProfile,
-        password,
-      };
-
-      const res = await axios.post(`${baseUrlInf}/register`, data);
-
-      if (res?.status === 200 || res?.status === 201) {
-        toast.success('Uğurla qeydiyyatdan keçdiniz!');
-        // OTP üçün tokeni saxlamaq YOXDUR artıq:
-        // localStorage.setItem('efq', res.data?.data?.email_verification_token);
-
-        const loginPath =
-          ROUTES.login?.[lang as keyof typeof ROUTES.login] ?? ROUTES.login['ru'];
-        navigate(`/${lang}/${loginPath}`);
-      } else {
-        toast.error('Qeydiyyat tamamlanmadı. Yenidən cəhd edin.');
-      }
-    } catch (error: any) {
-      // İstəyə görə backend error mesajnı göstər
-      const msg =
-        error?.response?.data?.message ||
-        (Array.isArray(error?.response?.data?.error) &&
-          error.response.data.error.join(', ')) ||
-        'Xəta baş verdi. Yenidən cəhd edin.';
-      toast.error(msg);
-      console.error(error);
     }
   };
 
   return (
-    <div className="flex overflow-hidden flex-col bg-white">
-      <div className="flex  relative flex-col w-full h-[93vh] max-md:max-w-full justify-center items-center px-[40px] max-sm:px-4">
-        <img
-          loading="lazy"
-          src={registerImage?.image || ''}
-          className="object-cover absolute inset-0 size-full"
-        />
-        <div
-          onClick={() => navigate(-1)}
-          className="rounded-full z-[50] bg-white lg:w-[56px] lg:h-[56px] w-[35px] h-[35px] bg-opacity-60 absolute top-5 left-5 cursor-pointer"
-        >
-          <img
-            loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/d1d01662ce302f4f64e209cc8ecd0540b6f0e5fb3d4ccd79eead1b316a272d11?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"
-            className="object-contain w-14 aspect-square rounded-full"
-          />
+    <>
+      <style>{`
+        .register-container {
+          display: flex;
+          min-height: 100vh;
+          width: 100%;
+        }
+        
+        /* Sol Panel */
+        .left-panel {
+          flex: 1;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 60px;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .left-panel::before {
+          content: '';
+          position: absolute;
+          top: -100px;
+          right: -100px;
+          width: 400px;
+          height: 400px;
+          background: rgba(56, 115, 195, 0.1);
+          border-radius: 50%;
+        }
+        
+        .left-panel::after {
+          content: '';
+          position: absolute;
+          bottom: -150px;
+          left: -150px;
+          width: 500px;
+          height: 500px;
+          background: rgba(56, 115, 195, 0.08);
+          border-radius: 50%;
+        }
+        
+        .left-content {
+          position: relative;
+          z-index: 10;
+          max-width: 500px;
+        }
+        
+        .brand-logo {
+          font-size: 42px;
+          font-weight: 800;
+          color: white;
+          margin-bottom: 24px;
+          letter-spacing: -1px;
+        }
+        
+        .brand-logo span {
+          color: #3873C3;
+        }
+        
+        .left-title {
+          font-size: 36px;
+          font-weight: 700;
+          color: white;
+          line-height: 1.3;
+          margin-bottom: 20px;
+        }
+        
+        .left-description {
+          font-size: 18px;
+          color: rgba(255, 255, 255, 0.7);
+          line-height: 1.7;
+          margin-bottom: 40px;
+        }
+        
+        .features-list {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        
+        .feature-icon {
+          width: 48px;
+          height: 48px;
+          background: rgba(56, 115, 195, 0.2);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        
+        .feature-icon svg {
+          width: 24px;
+          height: 24px;
+          color: #5a9fd4;
+        }
+        
+        .feature-text h4 {
+          font-size: 16px;
+          font-weight: 600;
+          color: white;
+          margin-bottom: 4px;
+        }
+        
+        .feature-text p {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Sağ Panel */
+        .right-panel {
+          flex: 1;
+          background: #f8fafc;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 40px;
+          overflow-y: auto;
+        }
+        
+        .form-wrapper {
+          width: 100%;
+          max-width: 440px;
+        }
+        
+        .form-header {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        
+        .form-icon {
+          width: 64px;
+          height: 64px;
+          background: linear-gradient(135deg, #3873C3 0%, #5a9fd4 100%);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          box-shadow: 0 10px 30px rgba(56, 115, 195, 0.3);
+        }
+        
+        .form-icon svg {
+          width: 32px;
+          height: 32px;
+          color: white;
+        }
+        
+        .form-title {
+          font-size: 28px;
+          font-weight: 700;
+          color: #1a1a2e;
+          margin-bottom: 8px;
+        }
+        
+        .form-subtitle {
+          font-size: 14px;
+          color: #64748b;
+        }
+        
+        .form-group {
+          margin-bottom: 16px;
+        }
+        
+        .form-label {
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: #374151;
+          margin-bottom: 6px;
+        }
+        
+        .form-input {
+          width: 100%;
+          height: 48px;
+          padding: 0 16px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 15px;
+          color: #1a1a2e;
+          background: white;
+          transition: all 0.3s ease;
+          outline: none;
+          box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+          border-color: #3873C3;
+          box-shadow: 0 0 0 4px rgba(56, 115, 195, 0.1);
+        }
+        
+        .form-input::placeholder {
+          color: #94a3b8;
+        }
+        
+        .form-input.uppercase {
+          text-transform: uppercase;
+        }
+        
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        
+        .phone-wrapper {
+          display: flex;
+          background: white;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+        
+        .phone-wrapper:focus-within {
+          border-color: #3873C3;
+          box-shadow: 0 0 0 4px rgba(56, 115, 195, 0.1);
+        }
+        
+        .phone-prefix {
+          padding: 0 14px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #3873C3;
+          background: #f1f5f9;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          border-right: 2px solid #e2e8f0;
+        }
+        
+        .phone-input {
+          flex: 1;
+          height: 48px;
+          padding: 0 16px;
+          border: none;
+          font-size: 15px;
+          color: #1a1a2e;
+          background: transparent;
+          outline: none;
+        }
+        
+        .password-wrapper {
+          position: relative;
+        }
+        
+        .password-toggle {
+          position: absolute;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: #94a3b8;
+          padding: 4px;
+          transition: color 0.3s;
+        }
+        
+        .password-toggle:hover {
+          color: #3873C3;
+        }
+        
+        .form-select {
+          width: 100%;
+          height: 48px;
+          padding: 0 16px;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          font-size: 15px;
+          color: #1a1a2e;
+          background: white;
+          cursor: pointer;
+          outline: none;
+          transition: all 0.3s ease;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+          background-size: 20px;
+        }
+        
+        .form-select:focus {
+          border-color: #3873C3;
+          box-shadow: 0 0 0 4px rgba(56, 115, 195, 0.1);
+        }
+        
+        .checkbox-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 20px 0;
+        }
+        
+        .checkbox-input {
+          width: 20px;
+          height: 20px;
+          accent-color: #3873C3;
+          cursor: pointer;
+        }
+        
+        .checkbox-label {
+          font-size: 14px;
+          color: #475569;
+          cursor: pointer;
+        }
+        
+        .checkbox-label a {
+          color: #3873C3;
+          text-decoration: none;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        .checkbox-label a:hover {
+          text-decoration: underline;
+        }
+        
+        .error-text {
+          color: #ef4444;
+          font-size: 12px;
+          margin-top: 4px;
+          display: block;
+        }
+        
+        .submit-btn {
+          width: 100%;
+          height: 52px;
+          background: linear-gradient(135deg, #3873C3 0%, #5a9fd4 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(56, 115, 195, 0.3);
+        }
+        
+        .submit-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(56, 115, 195, 0.4);
+        }
+        
+        .login-link {
+          text-align: center;
+          margin-top: 24px;
+          font-size: 14px;
+          color: #64748b;
+        }
+        
+        .login-link a {
+          color: #3873C3;
+          font-weight: 600;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        
+        .login-link a:hover {
+          text-decoration: underline;
+        }
+        
+        .back-btn {
+          position: absolute;
+          top: 24px;
+          left: 24px;
+          width: 44px;
+          height: 44px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s;
+          z-index: 20;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .back-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-btn svg {
+          width: 20px;
+          height: 20px;
+          color: white;
+        }
+        
+        /* ✅ YENİ: Modal Styles */
+        .terms-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          padding: 20px;
+          backdrop-filter: blur(4px);
+        }
+        
+        .terms-modal {
+          background: white;
+          border-radius: 20px;
+          width: 100%;
+          max-width: 700px;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+          animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        .terms-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 20px 24px;
+          border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .terms-modal-title {
+          font-size: 20px;
+          font-weight: 700;
+          color: #1a1a2e;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .terms-modal-title svg {
+          width: 24px;
+          height: 24px;
+          color: #3873C3;
+        }
+        
+        .terms-modal-close {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: none;
+          background: #f3f4f6;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        
+        .terms-modal-close:hover {
+          background: #e5e7eb;
+        }
+        
+        .terms-modal-close svg {
+          width: 18px;
+          height: 18px;
+          color: #6b7280;
+        }
+        
+        .terms-modal-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 24px;
+        }
+        
+        .terms-content {
+          font-size: 15px;
+          line-height: 1.7;
+          color: #374151;
+        }
+        
+        .terms-content h1, .terms-content h2, .terms-content h3 {
+          color: #1a1a2e;
+          margin-top: 20px;
+          margin-bottom: 10px;
+        }
+        
+        .terms-content p {
+          margin-bottom: 12px;
+        }
+        
+        .terms-content ul, .terms-content ol {
+          padding-left: 24px;
+          margin-bottom: 12px;
+        }
+        
+        .terms-content li {
+          margin-bottom: 6px;
+        }
+        
+        .terms-loading {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 60px 20px;
+          color: #6b7280;
+        }
+        
+        .terms-loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid #e5e7eb;
+          border-top-color: #3873C3;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+          margin-bottom: 16px;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        .terms-modal-footer {
+          padding: 16px 24px;
+          border-top: 1px solid #e5e7eb;
+          display: flex;
+          justify-content: flex-end;
+        }
+        
+        .terms-accept-btn {
+          padding: 12px 32px;
+          background: linear-gradient(135deg, #3873C3 0%, #5a9fd4 100%);
+          color: white;
+          border: none;
+          border-radius: 10px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .terms-accept-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(56, 115, 195, 0.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .left-panel {
+            padding: 40px;
+          }
+          
+          .left-title {
+            font-size: 28px;
+          }
+          
+          .left-description {
+            font-size: 16px;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .register-container {
+            flex-direction: column;
+          }
+          
+          .left-panel {
+            padding: 40px 24px;
+            min-height: auto;
+          }
+          
+          .left-content {
+            text-align: center;
+          }
+          
+          .features-list {
+            display: none;
+          }
+          
+          .left-title {
+            font-size: 24px;
+          }
+          
+          .left-description {
+            font-size: 14px;
+            margin-bottom: 0;
+          }
+          
+          .right-panel {
+            padding: 32px 24px;
+          }
+          
+          .form-row {
+            grid-template-columns: 1fr;
+          }
+          
+          .back-btn {
+            top: 16px;
+            left: 16px;
+          }
+          
+          .terms-modal {
+            max-height: 90vh;
+            border-radius: 16px;
+          }
+        }
+      `}</style>
+
+      <div className="register-container">
+        {/* Sol Panel */}
+        <div className="left-panel">
+          <div className="back-btn" onClick={() => navigate(-1)}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+          
+          <div className="left-content">
+            <div className="brand-logo">Brend<span>oo</span></div>
+          </div>
         </div>
 
-        {variant === 1 && (
-          <div className="flex z-[50] overflow-auto relative flex-col justify-start self-center lg:px-16  lg:py-6 p-[10px] mb-0 max-w-full rounded-3xl bg-white bg-opacity-20 w-[560px] ">
-            <div className="flex flex-col max-md:max-w-full">
-              <div className="flex flex-col items-center self-center text-center">
-                <div className="text-3xl font-bold text-white">
-                  {tarnslation?.register}
-                </div>
-                <div className="mt-3 text-base text-white text-opacity-80">
-                  {tarnslation?.registerdesc}
-                </div>
+        {/* Sağ Panel - Form */}
+        <div className="right-panel">
+          <div className="form-wrapper">
+            <div className="form-header">
+              <div className="form-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </div>
+              <h2 className="form-title">{tarnslation?.register || 'Qeydiyyat'}</h2>
+              <p className="form-subtitle">Hesab yaratmaq üçün məlumatları doldurun</p>
+            </div>
 
-              <div
-                className="flex gap-4 justify-start mb-6 text-white z-[60]"
-                style={{ marginTop: '48px' }}
-              >
-                <label className="flex items-center gap-2">
-                  <input
-                    style={{
-                      minWidth: '21px',
-                      width: '21px',
-                      minHeight: '21px',
-                      height: '21px',
-                    }}
-                    type="radio"
-                    name="userType"
-                    value="user"
-                    checked={userType === 'user'}
-                    onChange={() => setUserType('user')}
-                  />
-                  {tarnslation?.istifadeci_key}
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    style={{
-                      minWidth: '21px',
-                      width: '21px',
-                      minHeight: '21px',
-                      height: '21px',
-                    }}
-                    type="radio"
-                    name="userType"
-                    value="influencer"
-                    checked={userType === 'influencer'}
-                    onChange={() => setUserType('influencer')}
-                  />
-                  {tarnslation?.influencer_key ?? ''}
-                </label>
-              </div>
+            <Formik
+              initialValues={{
+                name: '',
+                phone: '',
+                email: '',
+                password: '',
+                fin_code: '',
+                id_serial: '',
+                gender: '',
+                birthday: '',
+                acceptTerms: false,
+              }}
+              validationSchema={validationSchema}
+              onSubmit={handleRegister}
+            >
+              {({ setFieldValue }) => (
+                <Form>
+                  <div className="form-group">
+                    <label className="form-label">Ad Soyad</label>
+                    <Field name="name" className="form-input" placeholder="Ad Soyad daxil edin" />
+                    <ErrorMessage name="name" component="span" className="error-text" />
+                  </div>
 
-              {userType === 'user' ? (
-                <>
-                  <Formik
-                    initialValues={{
-                      name: '',
-                      phone: '',
-                      email: '',
-                      password: '',
-                      acceptTerms: false, // Ensure boolean default value
-                      gender: '',
-                    }}
-                    validationSchema={validationSchema}
-                    onSubmit={async (values: any) => {
-                      handleRegister({
-                        name: values.name,
-                        password: values.password,
-                        email: values.email,
-                        phone: values.phone,
-                        gender: values.gender,
-                        birthday: values.birthday,
-                      });
-                    }}
-                  >
-                    {() => (
-                      <Form className="flex flex-col items-center mt-4 w-full max-md:max-w-full">
-                        {/* <div className="flex gap-3 items-center text-base font-semibold text-center text-white">
-                      <GoogleLogin
-                        onSuccess={handleSuccess}
-                        onError={handleError}
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">FIN Kod</label>
+                      <Field
+                        name="fin_code"
+                        maxLength={7}
+                        className="form-input uppercase"
+                        placeholder="ABCD123"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFieldValue('fin_code', e.target.value.toUpperCase());
+                        }}
                       />
-                    </div> */}
-                        <div className="flex lg:gap-10 gap-5 items-center mt-4 text-xs text-center text-white w-full mb-4">
-                          <div className="shrink-0 self-stretch my-auto h-px border border-solid border-white border-opacity-20 w-[35%]" />
-                          <div className="self-stretch my-auto text-nowrap">
-                            {tarnslation?.or}
-                          </div>
-                          <div className="shrink-0 self-stretch my-auto h-px border border-solid border-white border-opacity-20 w-[35%]" />
-                        </div>
-                        <div className="flex flex-col w-full max-md:max-w-full">
-                          <Field
-                            name="name"
-                            className="overflow-hidden px-5 py-5 w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60"
-                            placeholder={tarnslation?.name}
-                          />
-                          <ErrorMessage
-                            name="name"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
+                      <ErrorMessage name="fin_code" component="span" className="error-text" />
+                    </div>
 
-                          <div className="flex  overflow-hidden px-5  w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60 mt-3">
-                            <span className="text-black text-opacity-60 flex justify-center items-center">
-                              +7
-                            </span>
-                            <Field
-                              name="phone"
-                              type="number"
-                              className="outline-none bg-transparent ml-1 w-full h-[56px]"
-                              placeholder="XXXXXXX"
-                            />
-                          </div>
-                          <ErrorMessage
-                            name="phone"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <Field
-                            name="email"
-                            className="overflow-hidden px-5 py-5 w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60 mt-3"
-                            placeholder={tarnslation?.Email ?? ''}
-                          />
-                          <ErrorMessage
-                            name="email"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <div className="flex overflow-hidden gap-5 justify-between px-5  w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60 mt-3">
-                            <Field
-                              type={showPassword ? 'text' : 'password'}
-                              name="password"
-                              placeholder={tarnslation?.password}
-                              className="outline-none bg-transparent w-full h-[56px]"
-                            />
-                            <img
-                              loading="lazy"
-                              onClick={togglePasswordVisibility}
-                              src={
-                                showPassword
-                                  ? 'https://cdn.builder.io/api/v1/image/assets/TEMP/cc75299a447e1f2b81cfaeb2821950c885d45d255e50ae73ad2684fcd9aa2110?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099'
-                                  : '/svg/closedaye.svg'
-                              }
-                              className="object-contain shrink-0 w-6 aspect-square cursor-pointer"
-                              alt="Toggle Password Visibility"
-                            />
-                          </div>
-                          <ErrorMessage
-                            name="password"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <Field
-                            as="select"
-                            name="gender"
-                            className="overflow-hidden px-5 py-2 w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60 mt-3"
-                          >
-                            <option defaultChecked>{tarnslation?.gender}</option>
-                            <option value="man">
-                              {lang === 'en' ? 'Male' : 'мужчина'}
-                            </option>
-                            <option value="woman">
-                              {lang === 'en' ? 'Female' : 'женщина'}
-                            </option>
-                          </Field>
-                          <ErrorMessage
-                            name="gender"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <div className="flex items-center mt-4">
-                            <Field
-                              type="checkbox"
-                              name="acceptTerms"
-                              className="mr-2 w-[14px] h-[14px]"
-                            />
-                            <label className="text-sm font-semibold text-white ">
-                              {tarnslation?.razıyam}
-                            </label>
-                          </div>
-                          <ErrorMessage
-                            name="acceptTerms"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <Field
-                            name="birthday"
-                            type="date"
-                            className="px-5 py-5 w-full h-[56px] text-base whitespace-nowrap bg-white border border-solid border-black border-opacity-10 rounded-[100px] text-black text-opacity-60 mt-3"
-                            placeholder={tarnslation?.Birthday ?? ''}
-                          />
-                          <ErrorMessage
-                            name="birthday"
-                            component="div"
-                            className="text-red-500 text-xs mt-1"
-                          />
-
-                          <div className="gap-2.5 self-stretch px-10 py-4 lg:mt-7 mt-4 w-full text-base font-medium text-black border border-solid bg-slate-300 border-slate-300 rounded-[100px] max-md:px-5 max-md:max-w-full">
-                            <button type="submit" className="w-full cursor-pointer">
-                              {tarnslation?.register}
-                            </button>
-                          </div>
-                        </div>
-                      </Form>
-                    )}
-                  </Formik>
-                </>
-              ) : (
-                userType === 'influencer' && (
-                  <>
-                    <form
-                      style={{ marginTop: '40px' }}
-                      onSubmit={(e: FormEvent<HTMLFormElement>) => {
-                        e.preventDefault();
-                        handleSubmitInfluencer();
-                      }}
-                      acceptCharset="UTF-8"
-                      className="influencer-form"
-                    >
-                      <input
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setName(e.target.value)
-                        }
-                        value={name}
-                        type="text"
-                        name="name"
-                        required
-                        placeholder={tarnslation?.name_pl ?? ''}
+                    <div className="form-group">
+                      <label className="form-label">Şəxsiyyət Seriyası</label>
+                      <Field
+                        name="id_serial"
+                        maxLength={9}
+                        className="form-input uppercase"
+                        placeholder="AA1234567"
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setFieldValue('id_serial', e.target.value.toUpperCase());
+                        }}
                       />
-                      <input
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setEmail(e.target.value)
-                        }
-                        value={email}
-                        type="email"
-                        name="email"
-                        required
-                        placeholder={tarnslation?.Email ?? ''}
-                      />
-                      <input
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setTelephone(e.target.value)
-                        }
-                        value={telephone}
-                        type="tel"
-                        name="phone"
-                        required
-                        placeholder={tarnslation?.phone_pl ?? ''}
-                      />
-                      <input
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setSocialProfile(e.target.value)
-                        }
-                        value={socialProfile}
-                        type="text"
-                        name="social_profile"
-                        required
-                        placeholder={tarnslation?.sc_tr ?? ''}
-                      />
-                      <input
-                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                          setPassword(e.target.value)
-                        }
-                        value={password}
-                        type="password"
+                      <ErrorMessage name="id_serial" component="span" className="error-text" />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Telefon</label>
+                    <div className="phone-wrapper">
+                      <span className="phone-prefix">+994</span>
+                      <Field name="phone" type="tel" maxLength={9} className="phone-input" placeholder="XX XXX XX XX" />
+                    </div>
+                    <ErrorMessage name="phone" component="span" className="error-text" />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Email</label>
+                    <Field name="email" type="email" className="form-input" placeholder="email@example.com" />
+                    <ErrorMessage name="email" component="span" className="error-text" />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Şifrə</label>
+                    <div className="password-wrapper">
+                      <Field
+                        type={showPassword ? 'text' : 'password'}
                         name="password"
-                        required
-                        placeholder={tarnslation?.password ?? ''}
+                        className="form-input"
+                        placeholder="Minimum 8 simvol"
+                        style={{ paddingRight: '48px' }}
                       />
-                      <div className="gap-2.5 self-stretch px-10 py-4 lg:mt-7 mt-4 w-full text-base font-medium text-black border border-solid bg-slate-300 border-slate-300 rounded-[100px] max-md:px-5 max-md:max-w-full">
-                        <button type="submit" className="w-full cursor-pointer">
-                          {tarnslation?.register}
-                        </button>
-                      </div>
-                    </form>
-                  </>
-                )
+                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                    <ErrorMessage name="password" component="span" className="error-text" />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Cins</label>
+                      <Field as="select" name="gender" className="form-select">
+                        <option value="">Seçin</option>
+                        <option value="man">Kişi</option>
+                        <option value="woman">Qadın</option>
+                      </Field>
+                      <ErrorMessage name="gender" component="span" className="error-text" />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Doğum tarixi</label>
+                      <Field name="birthday" type="date" className="form-input" />
+                      <ErrorMessage name="birthday" component="span" className="error-text" />
+                    </div>
+                  </div>
+
+                  {/* ✅ YENİ: Şərtlər checkbox - modal açan link */}
+                  <div className="checkbox-wrapper">
+                    <Field type="checkbox" name="acceptTerms" className="checkbox-input" id="acceptTerms" />
+                    <label htmlFor="acceptTerms" className="checkbox-label">
+                      <a onClick={handleOpenTermsModal}>Şərtlər və Qaydaları</a> qəbul edirəm
+                    </label>
+                  </div>
+                  <ErrorMessage name="acceptTerms" component="span" className="error-text" />
+
+                  <button type="submit" className="submit-btn">
+                    {tarnslation?.register || 'Qeydiyyatdan keç'}
+                  </button>
+
+                  <div className="login-link">
+                    Hesabınız var? <a onClick={() => navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`)}>Daxil olun</a>
+                  </div>
+                </Form>
+              )}
+            </Formik>
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ YENİ: Şərtlər Modal */}
+      {showTermsModal && (
+        <div className="terms-modal-overlay" onClick={() => setShowTermsModal(false)}>
+          <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="terms-modal-header">
+              <h3 className="terms-modal-title">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {tarnslation?.sertler_ve_qaydalar || 'Şərtlər və Qaydalar'}
+              </h3>
+              <button className="terms-modal-close" onClick={() => setShowTermsModal(false)}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="terms-modal-body">
+              {termsLoading ? (
+                <div className="terms-loading">
+                  <div className="terms-loading-spinner"></div>
+                  <span>{tarnslation?.yuklenir || 'Yüklənir...'}</span>
+                </div>
+              ) : (
+                <div 
+                  className="terms-content" 
+                  dangerouslySetInnerHTML={{ __html: termsContent }}
+                />
               )}
             </div>
-
-            <div
-              className="mt-4 cursor-pointer text-base font-semibold text-center text-white text-opacity-80 lg:mt-4  max-md:max-w-full"
-              onClick={() => {
-                navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`);
-              }}
-            >
-              <span>{tarnslation?.Hesabınız_var}?</span> {tarnslation?.login}
+            
+            <div className="terms-modal-footer">
+              <button className="terms-accept-btn" onClick={() => setShowTermsModal(false)}>
+                {tarnslation?.bagla || 'Bağla'}
+              </button>
             </div>
           </div>
-        )}
-      </div>
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

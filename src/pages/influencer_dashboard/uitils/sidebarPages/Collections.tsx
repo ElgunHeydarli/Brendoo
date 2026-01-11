@@ -225,7 +225,7 @@ const Collections: React.FC = () => {
                       <img src={p?.image ?? ''} />
                       <div className="right-text-content">
                         <h3>{p?.title}</h3>
-                        <p>{p?.price} Rubl</p>
+                        <p>{p?.price} ₼</p>
                       </div>
                     </div>
                     <button

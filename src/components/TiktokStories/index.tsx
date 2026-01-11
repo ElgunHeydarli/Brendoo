@@ -52,11 +52,11 @@ const TiktokStories = () => {
 
   return (
     <>
-      <section className="mt-5 max-sm:mt-[52px]">
+      <section className="mt-[40px] max-sm:mt-[24px]">
         <h2 className="lg:text-[40px] md:text-[36px] text-[28px] font-medium px-[40px] max-sm:px-[16px]">
           {tarnslation?.Tiktok}
         </h2>
-        <div className="md:px-[48px] py-[20px] md:py-[46px] px-[16px]">
+        <div className="md:px-[48px] py-[16px] px-[16px]">
           <Swiper
             slidesPerView="auto"
             spaceBetween={16}

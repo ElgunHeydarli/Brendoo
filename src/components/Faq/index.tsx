@@ -1,181 +1,164 @@
 import { useState } from 'react';
-import { NoneTolightBlue } from '../buttons/NoneT0Blue';
 import { useNavigate, useParams } from 'react-router-dom';
 import GETRequest from '../../setting/Request';
 import { FaqCategory, FaqItem, TranslationsKeys } from '../../setting/Types';
 
 function FAQItem({
-    question,
-    description,
-    isOpen,
-    onClick,
+  question,
+  description,
+  isOpen,
+  onClick,
 }: {
-    question: string;
-    imageSrc: string;
-    description: string;
-    isOpen: boolean;
-    onClick: () => void;
+  question: string;
+  description: string;
+  isOpen: boolean;
+  onClick: () => void;
 }) {
-    return (
-        <div
-            className={`flex overflow-hidden flex-col justify-center px-6 py-3 w-full border border-solid bg-white  border-white border-opacity-40  max-md:pl-5 max-md:max-w-full cursor-pointer  ${
-                isOpen ? ' rounded-[20px]' : 'rounded-[20px]'
-            }`}
-            onClick={onClick}
-            role="button"
-            tabIndex={0}
-            onKeyPress={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    onClick();
-                }
-            }}
-            aria-expanded={isOpen}
+  return (
+    <div
+      className={`flex overflow-hidden flex-col justify-center px-6 py-4 w-full bg-white rounded-2xl cursor-pointer transition-all duration-200 ${
+        isOpen ? 'shadow-md' : 'hover:shadow-sm'
+      }`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyPress={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onClick();
+      }}
+      aria-expanded={isOpen}
+    >
+      <div className="flex gap-4 items-center justify-between">
+        <p className="text-[15px] max-sm:text-[13px] text-black font-medium leading-snug">
+          {question}
+        </p>
+        <button
+          className={`bg-[#F5F5F5] flex justify-center items-center rounded-full min-w-[36px] h-[36px] transition-transform duration-200 ${
+            isOpen ? 'rotate-45 bg-blue-100' : ''
+          }`}
         >
-            <div className="flex  gap-10 items-center max-md:max-w-full justify-between">
-                <p className="self-stretch my-auto max-md:max-w-full max-sm:text-[12px] text-[16px]  text-wrap text-black font-medium ">
-                    {question}
-                </p>
-                <button
-                    className={`bg-[#F5F5F5] flex justify-center items-center rounded-full min-w-[40px] !h-[40px] text-[30px]  ${
-                        isOpen ? 'rotate-[45deg]' : ''
-                    }`}
-                >
-                    <img src="/svg/plus.svg" alt="" />
-                </button>{' '}
-                {/* <img
-                    loading="lazy"
-                    src={imageSrc}
-                    alt="FAQ"
-                    className={`object-contain shrink-0 self-stretch my-auto w-10 aspect-square transition-transform ${
-                        isOpen ? 'rotate-[45deg]' : ''
-                    }`}
-                /> */}
-            </div>
-            {isOpen && (
-                <div className="p-2 text-left">
-                    <p className="mt-2 text-sm text-gray-700 ">{description}</p>
-                </div>
-            )}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 1V13M1 7H13" stroke="#333" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+      </div>
+      {isOpen && (
+        <div className="pt-3 mt-3 border-t border-gray-100">
+          <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
         </div>
-    );
+      )}
+    </div>
+  );
 }
 
 function FAQSection({
-    Title,
-    isContact,
+  Title,
+  isContact,
 }: {
-    Title?: string;
-    isContact?: boolean;
+  Title?: string;
+  isContact?: boolean;
 }) {
-    const [openIndex, setOpenIndex] = useState(null);
-    const [CurrentFaqCategory, setCurrentFaqCategory] = useState<number>(-1);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [CurrentFaqCategory, setCurrentFaqCategory] = useState<number>(-1);
+  const navigate = useNavigate();
+  const { lang = 'ru' } = useParams<{ lang: string }>();
 
-    const handleToggle = (index: any) => {
-        setOpenIndex(openIndex === index ? null : index);
-    };
-    const { lang = 'ru' } = useParams<{
-        lang: string;
-    }>();
-    const { data: faqCategory } = GETRequest<FaqCategory[]>(
-        `/faqCategory`,
-        'faqCategory',
-        [lang]
-    );
+  const { data: faqCategory } = GETRequest<FaqCategory[]>(
+    `/faqCategory`,
+    'faqCategory',
+    [lang]
+  );
 
-    const { data: faqs } = GETRequest<FaqItem[]>(
-        `/faqs${
-            CurrentFaqCategory === -1
-                ? ``
-                : `?faq_category_id=${CurrentFaqCategory}`
-        }`,
-        'faqs',
-        [lang, CurrentFaqCategory]
-    );
-    const { data: tarnslation } = GETRequest<TranslationsKeys>(
-        `/translates`,
-        'translates',
-        [lang]
-    );
-    const navigate = useNavigate();
+  const { data: faqs } = GETRequest<FaqItem[]>(
+    `/faqs${CurrentFaqCategory === -1 ? '' : `?faq_category_id=${CurrentFaqCategory}`}`,
+    'faqs',
+    [lang, CurrentFaqCategory]
+  );
 
-    return (
-        <section
-            id="faq"
-            className="flex mx-[40px] max-sm:mx-4 max-sm:mb-10 rounded-[20px] mb-[100px] lg:flex-row flex-col gap-10 justify-between items-start max-md:max-w-full bg-[#F8F8F8] lg:px-[60px] max-sm:px-0 px-[30px] max-sm:py-9 py-[100px]"
-        >
-            <div className="flex flex-col max-w-[414px]">
-                <div className="flex max-sm:px-4 flex-col w-full">
-                    <h3 className="text-[40px] max-sm:text-[32px]  font-semibold text-slate-900">
-                        {Title}{' '}
-                    </h3>
-                    {!isContact && (
-                        <p className="mt-5 max-sm:mt-2 text-base max-sm:text-[12px] text-black text-opacity-80 ">
-                            {tarnslation?.faqDec}
-                        </p>
-                    )}
-                </div>
-                {!isContact && (
-                    <button
-                        onClick={() => navigate('/contact')}
-                        className="gap-2.5 max-sm:ml-4 self-start px-10 py-4 max-sm:mt-4 mt-10 text-base leading-[19px] font-medium text-white bg-[#3873C3] border border-[#3873C3] border-solid rounded-[100px]"
-                    >
-                        {tarnslation?.Bizimlə_əlaqə}
-                    </button>
-                )}
-            </div>
-            <div className="flex flex-col text-base font-medium text-center text-black min-w-[240px] w-full max-md:max-w-full">
-                <div
-                    style={{ scrollbarWidth: 'none' }}
-                    className="flex flex-row max-sm:px-4 max-sm:overflow-x-scroll no-scrollbar max-sm:flex-nowrap flex-wrap   w-full lg:justify-end justify-around gap-3 mb-[30px]"
+  const { data: tarnslation } = GETRequest<TranslationsKeys>(
+    `/translates`,
+    'translates',
+    [lang]
+  );
+
+  const handleToggle = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <section
+      id="faq"
+      className={`rounded-3xl bg-[#F8F8F8] p-6 lg:p-10 ${
+        isContact ? '' : 'mx-[40px] max-sm:mx-4 mb-[60px]'
+      }`}
+    >
+      <div className="flex lg:flex-row flex-col gap-8 lg:gap-12">
+        {/* Sol tərəf - Başlıq */}
+        <div className="lg:w-[280px] flex-shrink-0">
+          <h3 className="text-3xl lg:text-[36px] font-semibold text-slate-900 leading-tight">
+            {Title}
+          </h3>
+          {!isContact && (
+            <>
+              <p className="mt-4 text-sm text-gray-600 leading-relaxed">
+                {tarnslation?.faqDec}
+              </p>
+              <button
+                onClick={() => navigate(`/${lang}/contact`)}
+                className="mt-6 px-8 py-3 text-sm font-medium text-white bg-[#3873C3] hover:bg-[#2d5fa3] rounded-full transition-colors"
+              >
+                {tarnslation?.Bizimlə_əlaqə}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Sağ tərəf - Kateqoriyalar və FAQ */}
+        <div className="flex-1">
+          {/* Kateqoriyalar - Səliqəli Grid */}
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setCurrentFaqCategory(-1)}
+                className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${
+                  CurrentFaqCategory === -1
+                    ? 'bg-[#3873C3] text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                }`}
+              >
+                {tarnslation?.All || 'Все'}
+              </button>
+              {faqCategory?.map((faq: FaqCategory) => (
+                <button
+                  key={faq.id}
+                  onClick={() => setCurrentFaqCategory(faq.id)}
+                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all whitespace-nowrap ${
+                    CurrentFaqCategory === faq.id
+                      ? 'bg-[#3873C3] text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                  }`}
                 >
-                    <NoneTolightBlue
-                        isactive={CurrentFaqCategory === -1}
-                        action={() => {
-                            setCurrentFaqCategory(-1);
-                        }}
-                    >
-                        {tarnslation?.All}{' '}
-                    </NoneTolightBlue>
-                    {faqCategory?.map((faq: FaqCategory) => (
-                        <NoneTolightBlue
-                            isactive={CurrentFaqCategory === faq.id}
-                            action={() => {
-                                setCurrentFaqCategory(faq.id);
-                            }}
-                        >
-                            {faq.title}{' '}
-                        </NoneTolightBlue>
-                    ))}
-                </div>
-                <div className="flex flex-col max-sm:px-4">
-                    {faqs?.map((item, i) => (
-                        <div key={item.id} className={i > 0 ? 'mt-3' : ''}>
-                            <FAQItem
-                                question={item.title}
-                                imageSrc={
-                                    'https://cdn.builder.io/api/v1/image/assets/TEMP/7ed81901e60d7031974952b0cd1a20d6408f2d4059577fba6ce7e38b327ee0f1?placeholderIfAbsent=true&apiKey=c6f3c7bb740649e5a32c147b3037a1c2'
-                                }
-                                description={item.description}
-                                isOpen={openIndex === item.id}
-                                onClick={() => handleToggle(item.id)}
-                            />
-                        </div>
-                    ))}
-                    {/* {faqData.map((item, index) => (
-                        <div key={index} className={index > 0 ? 'mt-3' : ''}>
-                            <FAQItem
-                                question={item.question}
-                                imageSrc={item.imageSrc}
-                                description={item.description}
-                                isOpen={openIndex === index}
-                                onClick={() => handleToggle(index)}
-                            />
-                        </div>
-                    ))} */}
-                </div>
+                  {faq.title}
+                </button>
+              ))}
             </div>
-        </section>
-    );
+          </div>
+
+          {/* FAQ Items */}
+          <div className="space-y-3">
+            {faqs?.map((item) => (
+              <FAQItem
+                key={item.id}
+                question={item.title}
+                description={item.description}
+                isOpen={openIndex === item.id}
+                onClick={() => handleToggle(item.id)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default FAQSection;

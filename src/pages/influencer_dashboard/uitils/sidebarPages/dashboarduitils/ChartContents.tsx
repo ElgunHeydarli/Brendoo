@@ -140,7 +140,7 @@ const ChartContents: React.FC = () => {
       id: 1,
       price: `${
         salesDataFromAPI.find(item => item['Ödənilib'])?.['Ödənilib'].total_amount || 0
-      }.00 RUBL`,
+      }.00 ₼`,
       tag: translation?.umumi_odenilen ?? '',
       color: '#7661e2',
     },
@@ -149,7 +149,7 @@ const ChartContents: React.FC = () => {
       price: `${
         salesDataFromAPI.find(item => item['Ödəniş gözlənilir'])?.['Ödəniş gözlənilir']
           .total_amount || 0
-      }.00 RUBL`,
+      }.00 ₼`,
       tag: translation?.gozlemede ?? '',
       color: '#59c7f6',
     },
@@ -159,7 +159,7 @@ const ChartContents: React.FC = () => {
         salesDataFromAPI.find(item => item['Sorğu göndərilməyib'])?.[
           'Sorğu göndərilməyib'
         ].total_amount || 0
-      }.00 RUBL`,
+      }.00 ₼`,
       tag: translation?.sorgugonderilmeyib ?? '',
       color: '#ff82ac',
     },

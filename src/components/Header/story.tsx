@@ -22,7 +22,7 @@ export interface StoryProductsInterface {
 export interface StoriesInterface {
   id: number;
   title: string;
-  image: string; // gif
+  image: string;
   products: StoryProductsInterface[];
 }
 
@@ -39,13 +39,14 @@ const StoryThumb: React.FC<{
       title={title}
       role="button"
       aria-label={title}
+      translate="no"
     >
       <img
         src={src}
         alt={alt}
-        loading="eager" // brauzerə şəkili dərhal yükləməsini deyir
-        decoding="sync" // renderi gecikdirmədən dekod etsin
-        className="story-img"
+        loading="eager"
+        decoding="sync"
+        className="story-img notranslate"
         draggable={false}
       />
     </div>
@@ -53,7 +54,7 @@ const StoryThumb: React.FC<{
 };
 
 const Story: React.FC = () => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'en' } = useParams<{ lang: string }>(); // ✅ Default EN
 
   const [activeStory, setActiveStory] = useState<number | null>(null);
   const [stories, setStories] = useState<StoriesInterface[]>([]);
@@ -80,12 +81,14 @@ const Story: React.FC = () => {
   const isActiveStory = stories?.find(s => activeStory === s?.id);
   const allStories = stories.length > 0 ? stories : [];
 
-  const { data: translation } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [
-    lang,
-  ]);
+  const { data: translation } = GETRequest<TranslationsKeys>(
+    `/translates`,
+    'translates',
+    [lang]
+  );
 
   return (
-    <div className="provider-story-main">
+    <div className="provider-story-main notranslate" translate="no">
       {isActiveStory && (
         <StoryModal
           isActiveStory={isActiveStory}
@@ -95,9 +98,11 @@ const Story: React.FC = () => {
       )}
 
       <div className="story-container">
-        {loading && <>{translation?.loading_main_key ?? ''}</>}
+        {loading && (
+          <span className="notranslate">{translation?.loading_main_key ?? ''}</span>
+        )}
 
-        {!loading && (
+        {!loading && stories.length > 0 && (
           <Swiper spaceBetween={12} slidesPerView="auto" loop={false}>
             {stories.map(story => (
               <SwiperSlide key={story.id}>
