@@ -509,3 +509,66 @@ type Item = {
 };
 
 export type ItemList = Item[];
+
+// ========================
+// EXPARGO PICKUP TYPES
+// ========================
+
+export interface PickupPoint {
+  id: number;
+  pickup_id: string;
+  name: string;
+  city: string;
+  region?: string;
+  address: string;
+  phone?: string;
+  working_hours?: string;
+  latitude?: number;
+  longitude?: number;
+  is_active?: boolean;
+}
+
+export interface PickupPointsResponse {
+  success: boolean;
+  data: PickupPoint[];
+}
+
+export interface PickupCitiesResponse {
+  success: boolean;
+  data: string[];
+}
+
+export interface OrderTracking {
+  order_number: string;
+  status: string;
+  status_text: string;
+  tracking_number: string;
+  pickup_point?: PickupPoint;
+  estimate: string;
+  delivered_at?: string;
+}
+
+export interface OrderTrackingResponse {
+  success: boolean;
+  data: OrderTracking;
+}
+
+// Expargo status tipləri
+export type ExpargoStatus = 
+  | 'WaitingDomesticShipment'
+  | 'WaitingForDeclaration'
+  | 'InTransit'
+  | 'ArrivedAtPickup'
+  | 'Delivered'
+  | 'Returned'
+  | 'Cancelled';
+
+export const ExpargoStatusColors: Record<ExpargoStatus, { bg: string; text: string; label: string }> = {
+  WaitingDomesticShipment: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Göndəriş gözlənilir' },
+  WaitingForDeclaration: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Bəyannamə gözlənilir' },
+  InTransit: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Yoldadır' },
+  ArrivedAtPickup: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Təhvil nöqtəsinə çatdı' },
+  Delivered: { bg: 'bg-green-100', text: 'text-green-800', label: 'Təhvil verildi' },
+  Returned: { bg: 'bg-red-100', text: 'text-red-800', label: 'İadə edildi' },
+  Cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Ləğv edildi' },
+};

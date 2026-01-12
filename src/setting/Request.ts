@@ -205,3 +205,77 @@ export const clearUserCache = () => {
 
 // ✅ YENİ: Export et ki, başqa fayllardan da istifadə oluna bilsin
 export { getSelectedLanguage };
+
+// ========================
+// EXPARGO PICKUP API
+// ========================
+
+import type { PickupPoint, PickupPointsResponse, PickupCitiesResponse, OrderTrackingResponse } from './Types';
+
+// Pickup nöqtələrini əldə et
+export const getPickupPoints = async (city?: string, lang: string = 'az'): Promise<PickupPoint[]> => {
+  try {
+    const params = city ? `?city=${encodeURIComponent(city)}` : '';
+    const response = await axiosInstance.get<PickupPointsResponse>(`/pickup-points${params}`, {
+      headers: { 'Accept-Language': lang },
+    });
+    console.log('🚚 Pickup points API response:', response.data);
+    // API-nin hansı formatda qaytardığını yoxla
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (response.data?.data) {
+      return response.data.data;
+    }
+    if (response.data?.pickup_points) {
+      return response.data.pickup_points;
+    }
+    return [];
+  } catch (error) {
+    console.error('Pickup points fetch error:', error);
+    return [];
+  }
+};
+
+// Şəhərlər siyahısını əldə et
+export const getPickupCities = async (lang: string = 'az'): Promise<string[]> => {
+  try {
+    const response = await axiosInstance.get<PickupCitiesResponse>('/pickup-points/cities', {
+      headers: { 'Accept-Language': lang },
+    });
+    console.log('🏙️ Pickup cities API response:', response.data);
+    // API-nin hansı formatda qaytardığını yoxla
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    if (response.data?.data) {
+      return response.data.data;
+    }
+    if (response.data?.cities) {
+      return response.data.cities;
+    }
+    // Fallback şəhərlər
+    return ['Bakı', 'Sumqayıt', 'Gəncə', 'Şəki', 'Lənkəran', 'Mingəçevir'];
+  } catch (error) {
+    console.error('Pickup cities fetch error:', error);
+    // Fallback şəhərlər
+    return ['Bakı', 'Sumqayıt', 'Gəncə', 'Şəki', 'Lənkəran', 'Mingəçevir'];
+  }
+};
+
+// Sifariş tracking məlumatlarını əldə et
+export const getOrderTracking = async (orderNumber: string, lang: string = 'az'): Promise<OrderTrackingResponse | null> => {
+  try {
+    const userInfo = getUserInfo();
+    const response = await axiosInstance.get<OrderTrackingResponse>(`/orders/${orderNumber}/tracking`, {
+      headers: {
+        'Accept-Language': lang,
+        ...(userInfo.token && { Authorization: `Bearer ${userInfo.token}` }),
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Order tracking fetch error:', error);
+    return null;
+  }
+};

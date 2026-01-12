@@ -89,7 +89,9 @@ export default function BasketDropdown({
         {/* Items */}
         {hasItems && hasItems.length > 0 ? (
           <div className="overflow-y-scroll h-[40vh] px-[24px]">
-            {hasItems?.map((item) => (
+            {hasItems
+              ?.filter((item) => item && item.product)
+              .map((item) => (
               <div key={item.id}>
                 <div className="flex gap-8 items-center mt-[4px] justify-between max-md:max-w-full mx-[40px]">
                   <div className="flex gap-2.5 items-center self-stretch my-auto min-w-[240px]">

@@ -214,26 +214,33 @@ const { lang = 'en' } = useParams<{ lang: string }>();
           <div className="flex overflow-hidden flex-col justify-center p-10 rounded-3xl bg-stone-50 w-full gap-[65px] h-fit max-md:px-5">
             <div className="flex flex-col max-md:max-w-full">
               {hasItems
-                ? hasItems.map(item => (
+                ? hasItems
+                    .filter(item => item && item.product)
+                    .map(item => (
                     <React.Fragment key={item.id}>
                       <div className="flex flex-wrap gap-10 items-center justify-between mt-5 max-md:max-w-full">
                         <div className="flex gap-2.5 items-center self-stretch my-auto min-w-[240px]">
                           <img
                             loading="lazy"
-src={item.product.image?.startsWith('http') ? item.product.image : `https://admin.brendoo.com${item.product.image}`}                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
+                            src={item.product?.image?.startsWith('http') ? item.product.image : item.product?.image ? `https://admin.brendoo.com${item.product.image}` : '/placeholder.png'}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/placeholder.png';
+                            }}
+                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
                           />
                           <div className="flex flex-col self-stretch my-auto w-[152px]">
                             <div className="gap-1 self-start text-base font-semibold text-center text-black">
-                              {item.product.price} ₼
+                              {item.product?.price || '0'} ₼
                             </div>
                             <div className="mt-2.5 w-full text-sm text-black">
-                              {item.product.title}
+                              {item.product?.title || ''}
                             </div>
                             <div className="flex flex-col items-start mt-2.5 w-full text-xs text-black text-opacity-80">
                               <div className="flex gap-3 items-start">
-                                {item.options.map(option => (
-                                  <div>
-                                    {option.filter} : {option.option}
+                                {item.options && Array.isArray(item.options) && item.options.map((option, idx) => (
+                                  <div key={idx}>
+                                    {option?.filter} : {option?.option}
                                   </div>
                                 ))}
                               </div>
@@ -333,13 +340,14 @@ src={item.product.image?.startsWith('http') ? item.product.image : `https://admi
                                   discount = 0,
                                   final_price = 0;
                                 cart.basket_items.forEach(basketItem => {
-                                  const original = +basketItem.product.price;
+                                  if (!basketItem?.product) return;
+                                  const original = +(basketItem.product?.price || 0);
                                   const discounted =
-                                    +basketItem.product.discounted_price;
-                                  total_price += original * basketItem.quantity;
+                                    +(basketItem.product?.discounted_price || original);
+                                  total_price += original * (basketItem.quantity || 1);
                                   discount +=
-                                    (original - discounted) * basketItem.quantity;
-                                  final_price += discounted * basketItem.quantity;
+                                    (original - discounted) * (basketItem.quantity || 1);
+                                  final_price += discounted * (basketItem.quantity || 1);
                                 });
 
                                 cart.total_price = total_price;
@@ -385,12 +393,13 @@ src={item.product.image?.startsWith('http') ? item.product.image : `https://admi
                                 discount = 0,
                                 final_price = 0;
                               cart.basket_items.forEach(basketItem => {
-                                const original = +basketItem.product.price;
-                                const discounted = +basketItem.product.discounted_price;
-                                total_price += original * basketItem.quantity;
+                                if (!basketItem?.product) return;
+                                const original = +(basketItem.product?.price || 0);
+                                const discounted = +(basketItem.product?.discounted_price || original);
+                                total_price += original * (basketItem.quantity || 1);
                                 discount +=
-                                  (original - discounted) * basketItem.quantity;
-                                final_price += discounted * basketItem.quantity;
+                                  (original - discounted) * (basketItem.quantity || 1);
+                                final_price += discounted * (basketItem.quantity || 1);
                               });
 
                               cart.total_price = total_price;

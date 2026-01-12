@@ -1,8 +1,7 @@
 import Header from '../../components/Header';
 import { Footer } from '../../components/Footer';
-import BaskedForum from '../../components/Basked';
 import { Link, useParams } from 'react-router-dom';
-import { Basket, TranslationsKeys } from '../../setting/Types';
+import { Basket, TranslationsKeys, PickupPoint } from '../../setting/Types';
 import GETRequest, { axiosInstance } from '../../setting/Request';
 import ROUTES from '../../setting/routes';
 import { useState, useEffect } from 'react';
@@ -10,6 +9,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import Loading from '../../components/Loading';
+import PickupPointSelector from '../../components/PickupPointSelector';
 
 interface Gift {
   id: number;
@@ -36,6 +36,14 @@ const { lang = 'en' } = useParams<{ lang: string }>();
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [giftLocked, setGiftLocked] = useState(false);
   const [loadingorder, setLoadingOrder] = useState<boolean>(false);
+
+  // ✅ YENİ: Expargo Pickup state-ləri
+  const [selectedPickupPoint, setSelectedPickupPoint] = useState<PickupPoint | null>(null);
+  const [finCode, setFinCode] = useState<string>(parsed?.customer?.fin_code || '');
+  const [idSerialNumber, setIdSerialNumber] = useState<string>(parsed?.customer?.id_serial_number || '');
+  const [pickupError, setPickupError] = useState<string>('');
+  const [finCodeError, setFinCodeError] = useState<string>('');
+  const [idSerialError, setIdSerialError] = useState<string>('');
 
   const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
   const { data: basked, isLoading: baskedLoading } = GETRequest<Basket>(`/basket_items`, 'basket_items', [lang]);
@@ -99,10 +107,47 @@ const { lang = 'en' } = useParams<{ lang: string }>();
   const isUnderMinimum = minimumOrder && minimumOrder.minimum_amount > 0 && currentTotal < minimumOrder.minimum_amount;
   const minimumMessage = minimumOrder?.message?.replace(':amount', String(minimumOrder.minimum_amount)) || '';
 
+  // ✅ YENİ: FIN kod validasiyası (7 simvol, böyük hərf + rəqəm)
+  const validateFinCode = (code: string): boolean => {
+    const finCodeRegex = /^[A-Z0-9]{7}$/;
+    return finCodeRegex.test(code.toUpperCase());
+  };
+
+  // ✅ YENİ: Vəsiqə seriya № validasiyası (9 simvol)
+  const validateIdSerial = (serial: string): boolean => {
+    return serial.length >= 8 && serial.length <= 12;
+  };
+
   // ✅ EPOINT ÖDƏNIŞ
   const handleOrder = async () => {
+    // Validation sıfırla
+    setPickupError('');
+    setFinCodeError('');
+    setIdSerialError('');
+
     if (isUnderMinimum) {
       toast.error(minimumMessage);
+      return;
+    }
+
+    // ✅ Pickup nöqtəsi yoxlaması
+    if (!selectedPickupPoint) {
+      setPickupError(tarnslation?.pickup_secilmeyib || 'Pickup nöqtəsi seçilməyib');
+      toast.error(tarnslation?.pickup_secilmeyib || 'Pickup nöqtəsi seçilməyib');
+      return;
+    }
+
+    // ✅ FIN kod yoxlaması
+    if (!finCode || !validateFinCode(finCode)) {
+      setFinCodeError(tarnslation?.fin_kod_xetasi || 'FIN kod 7 simvol olmalıdır (böyük hərf + rəqəm)');
+      toast.error(tarnslation?.fin_kod_xetasi || 'FIN kod düzgün deyil');
+      return;
+    }
+
+    // ✅ Vəsiqə seriya № yoxlaması
+    if (!idSerialNumber || !validateIdSerial(idSerialNumber)) {
+      setIdSerialError(tarnslation?.vesiqe_seriya_xetasi || 'Vəsiqə seriya nömrəsi düzgün deyil');
+      toast.error(tarnslation?.vesiqe_seriya_xetasi || 'Vəsiqə seriya nömrəsi düzgün deyil');
       return;
     }
 
@@ -111,14 +156,9 @@ const { lang = 'en' } = useParams<{ lang: string }>();
       formSubmitTrigger.click();
     }
 
-    if (!Body?.address) {
-      // ✅ DÜZƏLDİLDİ: Hardcode rus əvəzinə translation
-      toast.error(tarnslation?.unvani_duzgun_daxil_edin || 'Ünvanı düzgün daxil edin');
-      return;
-    }
+    // Artıq address yerinə pickup nöqtəsini yoxlayırıq (yuxarıda yoxlanılır)
 
     if (basked && basked?.basket_items?.length < 1) {
-      // ✅ DÜZƏLDİLDİ: Hardcode rus əvəzinə translation
       toast.error(tarnslation?.sebet_bosdur || 'Səbət boşdur');
       return;
     }
@@ -126,22 +166,26 @@ const { lang = 'en' } = useParams<{ lang: string }>();
     setLoadingOrder(true);
 
     try {
-      // 1. Sifariş yarat
+      // 1. Sifariş yarat - Expargo məlumatları ilə
       const orderResponse = await axios.post(
         'https://admin.brendoo.com/api/storeOrder',
         {
-          is_deliver: Body?.deliveryType,
-          shop: Body?.address,
+          is_deliver: true, // Pickup üçün
+          shop: selectedPickupPoint.name, // Pickup nöqtəsinin adı
           payment_type: 'online',
           total_price: basked?.total_price,
           discount: basked?.discount,
           delivered_price: basked?.delivered_price,
           final_price: FINAL_price === 0 ? basked?.final_price : FINAL_price,
-          address: Body?.address,
-          additional_info: Body?.additionalInfo,
-          cityId: Number(Body?.cityId),
-          regionId: Number(Body.regionId),
+          address: selectedPickupPoint.address, // Pickup nöqtəsinin ünvanı
+          additional_info: `Pickup nöqtəsi: ${selectedPickupPoint.name}`,
+          cityId: 1, // Pickup üçün default
+          regionId: 1, // Pickup üçün default
           gift_id: selectedGift?.id || null,
+          // ✅ YENİ: Expargo Pickup məlumatları
+          pickup_point_id: selectedPickupPoint.id,
+          fin_code: finCode.toUpperCase(),
+          id_serial_number: idSerialNumber,
         },
         {
           headers: {
@@ -219,87 +263,237 @@ const { lang = 'en' } = useParams<{ lang: string }>();
         <section className="lg:px-[40px] px-4">
           <h3 className="text-[40px] font-semibold max-sm:text-[32px] mt-[28px] mb-[40px]">{tarnslation?.Sifariş_et}</h3>
         </section>
-        <section className="flex max-sm:px-4 lg:flex-row flex-col h-fit px-[40px] justify-between mb-[100px] max-sm:gap-10 gap-[65px]">
-          <BaskedForum
-            onSubmit={(values) => setBody(values)}
-            Name={parsed?.customer?.name || 'user name'}
-            Number={parsed?.customer?.phone || 'user phone'}
-            Email={parsed?.customer?.email || 'user email'}
-          />
-          <div className="w-[2px] h-[500px] bg-black lg:block hidden opacity-10" />
-          <div className="flex flex-col max-sm:flex-col-reverse gap-4 rounded-3xl min-w-[306px]">
-            <div className="flex overflow-hidden flex-col justify-center p-7 w-full rounded-3xl bg-stone-50">
-              <div className="flex flex-col">
-                <div className="text-base font-semibold text-black">{tarnslation?.Ümumi_sifariş}</div>
-                <div className="flex flex-col mt-6 w-full">
-                  <div className="flex flex-col w-full">
-                    <div className="flex flex-col w-full text-sm">
-                      <div className="flex gap-10 justify-between items-center w-full">
-                        <div className="self-stretch my-auto text-black text-opacity-60">{tarnslation?.Məbləğ}:</div>
-                        <div className="self-stretch my-auto text-right text-black">{basked?.total_price} ₼</div>
-                      </div>
-                      <div className="flex gap-10 justify-between items-center mt-4 w-full text-rose-500">
-                        <div className="self-stretch my-auto">{tarnslation?.Endirim}:</div>
-                        <div className="self-stretch my-auto text-right">{basked?.discount}₼</div>
-                      </div>
-                    </div>
-                    <div className="mt-3 w-full border border-solid border-zinc-300 min-h-[1px]" />
-                    <div className="flex gap-10 justify-between items-center mt-3">
-                      <div className="self-stretch my-auto text-sm text-black text-opacity-80">{tarnslation?.Cəmi_məbləğ}:</div>
-                      <div className="self-stretch my-auto text-base font-semibold text-blue-600">{currentTotal}₼</div>
-                    </div>
+        <section className="flex max-sm:px-4 lg:flex-row flex-col h-fit px-[40px] justify-between mb-[100px] max-sm:gap-8 gap-8">
+          {/* Sol tərəf - Form */}
+          <div className="flex flex-col gap-5 lg:w-[65%] w-full">
+            {/* Şəxsi məlumatlar */}
+            <div className="flex overflow-hidden flex-col p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                  <span className="text-xl">👤</span>
+                </div>
+                <h4 className="text-base font-semibold text-gray-800">
+                  {tarnslation?.Şəxsi_məlumatlarım || 'Şəxsi məlumatlarım'}
+                </h4>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="px-4 py-3.5 bg-gray-50 rounded-xl text-gray-700 font-medium">
+                  {parsed?.customer?.name || 'İstifadəçi adı'}
+                </div>
+                <div className="flex lg:flex-row flex-col gap-3">
+                  <div className="flex-1 px-4 py-3.5 bg-gray-50 rounded-xl text-gray-600">
+                    {parsed?.customer?.email || 'email@example.com'}
                   </div>
-
-                  {isUnderMinimum && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-red-600 text-sm font-medium">⚠️ {minimumMessage}</p>
-                      <p className="text-red-500 text-xs mt-1">{minimumOrder?.current_amount_text}: {currentTotal}₼</p>
-                    </div>
-                  )}
-
-                  {gifts.length > 0 && (
-                    <div className={`mt-4 p-3 border rounded-lg ${selectedGift ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">🎁</span>
-                          <span className={`font-medium text-sm ${selectedGift ? 'text-green-700' : 'text-yellow-700'}`}>
-                            {selectedGift ? selectedGift.name : giftText.title}
-                          </span>
-                        </div>
-                        {!giftLocked ? (
-                          <button onClick={() => setShowGiftModal(true)} className="text-blue-600 text-sm font-medium hover:underline">{giftText.select}</button>
-                        ) : (
-                          <span className="text-green-600 text-sm font-medium flex items-center gap-1">✓ {giftText.selected}</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    disabled={loadingorder || !!isUnderMinimum}
-                    className={`flex overflow-hidden h-[48px] flex-col justify-center items-center px-16 py-3.5 mt-6 w-full text-base font-medium text-white rounded-[100px] ${isUnderMinimum ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#3873C3]'}`}
-                    onClick={handleOrder}
-                  >
-                    {loadingorder ? tarnslation?.is_loading : tarnslation?.sifarish_et}
-                  </button>
+                  <div className="flex-1 px-4 py-3.5 bg-gray-50 rounded-xl text-gray-600">
+                    +994 {parsed?.customer?.phone || '00 000 00 00'}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex overflow-hidden flex-col justify-center p-7 mt-5 w-full rounded-3xl bg-stone-50">
-              <div className="flex flex-col">
-                <div className="text-base font-medium text-black">{tarnslation?.coupon_add}</div>
-                <div className="flex flex-col mt-5 w-full text-sm">
-                  <input type="text" placeholder={tarnslation?.Kupon} className="overflow-hidden px-4 py-3.5 w-full whitespace-nowrap bg-white rounded-[100px] text-black text-opacity-60" id="couponInput" />
+            {/* Çatdırılma üsulu - Pickup */}
+            <div className="flex overflow-hidden flex-col p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                  <span className="text-xl">📦</span>
+                </div>
+                <h4 className="text-base font-semibold text-gray-800">
+                  {tarnslation?.catdirilma_usulu || 'Çatdırılma üsulu'}
+                </h4>
+              </div>
+              <PickupPointSelector
+                selectedPickupPoint={selectedPickupPoint}
+                onSelect={setSelectedPickupPoint}
+                lang={lang}
+                translation={tarnslation}
+                error={pickupError}
+              />
+            </div>
+
+            {/* Şəxsiyyət məlumatları */}
+            <div className="flex overflow-hidden flex-col p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
+                  <span className="text-xl">🪪</span>
+                </div>
+                <h4 className="text-base font-semibold text-gray-800">
+                  {tarnslation?.sexsiyyet_melumatlari || 'Şəxsiyyət məlumatları'}
+                </h4>
+              </div>
+              <p className="text-sm text-gray-500 mb-5 ml-[52px]">
+                {tarnslation?.fin_kod_izah || 'Pickup zamanı şəxsiyyət yoxlaması üçün lazımdır'}
+              </p>
+              
+              <div className="flex lg:flex-row flex-col gap-4">
+                {/* FIN Kod */}
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-gray-700">
+                    {tarnslation?.fin_kod || 'FIN kod'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={finCode}
+                    onChange={(e) => {
+                      setFinCode(e.target.value.toUpperCase());
+                      setFinCodeError('');
+                    }}
+                    placeholder="ABC1234"
+                    maxLength={7}
+                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                      finCodeError 
+                        ? 'border-red-300 bg-red-50 focus:border-red-400' 
+                        : 'border-gray-100 bg-gray-50 focus:border-blue-400 focus:bg-white'
+                    } focus:outline-none uppercase font-medium tracking-wider`}
+                  />
+                  {finCodeError && <p className="text-xs text-red-500 mt-1">{finCodeError}</p>}
+                  <p className="text-xs text-gray-400">{tarnslation?.fin_kod_format || '7 simvol (böyük hərf + rəqəm)'}</p>
+                </div>
+
+                {/* Vəsiqə Seriya Nömrəsi */}
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-gray-700">
+                    {tarnslation?.vesiqe_seriya || 'Vəsiqə seriya №'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={idSerialNumber}
+                    onChange={(e) => {
+                      setIdSerialNumber(e.target.value.toUpperCase());
+                      setIdSerialError('');
+                    }}
+                    placeholder="AZE12345678"
+                    maxLength={12}
+                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                      idSerialError 
+                        ? 'border-red-300 bg-red-50 focus:border-red-400' 
+                        : 'border-gray-100 bg-gray-50 focus:border-blue-400 focus:bg-white'
+                    } focus:outline-none uppercase font-medium tracking-wider`}
+                  />
+                  {idSerialError && <p className="text-xs text-red-500 mt-1">{idSerialError}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Sağ tərəf - Sifariş xülasəsi */}
+          <div className="lg:w-[35%] w-full lg:sticky lg:top-6 h-fit">
+            <div className="flex flex-col gap-4">
+              {/* Sifariş xülasəsi kartı */}
+              <div className="flex overflow-hidden flex-col p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                    <span className="text-xl">🛒</span>
+                  </div>
+                  <h4 className="text-base font-semibold text-gray-800">
+                    {tarnslation?.Ümumi_sifariş || 'Sifariş xülasəsi'}
+                  </h4>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">{tarnslation?.Məbləğ || 'Məbləğ'}:</span>
+                    <span className="font-medium text-gray-800">{basked?.total_price} ₼</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">{tarnslation?.Endirim || 'Endirim'}:</span>
+                    <span className="font-medium text-green-600">-{basked?.discount}₼</span>
+                  </div>
+                  <div className="h-px bg-gray-100 my-2" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">{tarnslation?.Cəmi_məbləğ || 'Cəmi'}:</span>
+                    <span className="text-xl font-bold text-blue-600">{currentTotal}₼</span>
+                  </div>
+                </div>
+
+                {isUnderMinimum && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl">
+                    <p className="text-red-600 text-sm font-medium flex items-center gap-2">
+                      <span>⚠️</span> {minimumMessage}
+                    </p>
+                    <p className="text-red-400 text-xs mt-1 ml-6">{minimumOrder?.current_amount_text}: {currentTotal}₼</p>
+                  </div>
+                )}
+
+                {gifts.length > 0 && (
+                  <div className={`mt-4 p-3 rounded-xl border ${
+                    selectedGift 
+                      ? 'bg-green-50 border-green-100' 
+                      : 'bg-amber-50 border-amber-100'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🎁</span>
+                        <span className={`font-medium text-sm ${
+                          selectedGift ? 'text-green-700' : 'text-amber-700'
+                        }`}>
+                          {selectedGift ? selectedGift.name : giftText.title}
+                        </span>
+                      </div>
+                      {!giftLocked ? (
+                        <button 
+                          onClick={() => setShowGiftModal(true)} 
+                          className="text-blue-600 text-sm font-medium hover:underline"
+                        >
+                          {giftText.select}
+                        </button>
+                      ) : (
+                        <span className="text-green-600 text-sm font-medium flex items-center gap-1">
+                          ✓ {giftText.selected}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  disabled={loadingorder || !!isUnderMinimum}
+                  onClick={handleOrder}
+                  className={`mt-6 w-full py-4 rounded-xl font-semibold text-white transition-all ${
+                    isUnderMinimum 
+                      ? 'bg-gray-300 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] shadow-lg shadow-blue-200'
+                  }`}
+                >
+                  {loadingorder ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                      </svg>
+                      {tarnslation?.is_loading || 'Yüklənir...'}
+                    </span>
+                  ) : (
+                    tarnslation?.sifarish_et || 'Sifariş et'
+                  )}
+                </button>
+              </div>
+
+              {/* Kupon kartı */}
+              <div className="flex overflow-hidden flex-col p-6 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+                    <span className="text-base">🎟️</span>
+                  </div>
+                  <h4 className="text-sm font-semibold text-gray-800">
+                    {tarnslation?.coupon_add || 'Kupon kodu'}
+                  </h4>
+                </div>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    id="couponInput"
+                    placeholder={tarnslation?.Kupon || 'Kodu daxil edin'} 
+                    className="flex-1 px-4 py-3 bg-gray-50 rounded-xl border-2 border-gray-100 text-sm focus:outline-none focus:border-blue-400 focus:bg-white transition-all" 
+                  />
                   <button
-                    className="gap-2.5 self-stretch px-10 py-4 mt-3 w-full font-medium text-black border border-solid bg-[#B1C7E4] border-[#B1C7E4] rounded-[100px]"
+                    className="px-5 py-3 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-all"
                     onClick={async () => {
                       const couponValue = (document.getElementById('couponInput') as HTMLInputElement).value;
                       if (parsed) {
                         try {
                           const res = await axiosInstance.post('applyCoupon', { coupon_code: couponValue, total_price: basked?.final_price }, { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
                           setFINAL_price(res.data.discounted_total_price);
-                          // ✅ DÜZƏLDİLDİ
                           toast.success(tarnslation?.kupon_ugurla_tetbiq_edildi || 'Kupon uğurla tətbiq edildi');
                         } catch (error: any) {
                           toast.error(error.response?.data?.error || tarnslation?.xeta_bas_verdi || 'Xəta');
@@ -307,7 +501,7 @@ const { lang = 'en' } = useParams<{ lang: string }>();
                       }
                     }}
                   >
-                    {tarnslation?.Confirm}
+                    {tarnslation?.Confirm || 'Tətbiq et'}
                   </button>
                 </div>
               </div>

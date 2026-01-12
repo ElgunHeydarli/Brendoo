@@ -1,11 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { Order, TranslationsKeys, User } from '../../../setting/Types';
+import { Order, TranslationsKeys, User, ExpargoStatus } from '../../../setting/Types';
+import { ExpargoStatusColors } from '../../../setting/Types';
 import GETRequest from '../../../setting/Request';
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import ROUTES from '../../../setting/routes';
 import DelayedModal from '../../../utils/DelayedModal';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { MapPin, Phone, Clock, Truck } from 'lucide-react';
 
 const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, cancellationReasons: any[] }) => {
   const { lang = 'ru' } = useParams<{ lang: string }>();
@@ -257,6 +259,57 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
         </div>
 
       </div>
+
+      {/* ✅ YENİ: Expargo Tracking & Pickup Point */}
+      {(order?.expargo_status || order?.pickup_point || order?.tracking_number) && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Tracking & Status */}
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-white shadow-sm">
+                <Truck className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                {order?.tracking_number && (
+                  <p className="text-sm text-gray-500">
+                    Tracking: <span className="font-semibold text-gray-900">{order.tracking_number}</span>
+                  </p>
+                )}
+                {order?.expargo_status && (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
+                    ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.bg || 'bg-gray-100'
+                  } ${ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.text || 'text-gray-800'}`}>
+                    {ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.label || order.expargo_status}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Pickup Point */}
+            {order?.pickup_point && (
+              <div className="flex items-start gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-gray-900">{order.pickup_point.name}</p>
+                  <p className="text-gray-500 text-xs">{order.pickup_point.address}</p>
+                  {order.pickup_point.phone && (
+                    <a href={`tel:${order.pickup_point.phone}`} className="flex items-center gap-1 text-xs text-blue-600 mt-1 hover:underline">
+                      <Phone className="w-3 h-3" />
+                      {order.pickup_point.phone}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Estimate */}
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="w-4 h-4 text-amber-600" />
+              <span className="text-gray-600">{translation?.texmini_catdirilma || 'Təxmini'}: <strong>5-14 iş günü</strong></span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Order Items */}
       <div className="space-y-4">
