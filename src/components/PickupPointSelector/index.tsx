@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { MapPin, Phone, Clock, ChevronDown, Search, X } from 'lucide-react';
-import { getPickupPoints, getPickupCities } from '../../setting/Request';
+import { getPickupPoints } from '../../setting/Request';
 import type { PickupPoint } from '../../setting/Types';
 
 interface PickupPointSelectorProps {
@@ -19,36 +19,20 @@ export default function PickupPointSelector({
   error,
 }: PickupPointSelectorProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cities, setCities] = useState<string[]>([]);
   const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
-  const [selectedCity, setSelectedCity] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Şəhərləri yüklə
-  useEffect(() => {
-    const loadCities = async () => {
-      const citiesData = await getPickupCities(lang);
-      setCities(citiesData);
-      // Default olaraq Bakı seç
-      if (citiesData.length > 0 && !selectedCity) {
-        setSelectedCity(citiesData.includes('Bakı') ? 'Bakı' : citiesData[0]);
-      }
-    };
-    loadCities();
-  }, [lang]);
-
-  // Seçilmiş şəhərə görə pickup nöqtələrini yüklə
+  // Bütün pickup nöqtələrini yüklə
   useEffect(() => {
     const loadPickupPoints = async () => {
-      if (!selectedCity) return;
       setIsLoading(true);
-      const points = await getPickupPoints(selectedCity, lang);
+      const points = await getPickupPoints(undefined, lang);
       setPickupPoints(points);
       setIsLoading(false);
     };
     loadPickupPoints();
-  }, [selectedCity, lang]);
+  }, [lang]);
 
   // Axtarış filtri
   const filteredPoints = useMemo(() => {
@@ -178,25 +162,9 @@ export default function PickupPointSelector({
               </button>
             </div>
 
-            {/* Şəhər Seçimi */}
+            {/* Axtarış */}
             <div className="p-4 border-b bg-gray-50">
-              <label className="text-sm font-medium text-gray-600 mb-2 block">
-                {translation?.seher || 'Şəhər'}
-              </label>
-              <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-              >
-                {cities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-
-              {/* Axtarış */}
-              <div className="relative mt-3">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
@@ -267,8 +235,7 @@ export default function PickupPointSelector({
             {/* Modal Footer */}
             <div className="p-4 border-t bg-gray-50">
               <p className="text-xs text-gray-500 text-center">
-                {filteredPoints.length} {translation?.noqte || 'nöqtə'} {selectedCity}{' '}
-                {translation?.seherinde || 'şəhərində'}
+                {filteredPoints.length} {translation?.noqte || 'nöqtə'} {translation?.tapildi || 'tapıldı'}
               </p>
             </div>
           </div>
