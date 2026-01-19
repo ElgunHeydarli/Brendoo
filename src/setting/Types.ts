@@ -46,6 +46,7 @@ export type HomeHero = {
   title: string;
   description: string;
   image: string;
+  video?: string;
 };
 
 export type Advanteges = {
@@ -89,6 +90,14 @@ export type Product = {
     en: string;
     ru: string;
   };
+  variants?: Array<{
+    variantKey?: string;
+    color?: string;
+    size?: string;
+    image?: string;
+    price?: number;
+    in_stock?: boolean;
+  }>;
 };
 
 export type Brand = {
@@ -324,6 +333,7 @@ export interface ProductDetail {
     weight?: number;
     sku?: string;
     cj_vid?: string;
+    in_stock?: boolean;
   }>;
 }
 

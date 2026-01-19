@@ -58,7 +58,7 @@ const Pagination = memo(({
             : "bg-white text-black hover:bg-gray-50 border-gray-300"
         }`}
       >
-        {translation?.previous || "Предыдущая"}
+        {translation?.previous || "Previous"}
       </button>
 
       {pageNumbers.map((pageNum, index) =>
@@ -90,7 +90,7 @@ const Pagination = memo(({
             : "bg-white text-black hover:bg-gray-50 border-gray-300"
         }`}
       >
-        {translation?.next || "Следующая"}
+        {translation?.next || "Next"}
       </button>
     </div>
   );

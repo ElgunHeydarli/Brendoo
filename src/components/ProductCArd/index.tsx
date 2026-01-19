@@ -184,6 +184,33 @@ export default function ProductCard({
   }, [favorites, data?.id]);
 
   const hasDiscount = Number(data?.discount) > 0 && data?.discount !== null;
+
+  // Ən ucuz variant qiymətini tap
+  const { displayPrice, originalPrice, hasVariantDiscount } = (() => {
+    // Əgər variants varsa, ən ucuz olanı tap
+    if (data?.variants && data.variants.length > 0) {
+      const validPrices = data.variants
+        .filter(v => v?.price !== undefined && v?.price !== null && v?.in_stock !== false)
+        .map(v => Number(v.price));
+
+      if (validPrices.length > 0) {
+        const minPrice = Math.min(...validPrices);
+        const basePrice = Number(data.price) || 0;
+        return {
+          displayPrice: minPrice,
+          originalPrice: basePrice > minPrice ? basePrice : null,
+          hasVariantDiscount: basePrice > minPrice
+        };
+      }
+    }
+
+    // Variants yoxdursa, normal qiymət
+    return {
+      displayPrice: Number(data?.discounted_price) || Number(data?.price) || 0,
+      originalPrice: hasDiscount ? Number(data?.price) : null,
+      hasVariantDiscount: false
+    };
+  })();
   //   if (!data) return;
 
   //   trackProductView();
@@ -463,18 +490,17 @@ export default function ProductCard({
           {data?.title}
         </div>
         <div className="flex flex-row gap-2">
-          {hasDiscount ? (
+          {(hasDiscount || hasVariantDiscount) && originalPrice ? (
             <>
               <div className="md:mt-3 font-semibold flex items-center text-[14px] line-through opacity-60">
-                <span className="text-[14px]">{data?.price}</span>
+                <span className="text-[14px]">{originalPrice.toFixed(2)}</span>
                 <span className="text-[12px] ml-1">₼</span>
-
               </div>
               <div
                 className="md:mt-3 font-semibold flex items-center"
                 style={issale ? { color: '#FC3976' } : {}}
               >
-                <span className="text-[18px]">{data?.discounted_price}</span>
+                <span className="text-[18px]">{displayPrice.toFixed(2)}</span>
                 ₼
               </div>
             </>
@@ -483,7 +509,7 @@ export default function ProductCard({
               className="md:mt-3 font-semibold flex items-center"
               style={issale ? { color: '#FC3976' } : {}}
             >
-              <span className="text-[18px]">{data?.price}</span>
+              <span className="text-[18px]">{displayPrice.toFixed(2)}</span>
               ₼
             </div>
           )}

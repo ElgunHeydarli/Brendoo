@@ -17,8 +17,8 @@ const TimedSpecialNotification = lazy(
 const TiktokStories = lazy(() => import('../components/TiktokStories/index.tsx'));
 const FeaturedProducts = lazy(() => import('../components/FeaturedProducts.tsx'));
 const TimedDiscountSlider = lazy(() => import('../components/TimedDiscountSlider/index.tsx'));
-// ✅ YENİ: RecentlyViewedProducts lazy load
-const RecentlyViewedProducts = lazy(() => import('../components/RecentlyViewedProducts.tsx'));
+// ✅ YENİ: RecentlyViewed lazy load
+const RecentlyViewed = lazy(() => import('../components/RecentlyViewed.tsx'));
 
 // Memoized BannerCard komponenti
 const BannerCard = memo(
@@ -103,20 +103,20 @@ const HeroSection = memo(
     translation: any;
   }) => (
     <section className="relative rounded-[20px] max-sm:rounded-none max-sm:overflow-visible overflow-hidden mx-[40px] max-sm:mx-[16px] mt-[16px]">
-      {hero?.image && (
+      {(hero?.video || hero?.image) && (
         <video
           autoPlay
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           className="absolute top-0 left-0 w-full h-full object-cover rounded-[12px]"
-          poster={hero.image}
+          poster={hero?.image}
           webkit-playsinline="true"
           controls={false}
           x5-playsinline="true"
         >
-          <source src={hero.image} type="video/mp4" />
+          <source src={hero?.video || hero?.image} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       )}
@@ -210,7 +210,7 @@ export default function Home() {
         <meta name="description" content={homePageMeta?.meta_description} />
         <meta name="keywords" content={homePageMeta?.meta_keywords} />
         {favicon?.image && <link rel="icon" href={favicon.image} type="image/svg+xml" />}
-        <link rel="preload" as="video" href={hero?.image} />
+        <link rel="preload" as="video" href={hero?.video || hero?.image} />
       </Helmet>
 
       <Header />
@@ -268,13 +268,13 @@ export default function Home() {
           </div>
         </section>
 
-        <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
-          <FeaturedProducts translation={translation} />
+        {/* ✅ YENİ: Son Baxılan Məhsullar - FeaturedProducts-dan ƏVVƏL */}
+        <Suspense fallback={<div className="h-64 bg-gray-50 animate-pulse" />}>
+          <RecentlyViewed />
         </Suspense>
 
-        {/* ✅ YENİ: Son Baxışlar Section */}
-        <Suspense fallback={<div className="h-64 bg-gray-50 animate-pulse" />}>
-          <RecentlyViewedProducts />
+        <Suspense fallback={<div className="h-64 bg-gray-100 animate-pulse" />}>
+          <FeaturedProducts translation={translation} />
         </Suspense>
       </main>
 
