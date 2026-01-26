@@ -13,6 +13,12 @@ export default defineConfig({
       }
     }
   },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'swiper', 'swiper/react'],
+  },
   build: {
     target: "esnext",
     cssCodeSplit: true,

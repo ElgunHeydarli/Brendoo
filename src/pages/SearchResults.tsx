@@ -144,10 +144,10 @@ export default function SearchResults() {
     }
   }, [searchType]);
 
-  // Text Search function
+  // Text Search function - Server-side pagination ilə
   const performSearch = useCallback(async () => {
     if (searchType === "image" || searchType === "vision") return;
-    
+
     if (!query || query.length < 2) {
       setProducts([]);
       setIsLoading(false);
@@ -156,59 +156,106 @@ export default function SearchResults() {
 
     setIsLoading(true);
     try {
+      // API parametrləri
+      const params = new URLSearchParams();
+      params.append('q', query);
+      params.append('page', String(page));
+      params.append('per_page', '24'); // Hər səhifədə 24 məhsul
+
+      // Qiymət filterləri
+      if (minPrice > 0) params.append('min_price', String(minPrice));
+      if (maxPrice > 0) params.append('max_price', String(maxPrice));
+
+      // Endirimli
+      if (checked) params.append('discount', '1');
+
+      // Çox satılan
+      if (isBestseller) params.append('bestseller', '1');
+
+      // Stokda az olan
+      if (isLowStock) params.append('low_stock', '1');
+
+      // 5 ulduzlu
+      if (isTopRated) params.append('top_rated', '1');
+
+      // Sıralama
+      if (Sort) {
+        if (Sort === "cheap-expensive") {
+          params.append('sort', 'price');
+          params.append('order', 'asc');
+        } else if (Sort === "expensive-cheap") {
+          params.append('sort', 'price');
+          params.append('order', 'desc');
+        } else if (Sort === "A-Z") {
+          params.append('sort', 'title');
+          params.append('order', 'asc');
+        } else if (Sort === "Z-A") {
+          params.append('sort', 'title');
+          params.append('order', 'desc');
+        }
+      }
+
       const res = await axios.get(
-        `https://admin.brendoo.com/api/search?q=${encodeURIComponent(query)}&limit=100`,
+        `https://admin.brendoo.com/api/search?${params.toString()}`,
         { headers: { "Accept-Language": lang } }
       );
 
-      let data: Product[] = filterValidProducts(res.data?.products || []);
+      // Backend pagination dəstəkləyirsə
+      if (res.data?.data && res.data?.meta) {
+        // Laravel pagination strukturu
+        const validProducts = filterValidProducts(res.data.data || []);
+        setProducts(validProducts);
+        setTotalProducts(res.data.meta.total || validProducts.length);
+        setLastPage(res.data.meta.last_page || 1);
+      } else if (res.data?.products) {
+        // Köhnə struktur - client-side filtering
+        let data: Product[] = filterValidProducts(res.data?.products || []);
 
-      // Qiymət filterləri
-      if (minPrice > 0) {
-        data = data.filter((p) => parseFloat(String(p.price)) >= minPrice);
-      }
-      if (maxPrice > 0) {
-        data = data.filter((p) => parseFloat(String(p.price)) <= maxPrice);
-      }
-      
-      // Endirimli
-      if (checked) {
-        data = data.filter((p) => Number(p.discount) > 0);
-      }
-      
-      // Çox satılan
-      if (isBestseller) {
-        data = data.filter((p: any) => p.is_bestseller === true);
-      }
-      
-      // Stokda az olan
-      if (isLowStock) {
-        data = data.filter((p: any) => p.is_low_stock === true);
-      }
-      
-      // 5 ulduzlu
-      if (isTopRated) {
-        data = data.filter((p: any) => p.is_top_rated === true);
-      }
+        // Client-side filterləmə (əgər backend dəstəkləmirsə)
+        if (minPrice > 0) {
+          data = data.filter((p) => parseFloat(String(p.price)) >= minPrice);
+        }
+        if (maxPrice > 0) {
+          data = data.filter((p) => parseFloat(String(p.price)) <= maxPrice);
+        }
+        if (checked) {
+          data = data.filter((p) => Number(p.discount) > 0);
+        }
+        if (isBestseller) {
+          data = data.filter((p: any) => p.is_bestseller === true);
+        }
+        if (isLowStock) {
+          data = data.filter((p: any) => p.is_low_stock === true);
+        }
+        if (isTopRated) {
+          data = data.filter((p: any) => p.is_top_rated === true);
+        }
 
-      // Sıralama
-      if (Sort === "cheap-expensive") {
-        data.sort((a, b) => parseFloat(String(a.price)) - parseFloat(String(b.price)));
-      } else if (Sort === "expensive-cheap") {
-        data.sort((a, b) => parseFloat(String(b.price)) - parseFloat(String(a.price)));
-      } else if (Sort === "A-Z") {
-        data.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-      } else if (Sort === "Z-A") {
-        data.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+        // Client-side sıralama
+        if (Sort === "cheap-expensive") {
+          data.sort((a, b) => parseFloat(String(a.price)) - parseFloat(String(b.price)));
+        } else if (Sort === "expensive-cheap") {
+          data.sort((a, b) => parseFloat(String(b.price)) - parseFloat(String(a.price)));
+        } else if (Sort === "A-Z") {
+          data.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        } else if (Sort === "Z-A") {
+          data.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+        }
+
+        // Total-dan pagination hesabla
+        const total = res.data?.total || data.length;
+        setTotalProducts(total);
+        setLastPage(Math.ceil(total / 24));
+
+        // Client-side pagination
+        const startIndex = (page - 1) * 24;
+        const paginatedData = data.slice(startIndex, startIndex + 24);
+        setProducts(paginatedData);
+      } else {
+        setProducts([]);
+        setTotalProducts(0);
+        setLastPage(1);
       }
-
-      setTotalProducts(data.length);
-      setLastPage(Math.ceil(data.length / 20));
-
-      const startIndex = (page - 1) * 20;
-      const paginatedData = data.slice(startIndex, startIndex + 20);
-
-      setProducts(paginatedData);
     } catch (error) {
       console.error("Search error:", error);
       setProducts([]);

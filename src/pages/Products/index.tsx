@@ -386,7 +386,7 @@ export default function Products({
                 <FilterSection />
               </div>
             </aside>
-            <section className="flex w-full my-8 flex-col rounded-none" aria-label="Məhsullar">
+            <section className="flex w-full my-2 sm:my-8 flex-col rounded-none" aria-label="Məhsullar">
               <div style={{ display: slug && slug.length > 0 ? "none" : "" }} className="flex flex-wrap gap-5 items-center justify-between w-full max-md:max-w-full">
                 <div className="flex gap-4 items-center flex-wrap">
                   <label htmlFor="sort-select" className="self-stretch my-auto text-sm text-black text-opacity-60">{translation?.Sırala || 'Sırala'}</label>
@@ -403,7 +403,6 @@ export default function Products({
                     </select>
                   </div>
                 </div>
-                <p><span className="mr-2">{translation?.Количество_key || "Məhsul sayı"}</span>: {products?.meta?.total || 0}</p>
               </div>
               <div className="flex flex-row flex-wrap gap-3">
                 {category && categories?.filter((item: Category) => +category === item.id).map((item) => (
@@ -443,7 +442,7 @@ export default function Products({
                 <ProductGridSkeleton />
               ) : (
                 <>
-                  <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-5 mt-6">
+                  <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-5 mt-2 sm:mt-4">
                     {renderProducts?.filter(Boolean).map((product) => product && <ProductCard key={product.id} product={product} translation={translation} />)}
                   </div>
                   {!slug && products?.meta && (

@@ -24,7 +24,7 @@ interface Gift {
 export default function BaskedConfirm() {
   const queryClient = useQueryClient();
 const { lang = 'en' } = useParams<{ lang: string }>();
-  const [Body, setBody] = useState<any>(null);
+  const [_Body, _setBody] = useState<any>(null);
   const [FINAL_price, setFINAL_price] = useState(0);
   const user = localStorage.getItem("user-info");
   const parsed = user ? JSON.parse(user) : null;
@@ -39,11 +39,10 @@ const { lang = 'en' } = useParams<{ lang: string }>();
 
   // ✅ YENİ: Expargo Pickup state-ləri
   const [selectedPickupPoint, setSelectedPickupPoint] = useState<PickupPoint | null>(null);
-  const [finCode, setFinCode] = useState<string>(parsed?.customer?.fin_code || '');
-  const [idSerialNumber, setIdSerialNumber] = useState<string>(parsed?.customer?.id_serial_number || '');
+  // FIN kod və şəxsiyyət seriyası qeydiyyatdan gəlir - dəyişdirilə bilməz
+  const finCode = parsed?.customer?.fin_code || '';
+  const idSerialNumber = parsed?.customer?.id_serial || '';
   const [pickupError, setPickupError] = useState<string>('');
-  const [finCodeError, setFinCodeError] = useState<string>('');
-  const [idSerialError, setIdSerialError] = useState<string>('');
 
   const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
   const { data: basked, isLoading: baskedLoading } = GETRequest<Basket>(`/basket_items`, 'basket_items', [lang]);
@@ -107,23 +106,10 @@ const { lang = 'en' } = useParams<{ lang: string }>();
   const isUnderMinimum = minimumOrder && minimumOrder.minimum_amount > 0 && currentTotal < minimumOrder.minimum_amount;
   const minimumMessage = minimumOrder?.message?.replace(':amount', String(minimumOrder.minimum_amount)) || '';
 
-  // ✅ YENİ: FIN kod validasiyası (7 simvol, böyük hərf + rəqəm)
-  const validateFinCode = (code: string): boolean => {
-    const finCodeRegex = /^[A-Z0-9]{7}$/;
-    return finCodeRegex.test(code.toUpperCase());
-  };
-
-  // ✅ YENİ: Vəsiqə seriya № validasiyası (9 simvol)
-  const validateIdSerial = (serial: string): boolean => {
-    return serial.length >= 8 && serial.length <= 12;
-  };
-
   // ✅ EPOINT ÖDƏNIŞ
   const handleOrder = async () => {
     // Validation sıfırla
     setPickupError('');
-    setFinCodeError('');
-    setIdSerialError('');
 
     if (isUnderMinimum) {
       toast.error(minimumMessage);
@@ -137,17 +123,15 @@ const { lang = 'en' } = useParams<{ lang: string }>();
       return;
     }
 
-    // ✅ FIN kod yoxlaması
-    if (!finCode || !validateFinCode(finCode)) {
-      setFinCodeError(tarnslation?.fin_kod_xetasi || 'FIN kod 7 simvol olmalıdır (böyük hərf + rəqəm)');
-      toast.error(tarnslation?.fin_kod_xetasi || 'FIN kod düzgün deyil');
+    // ✅ FIN kod yoxlaması (qeydiyyatdan gəlir)
+    if (!finCode) {
+      toast.error(tarnslation?.fin_kod_yoxdur || 'FIN kod qeydiyyat zamanı daxil edilməyib. Zəhmət olmasa dəstək ilə əlaqə saxlayın.');
       return;
     }
 
-    // ✅ Vəsiqə seriya № yoxlaması
-    if (!idSerialNumber || !validateIdSerial(idSerialNumber)) {
-      setIdSerialError(tarnslation?.vesiqe_seriya_xetasi || 'Vəsiqə seriya nömrəsi düzgün deyil');
-      toast.error(tarnslation?.vesiqe_seriya_xetasi || 'Vəsiqə seriya nömrəsi düzgün deyil');
+    // ✅ Vəsiqə seriya № yoxlaması (qeydiyyatdan gəlir)
+    if (!idSerialNumber) {
+      toast.error(tarnslation?.vesiqe_seriya_yoxdur || 'Şəxsiyyət seriyası qeydiyyat zamanı daxil edilməyib. Zəhmət olmasa dəstək ilə əlaqə saxlayın.');
       return;
     }
 
@@ -183,9 +167,9 @@ const { lang = 'en' } = useParams<{ lang: string }>();
           regionId: 1, // Pickup üçün default
           gift_id: selectedGift?.id || null,
           // ✅ YENİ: Expargo Pickup məlumatları
-          pickup_point_id: selectedPickupPoint.id,
+          pickup_point_id: selectedPickupPoint.pickup_id || selectedPickupPoint.id,
           fin_code: finCode.toUpperCase(),
-          id_serial_number: idSerialNumber,
+          id_serial: idSerialNumber.toUpperCase(),
         },
         {
           headers: {
@@ -324,55 +308,35 @@ const { lang = 'en' } = useParams<{ lang: string }>();
               <p className="text-sm text-gray-500 mb-5 ml-[52px]">
                 {tarnslation?.fin_kod_izah || 'Pickup zamanı şəxsiyyət yoxlaması üçün lazımdır'}
               </p>
-              
+
               <div className="flex lg:flex-row flex-col gap-4">
-                {/* FIN Kod */}
+                {/* FIN Kod - read-only, qeydiyyatdan gəlir */}
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-gray-700">
-                    {tarnslation?.fin_kod || 'FIN kod'} <span className="text-red-500">*</span>
+                    {tarnslation?.fin_kod || 'FIN kod'}
                   </label>
-                  <input
-                    type="text"
-                    value={finCode}
-                    onChange={(e) => {
-                      setFinCode(e.target.value.toUpperCase());
-                      setFinCodeError('');
-                    }}
-                    placeholder="ABC1234"
-                    maxLength={7}
-                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
-                      finCodeError 
-                        ? 'border-red-300 bg-red-50 focus:border-red-400' 
-                        : 'border-gray-100 bg-gray-50 focus:border-blue-400 focus:bg-white'
-                    } focus:outline-none uppercase font-medium tracking-wider`}
-                  />
-                  {finCodeError && <p className="text-xs text-red-500 mt-1">{finCodeError}</p>}
-                  <p className="text-xs text-gray-400">{tarnslation?.fin_kod_format || '7 simvol (böyük hərf + rəqəm)'}</p>
+                  <div className="px-4 py-3.5 rounded-xl border-2 border-gray-100 bg-gray-50 font-medium tracking-wider text-gray-700 uppercase">
+                    {finCode || <span className="text-red-400 normal-case">{tarnslation?.melumat_yoxdur || 'Məlumat yoxdur'}</span>}
+                  </div>
                 </div>
 
-                {/* Vəsiqə Seriya Nömrəsi */}
+                {/* Vəsiqə Seriya Nömrəsi - read-only, qeydiyyatdan gəlir */}
                 <div className="flex-1 flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-gray-700">
-                    {tarnslation?.vesiqe_seriya || 'Vəsiqə seriya №'} <span className="text-red-500">*</span>
+                    {tarnslation?.vesiqe_seriya || 'Vəsiqə seriya №'}
                   </label>
-                  <input
-                    type="text"
-                    value={idSerialNumber}
-                    onChange={(e) => {
-                      setIdSerialNumber(e.target.value.toUpperCase());
-                      setIdSerialError('');
-                    }}
-                    placeholder="AZE12345678"
-                    maxLength={12}
-                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
-                      idSerialError 
-                        ? 'border-red-300 bg-red-50 focus:border-red-400' 
-                        : 'border-gray-100 bg-gray-50 focus:border-blue-400 focus:bg-white'
-                    } focus:outline-none uppercase font-medium tracking-wider`}
-                  />
-                  {idSerialError && <p className="text-xs text-red-500 mt-1">{idSerialError}</p>}
+                  <div className="px-4 py-3.5 rounded-xl border-2 border-gray-100 bg-gray-50 font-medium tracking-wider text-gray-700 uppercase">
+                    {idSerialNumber || <span className="text-red-400 normal-case">{tarnslation?.melumat_yoxdur || 'Məlumat yoxdur'}</span>}
+                  </div>
                 </div>
               </div>
+
+              {(!finCode || !idSerialNumber) && (
+                <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
+                  <span>⚠️</span>
+                  {tarnslation?.fin_kod_xeberdarliq || 'Bu məlumatlar qeydiyyat zamanı daxil edilməlidir'}
+                </p>
+              )}
             </div>
           </div>
           

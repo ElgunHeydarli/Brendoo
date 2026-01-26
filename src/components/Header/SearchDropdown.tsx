@@ -127,7 +127,7 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
       
       try {
         const { data } = await axios.get<SearchResponse>(
-          `${API_URL}/api/search?q=${encodeURIComponent(query)}&limit=12`,
+          `${API_URL}/api/search?q=${encodeURIComponent(query)}&limit=20`,
           { headers: { 'Accept-Language': lang } }
         );
         
@@ -306,7 +306,7 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
                 {t.products} ({results.products.length})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {results.products.slice(0, 9).map((product) => (
+                {results.products.slice(0, 12).map((product) => (
                   <button
                     key={`prod-${product.id}`}
                     onClick={() => handleItemClick(product)}

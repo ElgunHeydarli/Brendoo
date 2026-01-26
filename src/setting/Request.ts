@@ -184,7 +184,7 @@ export const createMutation = (
     const userInfo = getUserInfo();
     // ✅ YENİ: Mutation-larda da düzgün dili istifadə et
     const lang = getSelectedLanguage();
-    
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept-Language': lang,
@@ -219,8 +219,7 @@ export const getPickupPoints = async (city?: string, lang: string = 'az'): Promi
     const response = await axiosInstance.get<PickupPointsResponse>(`/pickup-points${params}`, {
       headers: { 'Accept-Language': lang },
     });
-    console.log('🚚 Pickup points API response:', response.data);
-    // API-nin hansı formatda qaytardığını yoxla
+    // API response formatını yoxla
     if (Array.isArray(response.data)) {
       return response.data;
     }
@@ -243,8 +242,7 @@ export const getPickupCities = async (lang: string = 'az'): Promise<string[]> =>
     const response = await axiosInstance.get<PickupCitiesResponse>('/pickup-points/cities', {
       headers: { 'Accept-Language': lang },
     });
-    console.log('🏙️ Pickup cities API response:', response.data);
-    // API-nin hansı formatda qaytardığını yoxla
+    // API response formatını yoxla
     if (Array.isArray(response.data)) {
       return response.data;
     }
@@ -254,12 +252,10 @@ export const getPickupCities = async (lang: string = 'az'): Promise<string[]> =>
     if (response.data?.cities) {
       return response.data.cities;
     }
-    // Fallback şəhərlər
-    return ['Bakı', 'Sumqayıt', 'Gəncə', 'Şəki', 'Lənkəran', 'Mingəçevir'];
+    return [];
   } catch (error) {
     console.error('Pickup cities fetch error:', error);
-    // Fallback şəhərlər
-    return ['Bakı', 'Sumqayıt', 'Gəncə', 'Şəki', 'Lənkəran', 'Mingəçevir'];
+    return [];
   }
 };
 

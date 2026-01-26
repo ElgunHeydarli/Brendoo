@@ -4,8 +4,8 @@ import UserAside from '../../components/userAside';
 import GETRequest from '../../setting/Request';
 import Loading from '../../components/Loading';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Order, TranslationsKeys } from '../../setting/Types';
-import { CheckCircle2, Package, Download } from 'lucide-react';
+import { Order, TranslationsKeys, ExpargoStatus, ExpargoStatusColors } from '../../setting/Types';
+import { CheckCircle2, Package, Download, Truck, MapPin, Clock, Phone, Circle } from 'lucide-react';
 import { IoClose } from 'react-icons/io5';
 import RatingModal from '../../components/rating-modal/rating-modal';
 import RestoreModal from './RestoreModal';
@@ -13,6 +13,16 @@ import SearchableSelect from '../../components/Basked/SearchableSelect';
 import SearchableSelectCity from '../../components/Basked/SearchableSelectCity';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+
+const API_URL = 'https://admin.brendoo.com';
+
+const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.png';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) return API_URL + src;
+  if (src.startsWith('storage/')) return API_URL + '/' + src;
+  return API_URL + '/storage/' + src;
+};
 
 export interface NewOrd extends Order {
   statuses: [{ id: number; created_at: string; status: string }];
@@ -374,7 +384,7 @@ const OrderItemsDetail = () => {
                     <div className="flex gap-4">
                       <div className="w-24 h-24 bg-slate-100 rounded-md overflow-hidden">
                         {item?.product ? (
-                          <img src={item.product.image || '/placeholder.svg'} alt={item.product.title} className="object-cover w-full h-full" />
+                          <img src={getImageUrl(item.product.image || item.product.thumbnail)} alt={item.product.title} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-slate-200">
                             <span className="text-slate-500 text-xs" />
@@ -468,6 +478,168 @@ const OrderItemsDetail = () => {
                   </div>
                 </div>
               ))}
+
+              {/* ✅ Delivery Timeline Section */}
+              {order?.delivery && (
+                <div className="bg-white rounded-lg p-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-2 rounded-lg bg-blue-100">
+                      <Truck className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold">{tarnslation?.catdirilma_izle || 'Çatdırılma İzləmə'}</h3>
+                    {order.delivery.expargo_status && (
+                      <span className={`ml-auto px-3 py-1 rounded-full text-sm font-medium ${
+                        ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.bg || 'bg-gray-100'
+                      } ${ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.text || 'text-gray-800'}`}>
+                        {order.delivery.expargo_status_text || ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.label}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {/* Timeline */}
+                    <div className="space-y-4">
+                      {order.delivery.timeline?.map((step: any, index: number) => {
+                        const isCancelled = order?.isCancel === true;
+                        const isLastItem = index === (order.delivery.timeline?.length || 0) - 1;
+                        return (
+                          <div key={step.status || index} className="flex gap-3">
+                            <div className="flex flex-col items-center">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                                step.completed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'
+                              }`}>
+                                {step.completed ? (
+                                  <CheckCircle2 className="w-4 h-4" />
+                                ) : (
+                                  <Circle className="w-3 h-3" />
+                                )}
+                              </div>
+                              {(!isLastItem || isCancelled) && (
+                                <div className={`w-0.5 h-12 ${step.completed ? 'bg-green-300' : 'bg-gray-200'}`} />
+                              )}
+                            </div>
+                            <div className="flex-1 pb-4">
+                              <p className={`font-medium ${step.completed ? 'text-gray-900' : 'text-gray-400'}`}>
+                                {step.title}
+                              </p>
+                              {step.description && (
+                                <p className="text-sm text-gray-500">{step.description}</p>
+                              )}
+                              {step.date && (
+                                <p className="text-xs text-gray-400 mt-1">{step.date}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Ləğv edildi statusu */}
+                      {order?.isCancel === true && (
+                        <div className="flex gap-3">
+                          <div className="flex flex-col items-center">
+                            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-red-500 text-white">
+                              <IoClose className="w-4 h-4" />
+                            </div>
+                          </div>
+                          <div className="flex-1 pb-4">
+                            <p className="font-medium text-red-600">
+                              {tarnslation?.legv_edildi || 'Ləğv edildi'}
+                            </p>
+                            {order?.cancel_reason && (
+                              <p className="text-sm text-gray-500">{order.cancel_reason}</p>
+                            )}
+                            {order?.cancelled_at && (
+                              <p className="text-xs text-gray-400 mt-1">{order.cancelled_at}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Əgər timeline yoxdursa, sadəcə status göstər */}
+                      {!order.delivery.timeline && order.delivery.status_text && !order?.isCancel && (
+                        <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                          <Truck className="w-5 h-5 text-blue-600" />
+                          <div>
+                            <p className="font-medium">{order.delivery.status_text}</p>
+                            {order.delivery.estimate && (
+                              <p className="text-sm text-gray-500">{tarnslation?.texmini_catdirilma || 'Təxmini'}: {order.delivery.estimate}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Əgər timeline yoxdursa və ləğv edilibsə */}
+                      {!order.delivery.timeline && order?.isCancel === true && (
+                        <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg">
+                          <IoClose className="w-5 h-5 text-red-600" />
+                          <div>
+                            <p className="font-medium text-red-600">{tarnslation?.legv_edildi || 'Ləğv edildi'}</p>
+                            {order?.cancel_reason && (
+                              <p className="text-sm text-gray-500">{order.cancel_reason}</p>
+                            )}
+                            {order?.cancelled_at && (
+                              <p className="text-sm text-gray-500">{order.cancelled_at}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Pickup Point & Parcel Info */}
+                    <div className="space-y-4">
+                      {/* Tracking Number */}
+                      {order.delivery.parcel?.tracking_number && (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-500">{tarnslation?.tracking_nomresi || 'Tracking nömrəsi'}</p>
+                          <p className="font-semibold text-lg">{order.delivery.parcel.tracking_number}</p>
+                          {order.delivery.parcel.sent_at && (
+                            <p className="text-xs text-gray-400 mt-1">{tarnslation?.gonderilme_tarixi || 'Göndərilmə'}: {order.delivery.parcel.sent_at}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Pickup Point */}
+                      {order.delivery.pickup_point && (
+                        <div className="p-4 bg-blue-50 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
+                            <div>
+                              <p className="font-semibold">{order.delivery.pickup_point.name}</p>
+                              <p className="text-sm text-gray-600">{order.delivery.pickup_point.address}</p>
+                              {order.delivery.pickup_point.city && (
+                                <p className="text-sm text-gray-500">{order.delivery.pickup_point.city}</p>
+                              )}
+                              {order.delivery.pickup_point.working_hours && (
+                                <div className="flex items-center gap-1 mt-2 text-sm text-gray-500">
+                                  <Clock className="w-4 h-4" />
+                                  <span>{order.delivery.pickup_point.working_hours}</span>
+                                </div>
+                              )}
+                              {order.delivery.pickup_point.phone && (
+                                <a href={`tel:${order.delivery.pickup_point.phone}`} className="flex items-center gap-1 mt-1 text-sm text-blue-600 hover:underline">
+                                  <Phone className="w-4 h-4" />
+                                  <span>{order.delivery.pickup_point.phone}</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Estimate */}
+                      {order.delivery.estimate && (
+                        <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg">
+                          <Clock className="w-5 h-5 text-amber-600" />
+                          <div>
+                            <p className="text-sm text-gray-600">{tarnslation?.texmini_catdirilma || 'Təxmini çatdırılma'}</p>
+                            <p className="font-semibold">{order.delivery.estimate}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="grid md:grid-cols-2 gap-8">

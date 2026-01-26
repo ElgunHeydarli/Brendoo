@@ -9,6 +9,17 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { MapPin, Phone, Clock, Truck } from 'lucide-react';
 
+const API_URL = 'https://admin.brendoo.com';
+
+const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.png';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) return API_URL + src;
+  if (src.startsWith('storage/')) return API_URL + '/' + src;
+  // Əgər sadəcə fayl adıdırsa
+  return API_URL + '/storage/' + src;
+};
+
 const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, cancellationReasons: any[] }) => {
   const { lang = 'ru' } = useParams<{ lang: string }>();
   const navigate = useNavigate();
@@ -144,8 +155,10 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
       } else {
         console.log(res.status);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error:", error);
+      const errorMessage = error?.response?.data?.message || translation?.xeta_bas_verdi || 'Xəta baş verdi. Yenidən cəhd edin.';
+      toast.error(errorMessage, { position: "top-center" });
     } finally {
       setLoading(false);
     }
@@ -229,7 +242,7 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
             </div>
             <div>
               <div className="text-gray-500">{translation?.priced}:</div>
-              <div className="font-semibold">{order.total_price} RUB</div>
+              <div className="font-semibold">{order.total_price} ₼</div>
             </div>
             <div>
               <div className="text-gray-500">{translation?.given_key}:</div>
@@ -245,8 +258,8 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
             {translation?.order_detail_title_key}
           </button>
 
-          {/* Cancel Button - only show if not already cancelled / delivered */}
-          {order?.cancelable ? (
+          {/* Cancel Button - only show if can_cancel is true and not already cancelled */}
+          {(order?.can_cancel === true || order?.cancelable) && !order?.isCancel ? (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -260,8 +273,8 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
 
       </div>
 
-      {/* ✅ YENİ: Expargo Tracking & Pickup Point */}
-      {(order?.expargo_status || order?.pickup_point || order?.tracking_number) && (
+      {/* ✅ Delivery Tracking & Pickup Point */}
+      {order?.delivery && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
           <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Tracking & Status */}
@@ -270,42 +283,67 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
                 <Truck className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                {order?.tracking_number && (
+                {order.delivery.parcel?.tracking_number && (
                   <p className="text-sm text-gray-500">
-                    Tracking: <span className="font-semibold text-gray-900">{order.tracking_number}</span>
+                    Tracking: <span className="font-semibold text-gray-900">{order.delivery.parcel.tracking_number}</span>
                   </p>
                 )}
-                {order?.expargo_status && (
+                {order.delivery.expargo_status && (
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 ${
-                    ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.bg || 'bg-gray-100'
-                  } ${ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.text || 'text-gray-800'}`}>
-                    {ExpargoStatusColors[order.expargo_status as ExpargoStatus]?.label || order.expargo_status}
+                    ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.bg || 'bg-gray-100'
+                  } ${ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.text || 'text-gray-800'}`}>
+                    {order.delivery.expargo_status_text || ExpargoStatusColors[order.delivery.expargo_status as ExpargoStatus]?.label || order.delivery.expargo_status}
+                  </span>
+                )}
+                {!order.delivery.expargo_status && order.delivery.status_text && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-1 bg-gray-100 text-gray-800">
+                    {order.delivery.status_text}
                   </span>
                 )}
               </div>
             </div>
 
             {/* Pickup Point */}
-            {order?.pickup_point && (
+            {order.delivery.pickup_point && (
               <div className="flex items-start gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-900">{order.pickup_point.name}</p>
-                  <p className="text-gray-500 text-xs">{order.pickup_point.address}</p>
-                  {order.pickup_point.phone && (
-                    <a href={`tel:${order.pickup_point.phone}`} className="flex items-center gap-1 text-xs text-blue-600 mt-1 hover:underline">
+                  <p className="font-medium text-gray-900">{order.delivery.pickup_point.name}</p>
+                  <p className="text-gray-500 text-xs">{order.delivery.pickup_point.address}</p>
+                  {order.delivery.pickup_point.working_hours && (
+                    <p className="text-gray-400 text-xs flex items-center gap-1 mt-0.5">
+                      <Clock className="w-3 h-3" />
+                      {order.delivery.pickup_point.working_hours}
+                    </p>
+                  )}
+                  {order.delivery.pickup_point.phone && (
+                    <a href={`tel:${order.delivery.pickup_point.phone}`} className="flex items-center gap-1 text-xs text-blue-600 mt-1 hover:underline">
                       <Phone className="w-3 h-3" />
-                      {order.pickup_point.phone}
+                      {order.delivery.pickup_point.phone}
                     </a>
                   )}
                 </div>
               </div>
             )}
 
-            {/* Estimate */}
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-amber-600" />
-              <span className="text-gray-600">{translation?.texmini_catdirilma || 'Təxmini'}: <strong>5-14 iş günü</strong></span>
+            {/* Estimate & Delivery Info */}
+            <div className="flex flex-col gap-1 text-sm">
+              {order.delivery.estimate && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="text-gray-600">{translation?.texmini_catdirilma || 'Təxmini'}: <strong>{order.delivery.estimate}</strong></span>
+                </div>
+              )}
+              {order.delivery.parcel?.sent_at && (
+                <p className="text-xs text-gray-500">
+                  {translation?.gonderilme_tarixi || 'Göndərilmə'}: {order.delivery.parcel.sent_at}
+                </p>
+              )}
+              {order.delivery.parcel?.delivered_at && (
+                <p className="text-xs text-green-600 font-medium">
+                  {translation?.tehvil_tarixi || 'Təhvil'}: {order.delivery.parcel.delivered_at}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -319,8 +357,10 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex gap-3 items-start">
               <img
-                src={item?.product?.image || '/placeholder.svg'}
+                src={getImageUrl(item?.product?.image || item?.product?.thumbnail)}
+                alt={item?.product?.title || 'Product'}
                 className="w-[100px] h-[90px] object-contain rounded-md"
+                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
               />
               <div>
                 <div className="font-medium text-black">

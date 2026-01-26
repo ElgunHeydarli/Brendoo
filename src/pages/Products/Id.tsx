@@ -60,7 +60,19 @@ const getVideoUrl = (src: string | null | undefined): string | null => {
   return `${API_URL}/storage/${src}`;
 };
 
-
+// Option type-dan singular forma çevir (colors -> color)
+const getSingularOptionType = (pluralType: string): string => {
+  const map: Record<string, string> = {
+    colors: 'color',
+    sizes: 'size',
+    lengths: 'length',
+    styles: 'style',
+    specifications: 'specifications',
+    capacities: 'capacity',
+    materials: 'material',
+  };
+  return map[pluralType] || pluralType;
+};
 
 export default function ProductId() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -75,13 +87,17 @@ export default function ProductId() {
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [selectedSize, setSelectedSize] = useState<{ id: number; name: string } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ id: number; name: string; code?: string; price?: number } | null>(null);
+  const [selectedFilters, setSelectedFilters] = useState<Record<number, { id: number; name: string; price?: number }>>({});
   const [isInStock, setIsInStock] = useState<boolean>(true);
   const [isliked, setisliked] = useState<boolean>(false);
   const [isinbusked, setisinbusked] = useState<boolean>(false);
   const [openSideBar, setOpenSideBar] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'details'>('description');
   const [showVideo, setShowVideo] = useState(false);
-  
+
+  // CJ Variant seçimləri - yeni API strukturu üçün
+  const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string>>({});
+
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const similarScrollRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -208,18 +224,54 @@ export default function ProductId() {
   }, [Productslingle?.id, lang]);
 
   useEffect(() => {
-    if (!sizeFilter || !sizeFilter.options?.length) {
-      setSelectedSize({ id: 0, name: 'Standart' });
+    // Size filter varsa, default seç
+    if (sizeFilter && sizeFilter.options?.length) {
+      const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
+      if (def) { setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); setIsInStock(!!def.is_stock); }
+    } else {
+      // Size filter yoxdursa, null saxla - "Standart" göstərmə
+      setSelectedSize(null);
       setIsInStock(Productslingle?.is_stock !== false);
-      return;
     }
-    const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
-    if (def) { setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); setIsInStock(!!def.is_stock); }
+
+    // Color filter
     if (colorFilter?.options?.length) {
       const defColor = colorFilter.options.find(o => o?.is_default) || colorFilter.options[0];
       if (defColor) setSelectedColor({ id: defColor.option_id, name: defColor.name || '', code: defColor.color_code || undefined });
     }
-  }, [sizeFilter, colorFilter, Productslingle?.is_stock]);
+
+    // Digər filtrlər üçün default seçimlər
+    if (otherFilters?.length) {
+      const newSelectedFilters: Record<number, { id: number; name: string; price?: number }> = {};
+      otherFilters.forEach(filter => {
+        if (filter?.options?.length) {
+          const defOpt = filter.options.find(o => o?.is_default === '1' || o?.is_default === true) || filter.options[0];
+          if (defOpt) {
+            newSelectedFilters[filter.filter_id] = {
+              id: defOpt.option_id,
+              name: defOpt.name || 'Unknown',
+              price: defOpt.price ? Number(defOpt.price) : undefined
+            };
+          }
+        }
+      });
+      setSelectedFilters(newSelectedFilters);
+    }
+
+    // CJ variant_options üçün default seçimlər
+    if (Productslingle?.variant_options) {
+      const defaults: Record<string, string> = {};
+      Object.entries(Productslingle.variant_options).forEach(([optionType, options]) => {
+        if (options && options.length > 0) {
+          const singularType = getSingularOptionType(optionType);
+          defaults[singularType] = options[0].value;
+        }
+      });
+      if (Object.keys(defaults).length > 0) {
+        setSelectedVariantOptions(defaults);
+      }
+    }
+  }, [sizeFilter, colorFilter, otherFilters, Productslingle?.is_stock, Productslingle?.variant_options]);
 
   useEffect(() => { setisliked(favorites?.some(item => item?.product?.id === Productslingle?.id) || false); }, [favorites, Productslingle?.id]);
 
@@ -245,10 +297,28 @@ export default function ProductId() {
     }
   }, [basked, Productslingle, selectedSize, userStr]);
 
-  useEffect(() => { 
-    setSelectedImageIndex(0); 
+  useEffect(() => {
+    setSelectedImageIndex(0);
     setShowVideo(false);
+    setSelectedVariantOptions({}); // CJ variant seçimlərini sıfırla
   }, [Productslingle?.id]);
+
+  // Şəkilləri əvvəlcədən yüklə (preload)
+  useEffect(() => {
+    if (productImages.length > 0) {
+      // İlk 3 şəkili preload et
+      productImages.slice(0, 3).forEach((img, idx) => {
+        const link = document.createElement('link');
+        link.rel = idx === 0 ? 'preload' : 'prefetch';
+        link.as = 'image';
+        link.href = getImageUrl(img);
+        // Dublikat yoxla
+        if (!document.querySelector(`link[href="${link.href}"]`)) {
+          document.head.appendChild(link);
+        }
+      });
+    }
+  }, [productImages]);
 
   useEffect(() => {
     if (!showVideo && videoRef.current) {
@@ -289,30 +359,165 @@ export default function ProductId() {
     }
   }, [productImages]);
 
+  // CJ variant_options varsa, seçilmiş variantı tap - handleAddToBasket-dan əvvəl olmalıdır
+  const selectedCJVariant = useMemo(() => {
+    if (!Productslingle?.variant_options || !Productslingle?.variants?.length) return null;
+    if (Object.keys(selectedVariantOptions).length === 0) return null;
+
+    const selectedValues = Object.values(selectedVariantOptions).filter(Boolean);
+    if (selectedValues.length === 0) return null;
+
+    // 1. Əvvəlcə direct property match cəhd et (case-insensitive)
+    let matched = Productslingle.variants.find(v => {
+      return Object.entries(selectedVariantOptions).every(([key, value]) => {
+        if (!value) return true;
+        const variantValue = v[key as keyof typeof v];
+        if (typeof variantValue === 'string' && typeof value === 'string') {
+          return variantValue.toLowerCase() === value.toLowerCase();
+        }
+        return variantValue === value;
+      });
+    });
+
+    // 2. Tapılmadısa, variantKey ilə match cəhd et
+    if (!matched) {
+      matched = Productslingle.variants.find(v => {
+        if (!v?.variantKey) return false;
+        const key = v.variantKey.toLowerCase();
+        // Bütün seçilmiş dəyərlər variantKey-də olmalıdır
+        return selectedValues.every(val => key.includes(val.toLowerCase()));
+      });
+    }
+
+    // 3. Hələ də tapılmadısa, partial match cəhd et (ən azı bir dəyər uyğun gəlsin)
+    if (!matched && selectedValues.length > 0) {
+      // Ən çox uyğun gələni tap
+      let bestMatch: typeof Productslingle.variants[0] | null = null;
+      let bestMatchCount = 0;
+
+      Productslingle.variants.forEach(v => {
+        if (!v?.variantKey) return;
+        const key = v.variantKey.toLowerCase();
+        const matchCount = selectedValues.filter(val => key.includes(val.toLowerCase())).length;
+        if (matchCount > bestMatchCount) {
+          bestMatchCount = matchCount;
+          bestMatch = v;
+        }
+      });
+
+      if (bestMatch && bestMatchCount > 0) {
+        matched = bestMatch;
+      }
+    }
+
+    return matched || null;
+  }, [Productslingle?.variant_options, Productslingle?.variants, selectedVariantOptions]);
+
   const handleAddToBasket = useCallback(async () => {
-    if (!Productslingle || !selectedSize) { toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin'); return; }
+    if (!Productslingle) { toast.error('Məhsul tapılmadı'); return; }
+
+    // CJ variant_options varsa və seçim tamamlanmayıbsa
+    if (Productslingle.variant_options) {
+      const requiredOptions = Object.keys(Productslingle.variant_options);
+      const missingOptions = requiredOptions.filter(opt => {
+        const singularType = getSingularOptionType(opt);
+        return !selectedVariantOptions[singularType];
+      });
+      if (missingOptions.length > 0) {
+        toast.error(tarnslation?.variant_secin || 'Zəhmət olmasa variant seçin');
+        return;
+      }
+      // CJ variant stokda yoxdursa
+      if (selectedCJVariant && selectedCJVariant.in_stock === false) {
+        toast.error(tarnslation?.stokda_yoxdur || 'Bu variant stokda yoxdur');
+        return;
+      }
+    }
+
+    // Size filter varsa, seçilməlidir
+    if (sizeFilter && sizeFilter.options?.length && !selectedSize) {
+      toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin');
+      return;
+    }
     if (isAddingToCart || isinbusked) return;
-    if (selectedSize.id !== 0) {
+    if (selectedSize && selectedSize.id !== 0) {
       const sizeOpt = sizeFilter?.options?.find(o => o?.option_id === selectedSize.id);
       if (sizeOpt && !sizeOpt.is_stock) { toast.error(tarnslation?.bu_olcude_stokda_yox || 'Bu ölçü stokda yoxdur'); return; }
     }
     setIsAddingToCart(true);
-    const options = (sizeFilter && selectedSize.id !== 0) ? [{ filter_id: sizeFilter.filter_id, option_id: selectedSize.id }] : [];
+
+    // Bütün seçilmiş filtrləri topla
+    const options: { filter_id: number; option_id: number }[] = [];
+
+    // Size filter
+    if (sizeFilter && selectedSize && selectedSize.id !== 0) {
+      options.push({ filter_id: sizeFilter.filter_id, option_id: selectedSize.id });
+    }
+
+    // Digər filtrlər (Style, Material və s.)
+    Object.entries(selectedFilters).forEach(([filterId, selected]) => {
+      if (selected && selected.id) {
+        options.push({ filter_id: Number(filterId), option_id: selected.id });
+      }
+    });
+
+    // CJ variant_key və selected_options hazırla
+    const variantKey = selectedCJVariant?.variantKey || null;
+    const cjSelectedOptions = Object.keys(selectedVariantOptions).length > 0 ? selectedVariantOptions : null;
+
+    // Qiyməti müəyyən et - CJ variant qiymətinə endirimi tətbiq et
+    let finalPrice = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+
+    if (selectedCJVariant?.price) {
+      const variantPrice = Number(selectedCJVariant.price);
+      const baseDiscountedPrice = Number(Productslingle.discounted_price) || 0;
+      const hasProductDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
+
+      // Variant qiyməti artıq endirimli deyilsə, endirimi tətbiq et
+      if (hasProductDiscount && variantPrice > baseDiscountedPrice * 1.1) {
+        const discountPercent = Number(Productslingle.discount) / 100;
+        finalPrice = variantPrice * (1 - discountPercent);
+      } else {
+        finalPrice = variantPrice;
+      }
+    }
 
     if (!userStr) {
       try {
         const cart = getGuestCart();
-        const price = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
         const idx = cart.basket_items.findIndex(i => {
           if (i?.id !== Productslingle.id) return false;
-          if (selectedSize.id === 0) return !i.options || i.options.length === 0;
-          return i.options?.some(o => o?.option === String(selectedSize.id));
+          // CJ variant varsa, variantKey-ə görə yoxla
+          if (variantKey) {
+            return (i as any).variant_key === variantKey;
+          }
+          // Seçim yoxdursa
+          if (options.length === 0) return !i.options || i.options.length === 0;
+          // Eyni seçimlərlə məhsul varmı?
+          return options.every(opt =>
+            i.options?.some(o => String(o?.option) === String(opt.option_id))
+          );
         });
         if (idx === -1) {
-          cart.basket_items.push({ id: Productslingle.id, product: Productslingle, quantity, price: price.toFixed(2), options: options.map(o => ({ filter: String(o.filter_id), option: String(o.option_id) })) });
+          const cartItem: any = {
+            id: Productslingle.id,
+            product: Productslingle,
+            quantity,
+            price: finalPrice.toFixed(2),
+            options: options.map(o => ({ filter: String(o.filter_id), option: String(o.option_id) }))
+          };
+          if (variantKey) cartItem.variant_key = variantKey;
+          if (cjSelectedOptions) cartItem.selected_options = cjSelectedOptions;
+          cart.basket_items.push(cartItem);
         } else { cart.basket_items[idx].quantity += quantity; }
         let total = 0, discount = 0, final = 0;
-        cart.basket_items.forEach(i => { const orig = Number(i?.product?.price) || 0; const disc = Number(i?.product?.discounted_price) || orig; total += orig * (i?.quantity || 1); discount += (orig - disc) * (i?.quantity || 1); final += disc * (i?.quantity || 1); });
+        cart.basket_items.forEach(i => {
+          const orig = Number(i?.product?.price) || 0;
+          const disc = Number(i?.price) || Number(i?.product?.discounted_price) || orig;
+          total += orig * (i?.quantity || 1);
+          discount += (orig - disc) * (i?.quantity || 1);
+          final += disc * (i?.quantity || 1);
+        });
         cart.total_price = total; cart.discount = discount; cart.final_price = final;
         setGuestCart(cart);
         setisinbusked(true);
@@ -323,14 +528,25 @@ export default function ProductId() {
     }
 
     try {
-      await axios.post(`${API_URL}/api/basket_items`, { product_id: Productslingle.id, quantity, price: Number(Productslingle.price) || 0, options, ...(collectionId?.length && { collection_id: collectionId }) }, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
+      const payload: any = {
+        product_id: Productslingle.id,
+        quantity,
+        price: finalPrice,
+        options
+      };
+      // CJ variant məlumatlarını əlavə et
+      if (variantKey) payload.variant_key = variantKey;
+      if (cjSelectedOptions) payload.selected_options = cjSelectedOptions;
+      if (collectionId?.length) payload.collection_id = collectionId;
+
+      await axios.post(`${API_URL}/api/basket_items`, payload, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
       if (collectionId) localStorage.removeItem('collection_id');
       setisinbusked(true);
       toast.success(tarnslation?.handle_added || 'Əlavə edildi');
       queryClient.invalidateQueries({ queryKey: ['basket_items'] });
     } catch { toast.error('Xəta'); }
     finally { setIsAddingToCart(false); }
-  }, [Productslingle, selectedSize, sizeFilter, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked]);
+  }, [Productslingle, selectedSize, selectedFilters, sizeFilter, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked, selectedCJVariant, selectedVariantOptions]);
 
   const handleNotifyMe = useCallback(async () => {
     if (!notifyOptionId || !Productslingle?.id) return;
@@ -354,30 +570,120 @@ export default function ProductId() {
     finally { setIsTogglingFavorite(false); }
   }, [userStr, lang, navigate, Productslingle?.id, token, queryClient, isTogglingFavorite]);
 
-  const goToPrevImage = () => {
-    if (showVideo) {
-      setShowVideo(false);
-      setSelectedImageIndex(productImages.length - 1);
-    } else if (selectedImageIndex === 0 && productVideo) {
-      setShowVideo(true);
-    } else {
-      setSelectedImageIndex(prev => prev === 0 ? productImages.length - 1 : prev - 1);
-    }
-  };
+  // Variants massivindən kombinasiya qiymətini tap - HOOK MUST BE BEFORE EARLY RETURN
+  const getVariantPrice = useMemo(() => {
+    if (!Productslingle?.variants?.length) return null;
 
-  const goToNextImage = () => {
-    if (showVideo) {
-      setShowVideo(false);
-      setSelectedImageIndex(0);
-    } else if (selectedImageIndex === productImages.length - 1 && productVideo) {
-      setShowVideo(true);
-    } else {
-      setSelectedImageIndex(prev => prev === productImages.length - 1 ? 0 : prev + 1);
+    // Seçilmiş filter adlarını al
+    const selectedNames = Object.values(selectedFilters).map(f => f?.name).filter(Boolean);
+
+    if (selectedNames.length === 0) return null;
+
+    // variantKey-də bütün seçilmiş adları axtar
+    const matchingVariant = Productslingle.variants.find(v => {
+      if (!v?.variantKey) return false;
+      const key = v.variantKey.toLowerCase();
+      // Bütün seçilmiş filtrlər variantKey-də olmalıdır
+      return selectedNames.every(name => key.includes(name.toLowerCase()));
+    });
+
+    if (matchingVariant?.price) {
+      return Number(matchingVariant.price);
     }
-  };
+
+    // Alternativ: tək bir seçilmiş ada görə axtar
+    for (const name of selectedNames) {
+      const variant = Productslingle.variants.find(v =>
+        v?.variantKey?.toLowerCase().includes(name.toLowerCase())
+      );
+      if (variant?.price) {
+        return Number(variant.price);
+      }
+    }
+
+    return null;
+  }, [Productslingle?.variants, selectedFilters]);
+
+  // Mövcud variant opsiyalarını filtrələ - seçilmiş opsiyalara görə
+  const getAvailableOptions = useCallback((optionType: string): string[] => {
+    if (!Productslingle?.variants?.length) return [];
+
+    // Digər seçilmiş opsiyalara uyğun variantları tap
+    const filtered = Productslingle.variants.filter(v => {
+      return Object.entries(selectedVariantOptions).every(([key, value]) => {
+        if (key === optionType || !value) return true;
+        const variantValue = v[key as keyof typeof v];
+        return variantValue === value;
+      });
+    });
+
+    // Bu tip üçün unikal dəyərləri çıxar
+    const uniqueValues = [...new Set(
+      filtered
+        .map(v => v[optionType as keyof typeof v] as string)
+        .filter(Boolean)
+    )];
+    return uniqueValues;
+  }, [Productslingle?.variants, selectedVariantOptions]);
+
+  // CJ variant seçimi handler
+  const handleVariantOptionSelect = useCallback((optionType: string, value: string) => {
+    setSelectedVariantOptions(prev => {
+      const newSelected = { ...prev, [optionType]: value };
+
+      // Eyni dəyərli digər option type-ları da sinxronizasiya et (size/capacity kimi)
+      // Bu dublikat Ölçü/Həcm problemini həll edir
+      const equivalentTypes: Record<string, string[]> = {
+        size: ['capacity'],
+        capacity: ['size'],
+      };
+      const equivTypes = equivalentTypes[optionType] || [];
+      equivTypes.forEach(eqType => {
+        // Eyni dəyər variantda mövcuddursa, onu da seç
+        if (Productslingle?.variants?.some(v => {
+          const eqValue = v[eqType as keyof typeof v];
+          return typeof eqValue === 'string' && eqValue.toLowerCase() === value.toLowerCase();
+        })) {
+          newSelected[eqType] = value;
+        }
+      });
+
+      // Şəkil dəyişdirmə - əgər color seçilibsə
+      if (optionType === 'color' && Productslingle?.variants) {
+        const variantWithImage = Productslingle.variants.find(v =>
+          v.color === value && v.image
+        );
+        if (variantWithImage?.image) {
+          const imgIdx = productImages.findIndex(img =>
+            img.includes(variantWithImage.image?.split('/').pop() || '___')
+          );
+          if (imgIdx >= 0) {
+            setSelectedImageIndex(imgIdx);
+            setShowVideo(false);
+          }
+        }
+      }
+
+      return newSelected;
+    });
+  }, [Productslingle?.variants, productImages]);
+
+  // Variant option label-lərini Azərbaycan dilinə çevir
+  const getVariantOptionLabel = useCallback((type: string): string => {
+    const labels: Record<string, string> = {
+      colors: tarnslation?.Rəng || 'Rəng',
+      sizes: tarnslation?.Ölçü || 'Ölçü',
+      lengths: tarnslation?.Uzunluq || 'Uzunluq',
+      styles: tarnslation?.Stil || 'Stil',
+      specifications: tarnslation?.Xüsusiyyət || 'Xüsusiyyət',
+      capacities: tarnslation?.Həcm || 'Həcm',
+      materials: tarnslation?.Material || 'Material',
+    };
+    return labels[type] || type;
+  }, [tarnslation]);
 
   if (ProductslingleLoading || tarnslationLoading) return <Loading />;
-  
+
   if (!Productslingle) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -392,14 +698,12 @@ export default function ProductId() {
   const cleanDescription = Productslingle.description?.replace(/<img[^>]*>/gi, '') || '';
   const filteredSimilar = similarProducts.filter(p => p && p.id && p.id !== Productslingle.id).slice(0, 15);
   const currentImage = productImages[safeImageIndex] || productImages[0] || '/placeholder.png';
-  const displayPrice = selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0;
-  const originalPrice = Productslingle.price || 0;
+
+  // CJ variant qiymətini prioritet ver
+  const cjVariantPrice = selectedCJVariant?.price ? Number(selectedCJVariant.price) : null;
+  const displayPrice = cjVariantPrice || getVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0;
   const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
-  const totalMediaCount = productImages.length + (productVideo ? 1 : 0);
-  
-  // Dots üçün: maksimum 5 dot göstər
-  const maxDots = 5;
-  const remainingCount = productImages.length > maxDots ? productImages.length - maxDots : 0;
+  const cjVariantInStock = selectedCJVariant ? selectedCJVariant.in_stock !== false : true;
 
   return (
     <div className="bg-white min-h-screen">
@@ -439,15 +743,18 @@ export default function ProductId() {
                   onMouseMove={handleMouseMove}
                   onClick={() => setIsLightboxOpen(true)}
                 >
-                  <img 
-                    src={getImageUrl(currentImage)} 
+                  <img
+                    src={getImageUrl(currentImage)}
                     alt={Productslingle.title || 'Product'}
                     className={`w-full h-full object-contain transition-transform duration-300 ${isZoomed ? 'scale-[2]' : 'scale-100'}`}
                     style={isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}}
-                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} 
+                    loading="eager"
+                    decoding="async"
+                    fetchPriority="high"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
                   />
                   
-                  <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-gray-600 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="hidden sm:flex absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm text-gray-600 items-center gap-2 shadow-lg pointer-events-none">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                     </svg>
@@ -470,47 +777,55 @@ export default function ProductId() {
                 <FiHeart className={`w-5 h-5 ${isliked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
               </button>
 
-              {totalMediaCount > 1 && (
-                <>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); goToPrevImage(); }}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition z-10"
-                  >
-                    <FiChevronLeft className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); goToNextImage(); }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center hover:bg-white transition z-10"
-                  >
-                    <FiChevronRight className="w-5 h-5 text-gray-700" />
-                  </button>
-                </>
-              )}
             </div>
 
-            {/* DOTS SLIDER - Köhnə stil */}
-            {totalMediaCount > 1 && (
-              <div className="flex items-center justify-center gap-1.5 mt-2">
-                {/* İlk 5 şəkil üçün dots */}
-                {productImages.slice(0, maxDots).map((_, idx) => (
+            {/* THUMBNAIL SLIDER */}
+            {(productImages.length > 1 || productVideo) && (
+              <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-2 scrollbar-hide">
+                {/* VIDEO THUMBNAIL - ƏN ƏVVƏLDƏ */}
+                {productVideo && (
                   <button
-                    key={`dot-${idx}`}
-                    onClick={() => { setSelectedImageIndex(idx); setShowVideo(false); }}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      !showVideo && safeImageIndex === idx 
-                        ? 'w-6 bg-gray-800' 
-                        : 'w-2 bg-gray-300 hover:bg-gray-400'
+                    onClick={() => setShowVideo(true)}
+                    className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all relative ${
+                      showVideo
+                        ? 'border-red-500 shadow-md ring-2 ring-red-300'
+                        : 'border-red-400 hover:border-red-500'
                     }`}
-                    aria-label={`Image ${idx + 1}`}
-                  />
-                ))}
-                
-                {/* Əgər 5-dən çox şəkil varsa, +N göstər */}
-                {remainingCount > 0 && (
-                  <span className="text-sm text-gray-500 font-medium ml-1">
-                    +{remainingCount}
-                  </span>
+                  >
+                    <img
+                      src={getImageUrl(productImages[0])}
+                      alt="Video thumbnail"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-500 rounded-full flex items-center justify-center">
+                        <FiPlay className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
+                      </div>
+                    </div>
+                  </button>
                 )}
+
+                {productImages.map((img, idx) => (
+                  <button
+                    key={`thumb-${idx}`}
+                    onClick={() => { setSelectedImageIndex(idx); setShowVideo(false); }}
+                    className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      !showVideo && safeImageIndex === idx
+                        ? 'border-blue-500 shadow-md'
+                        : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <img
+                      src={getImageUrl(img)}
+                      alt={`Thumbnail ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -520,19 +835,45 @@ export default function ProductId() {
             <p className="text-sm text-gray-500 mb-4">SKU: {Productslingle.product_code || Productslingle.code || `PRD-${Productslingle.id}`}</p>
 
             <div className="flex items-baseline gap-3 mb-6">
-              {selectedColor?.price ? (
-                <span className="text-3xl font-bold text-gray-900">{Number(selectedColor.price).toFixed(2)}₼</span>
-              ) : hasDiscount && Productslingle.discounted_price ? (
-                <>
-                  <span className="text-3xl font-bold text-blue-600">{Productslingle.discounted_price}₼</span>
-                  <span className="text-lg text-gray-400 line-through">{originalPrice}₼</span>
-                </>
-              ) : (
-                <span className="text-3xl font-bold text-gray-900">{Number(originalPrice).toFixed(2)}₼</span>
-              )}
+              {(() => {
+                // CJ variant qiymətini prioritet ver
+                const variantPrice = cjVariantPrice || getVariantPrice || selectedColor?.price;
+                const baseOriginalPrice = Number(Productslingle.price) || 0;
+                const baseDiscountedPrice = Number(Productslingle.discounted_price) || baseOriginalPrice;
+
+                // Variant seçilibsə, onun qiymətini göstər
+                if (variantPrice) {
+                  if (hasDiscount && baseOriginalPrice > variantPrice) {
+                    // Endirim var və orijinal qiymət variant qiymətindən yüksəkdir
+                    return (
+                      <>
+                        <span className="text-3xl font-bold text-blue-600">{variantPrice.toFixed(2)}₼</span>
+                        <span className="text-lg text-gray-400 line-through">{baseOriginalPrice.toFixed(2)}₼</span>
+                      </>
+                    );
+                  } else {
+                    // Endirim yoxdur və ya qiymətlər bərabərdir
+                    return <span className="text-3xl font-bold text-gray-900">{variantPrice.toFixed(2)}₼</span>;
+                  }
+                }
+
+                // Variant seçilməyib - default qiymət
+                if (hasDiscount && baseDiscountedPrice < baseOriginalPrice) {
+                  return (
+                    <>
+                      <span className="text-3xl font-bold text-blue-600">{baseDiscountedPrice.toFixed(2)}₼</span>
+                      <span className="text-lg text-gray-400 line-through">{baseOriginalPrice.toFixed(2)}₼</span>
+                    </>
+                  );
+                } else {
+                  // Sadə qiymət
+                  return <span className="text-3xl font-bold text-gray-900">{Number(displayPrice).toFixed(2)}₼</span>;
+                }
+              })()}
             </div>
 
-            {sizeFilter && sizeFilter.options && sizeFilter.options.length > 0 ? (
+            {/* Size Filter - yalnız varsa göstər, CJ sizes varsa gizlət */}
+            {sizeFilter && sizeFilter.options && sizeFilter.options.length > 0 && !Productslingle.variant_options?.sizes && (
               <div className="mb-5 notranslate" translate="no">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
@@ -540,15 +881,15 @@ export default function ProductId() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {sizeFilter.options.map((option) => option && (
-                    <button 
-                      key={`size-${option.option_id}`} 
-                      onClick={() => handleSizeSelect(option)} 
+                    <button
+                      key={`size-${option.option_id}`}
+                      onClick={() => handleSizeSelect(option)}
                       disabled={!option.is_stock}
                       className={`min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium transition ${
                         selectedSize?.id === option.option_id
                           ? 'border-blue-600 bg-blue-600 text-white'
-                          : option.is_stock 
-                            ? 'border-gray-300 hover:border-blue-400 text-gray-700' 
+                          : option.is_stock
+                            ? 'border-gray-300 hover:border-blue-400 text-gray-700'
                             : 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed line-through'
                       }`}
                     >
@@ -557,18 +898,10 @@ export default function ProductId() {
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
-                </div>
-                <button className="min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium border-blue-600 bg-blue-600 text-white cursor-default">
-                  {tarnslation?.standart || 'Standart'}
-                </button>
-              </div>
             )}
 
-            {colorFilter && colorFilter.options && colorFilter.options.length > 0 && (
+            {/* Color Filter - CJ colors varsa gizlət */}
+            {colorFilter && colorFilter.options && colorFilter.options.length > 0 && !Productslingle.variant_options?.colors && (
               <div className="mb-5 notranslate" translate="no">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm font-medium text-gray-700">{tarnslation?.Rəng || 'Rəng'}</span>
@@ -599,12 +932,143 @@ export default function ProductId() {
               </div>
             )}
 
-            {otherFilters.map((filter) => filter && (
-              <div key={`filter-${filter.filter_id}`} className="mb-4 flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">{filter.filter_name || ''}:</span>
-                <span className="text-sm text-gray-600">{filter.options?.map(o => o?.name).filter(Boolean).join(', ')}</span>
+            {/* Digər filtrlər (Style, Material, və s.) - CJ variant_options varsa gizlət */}
+            {!Productslingle.variant_options && otherFilters.map((filter) => filter && filter.options && filter.options.length > 0 && (
+              <div key={`filter-${filter.filter_id}`} className="mb-5 notranslate" translate="no">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-gray-700">{filter.filter_name || ''}</span>
+                  <span className="text-sm text-gray-500">( {selectedFilters[filter.filter_id]?.name || ''} )</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {filter.options.map((option) => option && (
+                    <button
+                      key={`filter-${filter.filter_id}-opt-${option.option_id}`}
+                      onClick={() => {
+                        setSelectedFilters(prev => ({
+                          ...prev,
+                          [filter.filter_id]: {
+                            id: option.option_id,
+                            name: option.name || 'Unknown',
+                            price: option.price ? Number(option.price) : undefined
+                          }
+                        }));
+                      }}
+                      disabled={option.is_stock === false}
+                      className={`min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium transition ${
+                        selectedFilters[filter.filter_id]?.id === option.option_id
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : option.is_stock !== false
+                            ? 'border-gray-300 hover:border-blue-400 text-gray-700'
+                            : 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                      }`}
+                    >
+                      {option.name || 'Unknown'}
+                    </button>
+                  ))}
+                </div>
               </div>
             ))}
+
+            {/* CJ Variant Options - yeni API strukturu */}
+            {Productslingle.variant_options && (() => {
+              // Dublikat dəyərlər olan option type-ları filtrələ (daha güclü normallaşdırma)
+              const entries = Object.entries(Productslingle.variant_options);
+              const seenValues = new Set<string>();
+              const filteredEntries = entries.filter(([_optionType, options]) => {
+                if (!options || options.length === 0) return false;
+                // Dəyərləri normallaşdır: kiçik hərf, yalnız rəqəm və hərf, sırala
+                const normalizedValues = options
+                  .map((o: { value?: string }) => (o.value || '').toLowerCase().replace(/[^a-z0-9]/g, ''))
+                  .filter(Boolean)
+                  .sort();
+                const valuesKey = normalizedValues.join('|');
+                if (seenValues.has(valuesKey)) return false;
+                seenValues.add(valuesKey);
+                return true;
+              });
+
+              return filteredEntries.map(([optionType, options]) => {
+                if (!options || options.length === 0) return null;
+                const singularType = getSingularOptionType(optionType);
+                const availableValues = getAvailableOptions(singularType);
+                const selectedValue = selectedVariantOptions[singularType] || '';
+
+                return (
+                <div key={`cj-variant-${optionType}`} className="mb-5 notranslate" translate="no">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-sm font-medium text-gray-700">{getVariantOptionLabel(optionType)}</span>
+                    <span className="text-sm text-gray-500">( {selectedValue || ''} )</span>
+                  </div>
+
+                  {optionType === 'colors' ? (
+                    // Rəng swatches
+                    <div className="flex flex-wrap gap-3">
+                      {options.map((opt: { value: string; label: string; image?: string }) => {
+                        const isAvailable = availableValues.length === 0 || availableValues.includes(opt.value);
+                        const isSelected = selectedValue === opt.value;
+                        return (
+                          <button
+                            key={`cj-color-${opt.value}`}
+                            onClick={() => handleVariantOptionSelect(singularType, opt.value)}
+                            disabled={!isAvailable}
+                            title={opt.label}
+                            className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
+                              isSelected
+                                ? 'border-blue-600 shadow-lg'
+                                : isAvailable
+                                  ? 'border-gray-200 hover:border-gray-400'
+                                  : 'border-gray-200 opacity-40 cursor-not-allowed'
+                            }`}
+                          >
+                            {opt.image ? (
+                              <img
+                                src={getImageUrl(opt.image)}
+                                alt={opt.label}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const t = e.target as HTMLImageElement;
+                                  t.style.display = 'none';
+                                  if (t.parentElement) t.parentElement.style.backgroundColor = '#e5e7eb';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                                {opt.label.substring(0, 2)}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    // Chip selector (sizes, lengths, styles, specifications, capacities, materials)
+                    <div className="flex flex-wrap gap-2">
+                      {options.map((opt: { value: string; label: string; image?: string }) => {
+                        const isAvailable = availableValues.length === 0 || availableValues.includes(opt.value);
+                        const isSelected = selectedValue === opt.value;
+                        return (
+                          <button
+                            key={`cj-opt-${optionType}-${opt.value}`}
+                            onClick={() => handleVariantOptionSelect(singularType, opt.value)}
+                            disabled={!isAvailable}
+                            className={`min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium transition ${
+                              isSelected
+                                ? 'border-blue-600 bg-blue-600 text-white'
+                                : isAvailable
+                                  ? 'border-gray-300 hover:border-blue-400 text-gray-700'
+                                  : 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            });
+            })()}
 
             <div className="flex items-center gap-4 mb-5">
               <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
@@ -612,14 +1076,14 @@ export default function ProductId() {
                 <span className="w-12 text-center font-medium">{quantity}</span>
                 <button onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition text-lg font-medium">+</button>
               </div>
-              <div className={`flex items-center gap-1.5 text-sm font-medium ${isInStock ? 'text-green-600' : 'text-red-500'}`}>
-                {isInStock ? <FiCheck className="w-4 h-4" /> : <FiX className="w-4 h-4" />}
-                {isInStock ? tarnslation?.Stokda_var || 'In stock' : tarnslation?.Out_of_Stock || 'Out of stock'}
+              <div className={`flex items-center gap-1.5 text-sm font-medium ${isInStock && cjVariantInStock ? 'text-green-600' : 'text-red-500'}`}>
+                {isInStock && cjVariantInStock ? <FiCheck className="w-4 h-4" /> : <FiX className="w-4 h-4" />}
+                {isInStock && cjVariantInStock ? tarnslation?.Stokda_var || 'In stock' : tarnslation?.Out_of_Stock || 'Out of stock'}
               </div>
             </div>
 
             <div className="flex gap-3 mb-6">
-              {isInStock ? (
+              {isInStock && cjVariantInStock ? (
                 <button 
                   onClick={handleAddToBasket} 
                   disabled={isinbusked || isAddingToCart}
@@ -695,28 +1159,17 @@ export default function ProductId() {
 
       {isLightboxOpen && !showVideo && (
         <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={() => setIsLightboxOpen(false)}>
-          <button onClick={() => setIsLightboxOpen(false)} className="absolute top-4 right-4 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+          <button onClick={() => setIsLightboxOpen(false)} className="absolute top-16 right-4 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
             <FiX className="w-6 h-6" />
           </button>
-          
-          {productImages.length > 1 && (
-            <>
-              <button onClick={(e) => { e.stopPropagation(); goToPrevImage(); }} className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition">
-                <FiChevronLeft className="w-7 h-7" />
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); goToNextImage(); }} className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition">
-                <FiChevronRight className="w-7 h-7" />
-              </button>
-            </>
-          )}
-          
-          <img 
-            src={getImageUrl(currentImage)} 
-            alt={Productslingle.title || ''} 
-            className="max-w-[90vw] max-h-[90vh] object-contain" 
+
+          <img
+            src={getImageUrl(currentImage)}
+            alt={Productslingle.title || ''}
+            className="max-w-[90vw] max-h-[90vh] object-contain"
             onClick={(e) => e.stopPropagation()}
           />
-          
+
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
             {safeImageIndex + 1} / {productImages.length}
           </div>

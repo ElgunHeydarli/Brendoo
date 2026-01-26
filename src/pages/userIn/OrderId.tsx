@@ -9,6 +9,16 @@ import { useEffect, useState } from 'react';
 import CancelModal from '../../components/Modal_censel/modal';
 import ChageAdressModal from '../../components/Change-Adress-Modal';
 
+const API_URL = 'https://admin.brendoo.com';
+
+const getImageUrl = (src: string | null | undefined): string => {
+  if (!src) return '/placeholder.png';
+  if (src.startsWith('http')) return src;
+  if (src.startsWith('/storage/')) return API_URL + src;
+  if (src.startsWith('storage/')) return API_URL + '/' + src;
+  return API_URL + '/storage/' + src;
+};
+
 export default function OrderId() {
   const navigate = useNavigate();
   const [, setProductCommit] = useState<number>(0);
@@ -207,8 +217,10 @@ export default function OrderId() {
                 <div className="flex gap-3 items-center flex-wrap">
                   <img
                     loading="lazy"
-                    src={item.product.image}
+                    src={getImageUrl(item.product.image || item.product.thumbnail)}
+                    alt={item.product.title || 'Product'}
                     className="object-cover shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
                   />
                   <div className="flex flex-col justify-center self-stretch my-auto">
                     <div className="text-sm text-black text-wrap">

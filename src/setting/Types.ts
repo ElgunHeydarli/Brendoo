@@ -41,6 +41,23 @@ type Option = {
   color_code: string | null;
 };
 
+// CJ Variant Options
+export interface VariantOption {
+  value: string;
+  label: string;
+  image?: string;
+}
+
+export interface VariantOptions {
+  colors?: VariantOption[];
+  sizes?: VariantOption[];
+  lengths?: VariantOption[];
+  styles?: VariantOption[];
+  specifications?: VariantOption[];
+  capacities?: VariantOption[];
+  materials?: VariantOption[];
+}
+
 export type HomeHero = {
   id: number;
   title: string;
@@ -78,8 +95,10 @@ export type Product = {
     options: {
       option_id: number;
       name: string;
-      is_default: string;
+      is_default: string | boolean;
       color_code: string | null;
+      is_stock?: boolean;
+      price?: string | number | null;
     }[];
   }[];
   brand: Brand;
@@ -94,10 +113,16 @@ export type Product = {
     variantKey?: string;
     color?: string;
     size?: string;
+    length?: string;
+    style?: string;
+    specifications?: string;
+    capacity?: string;
+    material?: string;
     image?: string;
     price?: number;
     in_stock?: boolean;
   }>;
+  variant_options?: VariantOptions;
 };
 
 export type Brand = {
@@ -311,9 +336,10 @@ export interface ProductDetail {
     options: {
       option_id: number;
       name: string;
-      is_default: string;
+      is_default: string | boolean;
       color_code: string | null;
       is_stock: boolean;
+      price?: string | number | null;
     }[];
   }[];
   rating_summary: string[];
@@ -327,6 +353,11 @@ export interface ProductDetail {
     variantKey?: string;
     color?: string;
     size?: string;
+    length?: string;
+    style?: string;
+    specifications?: string;
+    capacity?: string;
+    material?: string;
     image?: string;
     price?: number;
     cost?: number;
@@ -335,6 +366,7 @@ export interface ProductDetail {
     cj_vid?: string;
     in_stock?: boolean;
   }>;
+  variant_options?: VariantOptions;
 }
 
 export type ConmtactItem = {
@@ -448,6 +480,41 @@ export type Basket = {
   final_price: number;
 };
 
+// Delivery Parcel tipi
+export interface DeliveryParcel {
+  tracking_number: string;
+  barcode?: string;
+  status: string;
+  status_text: string;
+  weight?: number;
+  package_count?: number;
+  is_blocked?: boolean;
+  is_returned?: boolean;
+  sent_at?: string;
+  delivered_at?: string;
+}
+
+// Timeline step tipi
+export interface DeliveryTimelineStep {
+  status: string;
+  title: string;
+  description?: string;
+  date?: string;
+  completed: boolean;
+}
+
+// Delivery tipi (API response-dan)
+export interface OrderDelivery {
+  status: string;
+  status_text: string;
+  expargo_status?: ExpargoStatus;
+  expargo_status_text?: string;
+  pickup_point?: PickupPoint;
+  parcel?: DeliveryParcel;
+  estimate?: string;
+  timeline?: DeliveryTimelineStep[];
+}
+
 export type Order = {
   order_items_count: number;
   id: number;
@@ -463,6 +530,8 @@ export type Order = {
   order_date: string;
   order_items: BasketItem[];
   address: string;
+  // Yeni delivery məlumatları
+  delivery?: OrderDelivery;
 };
 
 export type Reasons = {
@@ -541,11 +610,13 @@ export interface PickupPoint {
 export interface PickupPointsResponse {
   success: boolean;
   data: PickupPoint[];
+  pickup_points?: PickupPoint[];
 }
 
 export interface PickupCitiesResponse {
   success: boolean;
   data: string[];
+  cities?: string[];
 }
 
 export interface OrderTracking {

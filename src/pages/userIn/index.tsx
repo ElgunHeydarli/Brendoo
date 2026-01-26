@@ -97,6 +97,7 @@ export default function UserSettings() {
                       new_password: values.newPassword,
                       new_password_confirmation: values.confirmPassword,
                       gender: values.gender,
+                      fin_code: values.fin_code,
                       id_serial: values.id_serial,
                     },
                     {
@@ -188,30 +189,32 @@ export default function UserSettings() {
                       <input
                         type="text"
                         name="fin_code"
-                        placeholder={translation?.fin_code || "FIN kod"}
+                        placeholder={translation?.fin_code || "FIN kod (7 simvol)"}
                         value={values.fin_code}
-                        readOnly
-                        className="overflow-hidden px-5 py-5 w-full bg-gray-100 border border-solid border-black border-opacity-10 rounded-[100px] cursor-not-allowed text-gray-600"
-                        title="FIN kod dəyişdirilə bilməz"
+                        onChange={(e) => {
+                          const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                          if (val.length <= 7) {
+                            handleChange({ target: { name: 'fin_code', value: val } });
+                          }
+                        }}
+                        maxLength={7}
+                        className="overflow-hidden px-5 py-5 w-full bg-white border border-solid border-black border-opacity-10 rounded-[100px] uppercase"
                       />
                     </div>
                     <div className="flex flex-col grow shrink self-stretch my-auto lg:min-w-[240px] lg:w-[370px] md:w-[370px] w-full">
                       <input
                         type="text"
                         name="id_serial"
-                        placeholder={translation?.id_serial || "Seriya nömrəsi"}
+                        placeholder={translation?.id_serial || "Seriya nömrəsi (9 simvol)"}
                         value={values.id_serial}
                         onChange={(e) => {
-                          const upperValue = e.target.value.toUpperCase();
-                          handleChange({
-                            target: {
-                              name: 'id_serial',
-                              value: upperValue
-                            }
-                          });
+                          const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                          if (val.length <= 9) {
+                            handleChange({ target: { name: 'id_serial', value: val } });
+                          }
                         }}
                         maxLength={9}
-                        className="overflow-hidden px-5 py-5 w-full bg-white border border-solid border-black border-opacity-10 rounded-[100px]"
+                        className="overflow-hidden px-5 py-5 w-full bg-white border border-solid border-black border-opacity-10 rounded-[100px] uppercase"
                       />
                     </div>
                   </div>

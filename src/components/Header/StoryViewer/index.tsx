@@ -155,7 +155,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: any) {
                           'İki tərəfli zara qalın pencək'}
                       </p>
                       <p className="font-bold">
-                        {currentStory.products[0].price || '298 rub'}
+                        {currentStory.products[0].price || '298 ₼'}
                       </p>
                     </div>
                   </div>

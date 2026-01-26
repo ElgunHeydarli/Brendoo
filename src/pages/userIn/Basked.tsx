@@ -230,8 +230,22 @@ const { lang = 'en' } = useParams<{ lang: string }>();
                             className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
                           />
                           <div className="flex flex-col self-stretch my-auto w-[152px]">
-                            <div className="gap-1 self-start text-base font-semibold text-center text-black">
-                              {item.product?.price || '0'} ₼
+                            <div className="gap-1 self-start text-base font-semibold text-center text-black flex items-center flex-wrap">
+                              <span>{item.price || item.product?.discounted_price || item.product?.price || '0'} ₼</span>
+                              {/* Show original price with strikethrough if there's a discount */}
+                              {(() => {
+                                const currentPrice = parseFloat(item.price || item.product?.discounted_price || item.product?.price || '0');
+                                const originalPrice = parseFloat(item.product?.price || '0');
+                                const hasDiscount = originalPrice > currentPrice && item.product?.discount;
+                                if (hasDiscount) {
+                                  return (
+                                    <span className="ml-2 text-sm text-gray-400 line-through font-normal">
+                                      {originalPrice.toFixed(2)} ₼
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                             <div className="mt-2.5 w-full text-sm text-black">
                               {item.product?.title || ''}
