@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { User as UserIcon } from "lucide-react";
 import ROUTES from "../../setting/routes";
@@ -51,6 +52,9 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
   const hasUserType = userType && userType?.length > 0 ? userType : null;
   const userStr = localStorage.getItem("user-info");
   const isLoggedIn = !!userStr;
+
+  // Search input focus state for Temu-style dropdown
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Favorit sayı - logged + guest
   const loggedFavoritesCount = favorites?.length || 0;
@@ -188,6 +192,8 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
                 type="text"
                 value={SearchValue}
                 onChange={handleSearchChange}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && SearchValue.trim()) {
                     setSearchValue("");
@@ -386,6 +392,7 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
         productsLoading={productsLoading}
         translation={translation}
         lang={lang}
+        isInputFocused={isSearchFocused}
       />
 
       {/* Basket Dropdown */}

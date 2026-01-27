@@ -239,7 +239,7 @@ const CategoryList = React.memo(
   }) => (
     <div className="flex flex-col md:max-w-[300px] w-[100%]">
       <div className="text-lg font-medium text-white">
-        {translations?.Kateqoriyalar || "Категории"}
+        {translations?.Kateqoriyalar || "Kateqoriyalar"}
       </div>
       <div className="flex flex-col gap-2 mt-5 w-full text-base text-white text-opacity-80">
         {categories?.slice(0, 6).map((item: Category) => (

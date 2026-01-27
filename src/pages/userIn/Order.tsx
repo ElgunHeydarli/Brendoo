@@ -32,11 +32,19 @@ export default function ORder() {
   const apiQuery = isTopDelivery
     ? `?topdelivery_status=${selectedStatusQuery}`
     : `?status=${selectedStatusQuery}`;
+  
+  console.log('🔍 [ORDER PAGE] API Query:', `/getOrders${selectedStatusQuery ? apiQuery : ''}`);
+  console.log('🔍 [ORDER PAGE] Selected Status:', selectedStatusName);
+  console.log('🔍 [ORDER PAGE] Is Top Delivery:', isTopDelivery);
+  
   const { data: Orders, isLoading: OrdersLoading } = GETRequest<Order[]>(
     `/getOrders${selectedStatusQuery ? apiQuery : ''}`,
     'getOrders',
     [lang, selectedStatusQuery],
   );
+  
+  console.log('📦 [ORDER PAGE] Orders Data:', Orders);
+  console.log('📦 [ORDER PAGE] Orders Count:', Orders?.length || 0);
 
   useEffect(() => {
     const orderList = document.getElementById('order-list');
@@ -117,12 +125,17 @@ export default function ORder() {
 
       if (res.data) {
         setAllStatuses(res.data);
-        console.log(res.data);
+        console.log('✅ [STATUS LIST] Success:', res.data);
       } else {
-        console.log(res.status);
+        console.log('⚠️ [STATUS LIST] Empty response, status:', res.status);
       }
     } catch (error) {
-      console.log(error);
+      console.error('❌ [STATUS LIST] Error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('❌ [STATUS LIST] Response:', error.response?.data);
+        console.error('❌ [STATUS LIST] Status:', error.response?.status);
+        console.error('❌ [STATUS LIST] Headers:', error.response?.headers);
+      }
     } finally {
       setLoadingStatuses(false);
     }

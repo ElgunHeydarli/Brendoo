@@ -3,7 +3,16 @@
 import React from 'react';
 
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Filter } from 'lucide-react'; // Assuming you're using lucide-react for icons
+
+// Multi-language labels
+const filterLabels: Record<string, { filter: string; apply: string }> = {
+  az: { filter: "Filtr", apply: "Tətbiq et" },
+  ru: { filter: "Фильтр", apply: "Применить" },
+  en: { filter: "Filter", apply: "Apply" },
+  tr: { filter: "Filtre", apply: "Uygula" },
+};
 
 interface MobileFilterProps {
   children: React.ReactNode;
@@ -18,6 +27,8 @@ interface MobileFilterProps {
 }
 
 export default function MobileFilter({ children, translation, onClose }: MobileFilterProps) {
+  const { lang = "az" } = useParams<{ lang: string }>();
+  const labels = filterLabels[lang] || filterLabels.az;
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleFilter = () => {
@@ -53,7 +64,7 @@ export default function MobileFilter({ children, translation, onClose }: MobileF
         className="md:hidden fixed bottom-4 left-4 z-50 flex items-center justify-center gap-2 bg-[#3873C3] text-white py-2 px-4 rounded-full shadow-lg"
       >
         <Filter size={18} />
-        <span>{translation?.Filter || 'Фильтр'}</span>
+        <span>{translation?.Filter || labels.filter}</span>
         {/* {getActiveFilterCount() > 0 && (
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
             {getActiveFilterCount()}
@@ -84,7 +95,7 @@ export default function MobileFilter({ children, translation, onClose }: MobileF
             onClick={closeFilter}
             className="w-full py-3 bg-[#3873C3] text-white rounded-full font-medium"
           >
-            {translation?.Apply || 'Применить'}
+            {translation?.Apply || labels.apply}
           </button>
         </div>
       </div>

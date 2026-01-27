@@ -86,7 +86,7 @@ export default function ProductId() {
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [selectedSize, setSelectedSize] = useState<{ id: number; name: string } | null>(null);
-  const [selectedColor, setSelectedColor] = useState<{ id: number; name: string; code?: string; price?: number } | null>(null);
+  const [selectedColor, setSelectedColor] = useState<{ id: number; name: string; code?: string; price?: number; image?: string } | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<Record<number, { id: number; name: string; price?: number }>>({});
   const [isInStock, setIsInStock] = useState<boolean>(true);
   const [isliked, setisliked] = useState<boolean>(false);
@@ -101,6 +101,17 @@ export default function ProductId() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const similarScrollRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const defaultsInitializedRef = useRef<number | null>(null); // ✅ Track initialized product ID
+
+  // Lightbox swipe/drag üçün
+  const [lightboxDragStart, setLightboxDragStart] = useState<number | null>(null);
+  const [lightboxDragOffset, setLightboxDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Main image swipe üçün (mobil)
+  const [mainSwipeStart, setMainSwipeStart] = useState<number | null>(null);
+  const [mainSwipeOffset, setMainSwipeOffset] = useState(0);
+  const [isMainSwiping, setIsMainSwiping] = useState(false);
 
   const { lang = 'en', slug } = useParams<{ lang: string; slug: string }>();
   const userStr = localStorage.getItem('user-info');
@@ -223,13 +234,43 @@ export default function ProductId() {
     }
   }, [Productslingle?.id, lang]);
 
+  // ✅ Default seçimləri yalnız ID dəyişəndə et - filter-lər hazır olandan sonra
   useEffect(() => {
+    console.log('🔄 [useEffect] Triggered:', {
+      productId: Productslingle?.id,
+      hasSizeFilter: !!sizeFilter,
+      hasColorFilter: !!colorFilter,
+      sizeFilterId: sizeFilter?.filter_id,
+      colorFilterId: colorFilter?.filter_id,
+      initializedId: defaultsInitializedRef.current,
+      willRun: !!(Productslingle?.id && sizeFilter && colorFilter && defaultsInitializedRef.current !== Productslingle.id)
+    });
+    
+    if (!Productslingle?.id) {
+      console.log('❌ [useEffect] SKIP - No product ID');
+      return;
+    }
+    if (!sizeFilter || !colorFilter) {
+      console.log('❌ [useEffect] SKIP - Filters not loaded yet');
+      return; // Filter-lər hələ yüklənməyib
+    }
+    if (defaultsInitializedRef.current === Productslingle.id) {
+      console.log('⏭️ [useEffect] SKIP - Already initialized for product:', Productslingle.id);
+      return; // Artıq initialize olunub
+    }
+    
+    console.log('✅ [useEffect] RUNNING - Initializing defaults for product:', Productslingle.id);
+    defaultsInitializedRef.current = Productslingle.id;
+    
     // Size filter varsa, default seç
     if (sizeFilter && sizeFilter.options?.length) {
       const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
-      if (def) { setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); setIsInStock(!!def.is_stock); }
+      if (def) { 
+        console.log('📏 [useEffect] Setting DEFAULT size:', { id: def.option_id, name: def.name });
+        setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); 
+        setIsInStock(!!def.is_stock); 
+      }
     } else {
-      // Size filter yoxdursa, null saxla - "Standart" göstərmə
       setSelectedSize(null);
       setIsInStock(Productslingle?.is_stock !== false);
     }
@@ -237,7 +278,24 @@ export default function ProductId() {
     // Color filter
     if (colorFilter?.options?.length) {
       const defColor = colorFilter.options.find(o => o?.is_default) || colorFilter.options[0];
-      if (defColor) setSelectedColor({ id: defColor.option_id, name: defColor.name || '', code: defColor.color_code || undefined });
+      if (defColor) {
+        console.log('🎨 [useEffect] Setting DEFAULT color:', { id: defColor.option_id, name: defColor.name });
+        // Variant şəklini tap
+        const variant = Productslingle?.variants?.find(v => 
+          v?.color?.toLowerCase() === defColor.name?.toLowerCase() || 
+          v?.variantKey?.toLowerCase().includes(defColor.name?.toLowerCase() || '')
+        );
+        const variantImage = variant?.image || null;
+        const variantPrice = variant?.price;
+        
+        setSelectedColor({ 
+          id: defColor.option_id, 
+          name: defColor.name || '', 
+          code: defColor.color_code || undefined,
+          price: variantPrice,
+          image: variantImage || undefined
+        });
+      }
     }
 
     // Digər filtrlər üçün default seçimlər
@@ -271,31 +329,70 @@ export default function ProductId() {
         setSelectedVariantOptions(defaults);
       }
     }
-  }, [sizeFilter, colorFilter, otherFilters, Productslingle?.is_stock, Productslingle?.variant_options]);
+  }, [Productslingle?.id]);
 
   useEffect(() => { setisliked(favorites?.some(item => item?.product?.id === Productslingle?.id) || false); }, [favorites, Productslingle?.id]);
 
+  // CJ variant seçimləri eyni mi? - key-value müqayisəsi
+  const areOptionsEqual = useCallback((current: Record<string, string>, saved: Record<string, string> | undefined): boolean => {
+    if (!saved) return false;
+    const currentKeys = Object.keys(current).sort();
+    const savedKeys = Object.keys(saved).sort();
+    if (currentKeys.length !== savedKeys.length) return false;
+    return currentKeys.every(key =>
+      String(current[key] || '').toLowerCase() === String(saved[key] || '').toLowerCase()
+    );
+  }, []);
+
+  // Cari variant səbətdə var mı? - CJ variantlar və rəng/ölçü dəstəyi
   useEffect(() => {
-    if (!Productslingle || !selectedSize) { setisinbusked(false); return; }
-    if (userStr && basked?.basket_items) {
-      const found = basked.basket_items.some(item => {
-        if (item?.product?.id !== Productslingle.id) return false;
-        if (selectedSize.id === 0) return !item.options || item.options.length === 0;
-        return item.options?.some((opt: any) => opt?.option?.option_id === selectedSize.id || String(opt?.option) === String(selectedSize.id));
-      });
-      setisinbusked(found);
+    if (!Productslingle) { setisinbusked(false); return; }
+
+    // CJ variant məhsullar üçün
+    if (Productslingle.variant_options && Object.keys(selectedVariantOptions).length > 0) {
+      if (!userStr) {
+        const cart = getGuestCart();
+        const found = cart.basket_items.some(ci => {
+          if (ci?.id !== Productslingle.id) return false;
+          return areOptionsEqual(selectedVariantOptions, (ci as any).selected_options);
+        });
+        setisinbusked(found);
+      } else if (basked?.basket_items) {
+        const found = basked.basket_items.some(item => {
+          if (item?.product?.id !== Productslingle.id) return false;
+          return areOptionsEqual(selectedVariantOptions, (item as any).selected_options);
+        });
+        setisinbusked(found);
+      }
       return;
     }
+
+    // Adi məhsullar üçün (size/color filter ilə)
+    if (!selectedSize && !selectedColor) { setisinbusked(false); return; }
+
     if (!userStr) {
       const cart = getGuestCart();
       const found = cart.basket_items.some(ci => {
-        if (ci?.product?.id !== Productslingle.id) return false;
-        if (selectedSize.id === 0) return !ci.options || ci.options.length === 0;
-        return ci.options?.some(o => String(o?.option) === String(selectedSize.id));
+        if (ci?.id !== Productslingle.id) return false;
+        const sizeMatch = !selectedSize || selectedSize.id === 0 ||
+          ci.options?.some(o => String((o as any)?.option_id || o?.option) === String(selectedSize.id));
+        const colorMatch = !selectedColor || selectedColor.id === 0 ||
+          ci.options?.some(o => String((o as any)?.option_id || o?.option) === String(selectedColor.id));
+        return sizeMatch && colorMatch;
+      });
+      setisinbusked(found);
+    } else if (basked?.basket_items) {
+      const found = basked.basket_items.some(item => {
+        if (item?.product?.id !== Productslingle.id) return false;
+        const sizeMatch = !selectedSize || selectedSize.id === 0 ||
+          item.options?.some((opt: any) => String(opt?.option_id || opt?.option) === String(selectedSize.id));
+        const colorMatch = !selectedColor || selectedColor.id === 0 ||
+          item.options?.some((opt: any) => String(opt?.option_id || opt?.option) === String(selectedColor.id));
+        return sizeMatch && colorMatch;
       });
       setisinbusked(found);
     }
-  }, [basked, Productslingle, selectedSize, userStr]);
+  }, [basked, Productslingle, selectedSize, selectedColor, selectedVariantOptions, userStr, areOptionsEqual]);
 
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -336,16 +433,116 @@ export default function ProductId() {
     similarScrollRef.current?.scrollBy({ left: dir === 'left' ? -300 : 300, behavior: 'smooth' });
   }, []);
 
+  // Lightbox navigation
+  const goToNextLightboxImage = useCallback(() => {
+    setSelectedImageIndex(prev => (prev + 1) % productImages.length);
+  }, [productImages.length]);
+
+  const goToPrevLightboxImage = useCallback(() => {
+    setSelectedImageIndex(prev => (prev - 1 + productImages.length) % productImages.length);
+  }, [productImages.length]);
+
+  // Lightbox touch handlers
+  const handleLightboxTouchStart = useCallback((e: React.TouchEvent) => {
+    setLightboxDragStart(e.touches[0].clientX);
+    setIsDragging(true);
+  }, []);
+
+  const handleLightboxTouchMove = useCallback((e: React.TouchEvent) => {
+    if (lightboxDragStart === null) return;
+    const currentX = e.touches[0].clientX;
+    setLightboxDragOffset(currentX - lightboxDragStart);
+  }, [lightboxDragStart]);
+
+  const handleLightboxTouchEnd = useCallback(() => {
+    if (lightboxDragStart === null) return;
+    const threshold = 50;
+    if (lightboxDragOffset > threshold) {
+      goToPrevLightboxImage();
+    } else if (lightboxDragOffset < -threshold) {
+      goToNextLightboxImage();
+    }
+    setLightboxDragStart(null);
+    setLightboxDragOffset(0);
+    setIsDragging(false);
+  }, [lightboxDragStart, lightboxDragOffset, goToPrevLightboxImage, goToNextLightboxImage]);
+
+  // Lightbox mouse handlers (desktop drag)
+  const handleLightboxMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setLightboxDragStart(e.clientX);
+    setIsDragging(true);
+  }, []);
+
+  const handleLightboxMouseMove = useCallback((e: React.MouseEvent) => {
+    if (lightboxDragStart === null || !isDragging) return;
+    const currentX = e.clientX;
+    setLightboxDragOffset(currentX - lightboxDragStart);
+  }, [lightboxDragStart, isDragging]);
+
+  const handleLightboxMouseUp = useCallback(() => {
+    if (lightboxDragStart === null) return;
+    const threshold = 50;
+    if (lightboxDragOffset > threshold) {
+      goToPrevLightboxImage();
+    } else if (lightboxDragOffset < -threshold) {
+      goToNextLightboxImage();
+    }
+    setLightboxDragStart(null);
+    setLightboxDragOffset(0);
+    setIsDragging(false);
+  }, [lightboxDragStart, lightboxDragOffset, goToPrevLightboxImage, goToNextLightboxImage]);
+
+  const handleLightboxMouseLeave = useCallback(() => {
+    if (isDragging) {
+      setLightboxDragStart(null);
+      setLightboxDragOffset(0);
+      setIsDragging(false);
+    }
+  }, [isDragging]);
+
+  // Main image swipe handlers (mobil üçün)
+  const handleMainTouchStart = useCallback((e: React.TouchEvent) => {
+    setMainSwipeStart(e.touches[0].clientX);
+    setIsMainSwiping(true);
+  }, []);
+
+  const handleMainTouchMove = useCallback((e: React.TouchEvent) => {
+    if (mainSwipeStart === null) return;
+    const currentX = e.touches[0].clientX;
+    const offset = currentX - mainSwipeStart;
+    setMainSwipeOffset(offset);
+  }, [mainSwipeStart]);
+
+  const handleMainTouchEnd = useCallback(() => {
+    if (mainSwipeStart === null) return;
+    const threshold = 50; // 50px swipe threshold
+    if (mainSwipeOffset > threshold && productImages.length > 1) {
+      // Sağa swipe - əvvəlki şəkil
+      setSelectedImageIndex(prev => (prev - 1 + productImages.length) % productImages.length);
+      setShowVideo(false);
+    } else if (mainSwipeOffset < -threshold && productImages.length > 1) {
+      // Sola swipe - növbəti şəkil
+      setSelectedImageIndex(prev => (prev + 1) % productImages.length);
+      setShowVideo(false);
+    }
+    setMainSwipeStart(null);
+    setMainSwipeOffset(0);
+    setIsMainSwiping(false);
+  }, [mainSwipeStart, mainSwipeOffset, productImages.length]);
+
   const handleSizeSelect = useCallback((option: any) => {
     if (!option) return;
+    console.log('👆 [USER] Size selected:', { id: option.option_id, name: option.name });
     setSelectedSize({ id: option.option_id, name: option.name || 'Unknown' });
     setIsInStock(!!option.is_stock);
     if (!option.is_stock) setNotifyOptionId(option.option_id);
   }, []);
 
   const handleColorSelect = useCallback((option: any, variantPrice?: number, variantImage?: string | null) => {
+    console.log('👆 [USER] Color selected:', { id: option.option_id, name: option.name, image: variantImage });
     if (!option) return;
-    setSelectedColor({ id: option.option_id, name: option.name || '', code: option.color_code || undefined, price: variantPrice });
+    setSelectedColor({ id: option.option_id, name: option.name || '', code: option.color_code || undefined, price: variantPrice, image: variantImage || undefined });
     if (variantImage && productImages.length > 0) {
       const normalizedVariant = variantImage.split('?')[0].replace(/\/+$/, '').toLowerCase();
       const imgIdx = productImages.findIndex(img => {
@@ -439,31 +636,58 @@ export default function ProductId() {
       toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin');
       return;
     }
-    if (isAddingToCart || isinbusked) return;
+    if (isAddingToCart) return; // isinbusked yoxlamasını sildim - fərqli variantlar əlavə oluna bilsin
     if (selectedSize && selectedSize.id !== 0) {
       const sizeOpt = sizeFilter?.options?.find(o => o?.option_id === selectedSize.id);
       if (sizeOpt && !sizeOpt.is_stock) { toast.error(tarnslation?.bu_olcude_stokda_yox || 'Bu ölçü stokda yoxdur'); return; }
     }
     setIsAddingToCart(true);
 
+    console.log('\n📦 ===== SƏBƏTƏ ƏLAVƏ EDİLIR =====');
+    console.log('Has CJ variants:', !!Productslingle.variant_options);
+    console.log('Selected Variant Options (CJ):', selectedVariantOptions);
+    console.log('Selected Size (Filter):', selectedSize);
+    console.log('  └─ Size ID:', selectedSize?.id, '| Name:', selectedSize?.name);
+    console.log('Selected Color (Filter):', selectedColor);
+    console.log('  └─ Color ID:', selectedColor?.id, '| Name:', selectedColor?.name);
+    console.log('===========================\n');
+
     // Bütün seçilmiş filtrləri topla
     const options: { filter_id: number; option_id: number }[] = [];
 
-    // Size filter
-    if (sizeFilter && selectedSize && selectedSize.id !== 0) {
-      options.push({ filter_id: sizeFilter.filter_id, option_id: selectedSize.id });
-    }
-
-    // Digər filtrlər (Style, Material və s.)
-    Object.entries(selectedFilters).forEach(([filterId, selected]) => {
-      if (selected && selected.id) {
-        options.push({ filter_id: Number(filterId), option_id: selected.id });
+    // CJ variant məhsulları üçün options array-ı BOŞ saxla
+    // (çünki CJ sistemində filter_id və option_id yoxdur, yalnız selected_options var)
+    if (!Productslingle.variant_options) {
+      // Adi filter sistemi
+      // Size filter
+      if (sizeFilter && selectedSize && selectedSize.id !== 0) {
+        console.log('✅ [ADD TO CART] Adding SIZE to options:', selectedSize);
+        options.push({ filter_id: sizeFilter.filter_id, option_id: selectedSize.id });
       }
-    });
 
-    // CJ variant_key və selected_options hazırla
+      // Color filter - ƏHƏMİYYƏTLİ: rəng də options-a əlavə olunmalıdır
+      if (colorFilter && selectedColor && selectedColor.id !== 0) {
+        console.log('✅ [ADD TO CART] Adding COLOR to options:', selectedColor);
+        options.push({ filter_id: colorFilter.filter_id, option_id: selectedColor.id });
+      }
+      
+      // Digər filtrlər (Style, Material və s.)
+      Object.entries(selectedFilters).forEach(([filterId, selected]) => {
+        if (selected && selected.id) {
+          options.push({ filter_id: Number(filterId), option_id: selected.id });
+        }
+      });
+    } else {
+      console.log('ℹ️ [ADD TO CART] CJ variant məhsulu - options array boş saxlanır');
+    }
+    
+    console.log('📦 [ADD TO CART] Final options array:', options);
+
+    // CJ variant_key və selected_options hazırla - DƏRİN KOPYA et!
     const variantKey = selectedCJVariant?.variantKey || null;
-    const cjSelectedOptions = Object.keys(selectedVariantOptions).length > 0 ? selectedVariantOptions : null;
+    const cjSelectedOptions = Object.keys(selectedVariantOptions).length > 0
+      ? JSON.parse(JSON.stringify(selectedVariantOptions))
+      : null;
 
     // Qiyməti müəyyən et - CJ variant qiymətinə endirimi tətbiq et
     let finalPrice = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
@@ -487,27 +711,87 @@ export default function ProductId() {
         const cart = getGuestCart();
         const idx = cart.basket_items.findIndex(i => {
           if (i?.id !== Productslingle.id) return false;
-          // CJ variant varsa, variantKey-ə görə yoxla
-          if (variantKey) {
-            return (i as any).variant_key === variantKey;
+
+          // CJ variant məhsulları üçün - selected_options key-value müqayisəsi
+          if (cjSelectedOptions) {
+            const savedOptions = (i as any).selected_options;
+            if (!savedOptions) return false;
+
+            // Hər key-value cütünü müqayisə et
+            const currentKeys = Object.keys(cjSelectedOptions).sort();
+            const savedKeys = Object.keys(savedOptions).sort();
+
+            // Key sayı fərqlidirsə - fərqli variant
+            if (currentKeys.length !== savedKeys.length) return false;
+
+            // Hər key və value-nu yoxla
+            return currentKeys.every(key => {
+              const currentVal = String(cjSelectedOptions[key] || '').toLowerCase();
+              const savedVal = String(savedOptions[key] || '').toLowerCase();
+              return currentVal === savedVal;
+            });
           }
+
           // Seçim yoxdursa
           if (options.length === 0) return !i.options || i.options.length === 0;
-          // Eyni seçimlərlə məhsul varmı?
-          return options.every(opt =>
-            i.options?.some(o => String(o?.option) === String(opt.option_id))
-          );
+          // Options sayı fərqlidirsə, fərqli məhsuldur
+          if (i.options?.length !== options.length) return false;
+          // TAMAMILƏ eyni option_id-lərlə məhsul varmı? - iki tərəfli müqayisə
+          const currentOptionIds = options.map(o => String(o.option_id)).sort();
+          const savedOptionIds = (i.options || []).map((o: any) => String(o?.option_id || o?.option)).sort();
+          // Hər iki array tam eyni olmalıdır
+          if (currentOptionIds.length !== savedOptionIds.length) return false;
+          return currentOptionIds.every((id, idx) => id === savedOptionIds[idx]);
         });
         if (idx === -1) {
+          // Seçilmiş variantın şəklini al (CJ variant və ya rəng variantı)
+          const selectedImage = selectedCJVariant?.image || selectedColor?.image || Productslingle.image;
+
+          // Product-u kopyala və seçilmiş şəkillə yenilə
+          const productWithSelectedImage = {
+            ...Productslingle,
+            image: selectedImage
+          };
+
+          // Options-u adlarla birlikdə saxla (səbətdə göstərmək üçün)
+          const optionsWithNames = options.map(o => {
+            let filterName = String(o.filter_id);
+            let optionName = String(o.option_id);
+
+            // Size filter
+            if (sizeFilter && o.filter_id === sizeFilter.filter_id) {
+              filterName = sizeFilter.filter_name || tarnslation?.Ölçü || 'Ölçü';
+              const sizeOpt = sizeFilter.options?.find(opt => opt.option_id === o.option_id);
+              optionName = sizeOpt?.name || String(o.option_id);
+            }
+            // Color filter
+            else if (colorFilter && o.filter_id === colorFilter.filter_id) {
+              filterName = colorFilter.filter_name || tarnslation?.Rəng || 'Rəng';
+              optionName = selectedColor?.name || String(o.option_id);
+            }
+            // Other filters
+            else {
+              const otherFilter = otherFilters?.find(f => f.filter_id === o.filter_id);
+              if (otherFilter) {
+                filterName = otherFilter.filter_name || String(o.filter_id);
+                const opt = otherFilter.options?.find(opt => opt.option_id === o.option_id);
+                optionName = opt?.name || String(o.option_id);
+              }
+            }
+
+            return { filter: filterName, option: optionName, filter_id: o.filter_id, option_id: o.option_id };
+          });
+
           const cartItem: any = {
             id: Productslingle.id,
-            product: Productslingle,
+            product: productWithSelectedImage,
             quantity,
             price: finalPrice.toFixed(2),
-            options: options.map(o => ({ filter: String(o.filter_id), option: String(o.option_id) }))
+            options: optionsWithNames
           };
           if (variantKey) cartItem.variant_key = variantKey;
           if (cjSelectedOptions) cartItem.selected_options = cjSelectedOptions;
+          if (selectedImage) cartItem.selected_image = selectedImage;
           cart.basket_items.push(cartItem);
         } else { cart.basket_items[idx].quantity += quantity; }
         let total = 0, discount = 0, final = 0;
@@ -520,6 +804,8 @@ export default function ProductId() {
         });
         cart.total_price = total; cart.discount = discount; cart.final_price = final;
         setGuestCart(cart);
+        // Event dispatch et ki, Header səbəti yeniləsin
+        window.dispatchEvent(new Event('guest_cart_updated'));
         setisinbusked(true);
         toast.success(tarnslation?.mehsul_added ?? 'Əlavə edildi');
       } catch { toast.error('Xəta baş verdi'); }
@@ -528,25 +814,35 @@ export default function ProductId() {
     }
 
     try {
+      // Seçilmiş variantın şəklini al
+      const selectedImage = selectedCJVariant?.image || selectedColor?.image || Productslingle?.image || null;
+
       const payload: any = {
         product_id: Productslingle.id,
         quantity,
         price: finalPrice,
-        options
+        options,
+        selected_image: selectedImage // ✅ Həmişə göndər
       };
       // CJ variant məlumatlarını əlavə et
       if (variantKey) payload.variant_key = variantKey;
       if (cjSelectedOptions) payload.selected_options = cjSelectedOptions;
       if (collectionId?.length) payload.collection_id = collectionId;
 
-      await axios.post(`${API_URL}/api/basket_items`, payload, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
+      console.log('🚀 [SENDING TO BACKEND] Payload:', JSON.stringify(payload, null, 2));
+      
+      const response = await axios.post(`${API_URL}/api/basket_items`, payload, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
+      
+      console.log('✅ [BACKEND RESPONSE] Data:', response.data);
       if (collectionId) localStorage.removeItem('collection_id');
       setisinbusked(true);
       toast.success(tarnslation?.handle_added || 'Əlavə edildi');
       queryClient.invalidateQueries({ queryKey: ['basket_items'] });
+      // Event dispatch et ki, bütün komponentlər yeniləsin
+      window.dispatchEvent(new Event('basket_items_updated'));
     } catch { toast.error('Xəta'); }
     finally { setIsAddingToCart(false); }
-  }, [Productslingle, selectedSize, selectedFilters, sizeFilter, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked, selectedCJVariant, selectedVariantOptions]);
+  }, [Productslingle, selectedSize, selectedFilters, sizeFilter, colorFilter, otherFilters, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked, selectedCJVariant, selectedVariantOptions, selectedColor]);
 
   const handleNotifyMe = useCallback(async () => {
     if (!notifyOptionId || !Productslingle?.id) return;
@@ -734,23 +1030,31 @@ export default function ProductId() {
                   </div>
                 </div>
               ) : (
-                <div 
+                <div
                   ref={imageContainerRef}
-                  className="relative bg-gray-50 rounded-2xl overflow-hidden cursor-zoom-in"
+                  className="relative bg-gray-50 rounded-2xl overflow-hidden cursor-zoom-in touch-pan-y"
                   style={{ aspectRatio: '1/1' }}
-                  onMouseEnter={() => setIsZoomed(true)} 
-                  onMouseLeave={() => setIsZoomed(false)} 
+                  onMouseEnter={() => setIsZoomed(true)}
+                  onMouseLeave={() => setIsZoomed(false)}
                   onMouseMove={handleMouseMove}
-                  onClick={() => setIsLightboxOpen(true)}
+                  onClick={() => !isMainSwiping && setIsLightboxOpen(true)}
+                  onTouchStart={handleMainTouchStart}
+                  onTouchMove={handleMainTouchMove}
+                  onTouchEnd={handleMainTouchEnd}
                 >
                   <img
                     src={getImageUrl(currentImage)}
                     alt={Productslingle.title || 'Product'}
                     className={`w-full h-full object-contain transition-transform duration-300 ${isZoomed ? 'scale-[2]' : 'scale-100'}`}
-                    style={isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}}
+                    style={{
+                      ...(isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}),
+                      transform: isMainSwiping ? `translateX(${mainSwipeOffset}px)` : undefined,
+                      transition: isMainSwiping ? 'none' : 'transform 0.3s ease-out'
+                    }}
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
+                    draggable={false}
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
                   />
                   
@@ -760,6 +1064,26 @@ export default function ProductId() {
                     </svg>
                     <span>{tarnslation?.zoom || 'Zoom'}</span>
                   </div>
+
+                  {/* Mobil üçün swipe dots indikatoru */}
+                  {productImages.length > 1 && (
+                    <div className="sm:hidden absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/30 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
+                      {productImages.slice(0, 7).map((_, idx) => (
+                        <button
+                          key={`dot-${idx}`}
+                          onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); setShowVideo(false); }}
+                          className={`rounded-full transition-all ${
+                            safeImageIndex === idx
+                              ? 'w-2.5 h-2.5 bg-white'
+                              : 'w-1.5 h-1.5 bg-white/50'
+                          }`}
+                        />
+                      ))}
+                      {productImages.length > 7 && (
+                        <span className="text-white/70 text-[10px] ml-0.5">+{productImages.length - 7}</span>
+                      )}
+                    </div>
+                  )}
 
                   {hasDiscount && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -1086,7 +1410,7 @@ export default function ProductId() {
               {isInStock && cjVariantInStock ? (
                 <button 
                   onClick={handleAddToBasket} 
-                  disabled={isinbusked || isAddingToCart}
+                  disabled={isAddingToCart}
                   className={`flex-1 py-3.5 rounded-xl font-semibold text-white transition flex items-center justify-center gap-2 ${isinbusked ? 'bg-green-500' : isAddingToCart ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
                 >
                   {isAddingToCart && <span>{tarnslation?.loading || 'Loading'}...</span>}
@@ -1158,21 +1482,83 @@ export default function ProductId() {
       </main>
 
       {isLightboxOpen && !showVideo && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center" onClick={() => setIsLightboxOpen(false)}>
-          <button onClick={() => setIsLightboxOpen(false)} className="absolute top-16 right-4 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-10">
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center select-none"
+          onClick={() => !isDragging && setIsLightboxOpen(false)}
+          onMouseMove={handleLightboxMouseMove}
+          onMouseUp={handleLightboxMouseUp}
+          onMouseLeave={handleLightboxMouseLeave}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsLightboxOpen(false); }}
+            className="absolute top-16 right-4 w-12 h-12 bg-white/10 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/20 transition z-20"
+          >
             <FiX className="w-6 h-6" />
           </button>
 
-          <img
-            src={getImageUrl(currentImage)}
-            alt={Productslingle.title || ''}
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
+          {/* Sol ok - Yalnız Desktop */}
+          {productImages.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); goToPrevLightboxImage(); }}
+              className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur rounded-full items-center justify-center text-white hover:bg-white/20 transition z-20"
+            >
+              <FiChevronLeft className="w-6 h-6" />
+            </button>
+          )}
 
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm">
+          {/* Sağ ok - Yalnız Desktop */}
+          {productImages.length > 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); goToNextLightboxImage(); }}
+              className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/10 backdrop-blur rounded-full items-center justify-center text-white hover:bg-white/20 transition z-20"
+            >
+              <FiChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Şəkil - swipe/drag dəstəyi */}
+          <div
+            className="relative max-w-[90vw] max-h-[90vh] cursor-grab active:cursor-grabbing"
+            onTouchStart={handleLightboxTouchStart}
+            onTouchMove={handleLightboxTouchMove}
+            onTouchEnd={handleLightboxTouchEnd}
+            onMouseDown={handleLightboxMouseDown}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              transform: `translateX(${lightboxDragOffset}px)`,
+              transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+            }}
+          >
+            <img
+              src={getImageUrl(currentImage)}
+              alt={Productslingle.title || ''}
+              className="max-w-[90vw] max-h-[90vh] object-contain pointer-events-none"
+              draggable={false}
+            />
+          </div>
+
+          {/* Sayğac */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm z-20">
             {safeImageIndex + 1} / {productImages.length}
           </div>
+
+          {/* Thumbnail dots - mobil üçün */}
+          {productImages.length > 1 && (
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+              {productImages.slice(0, 10).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.stopPropagation(); setSelectedImageIndex(idx); }}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    safeImageIndex === idx ? 'bg-white w-4' : 'bg-white/40 hover:bg-white/60'
+                  }`}
+                />
+              ))}
+              {productImages.length > 10 && (
+                <span className="text-white/60 text-xs">+{productImages.length - 10}</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 

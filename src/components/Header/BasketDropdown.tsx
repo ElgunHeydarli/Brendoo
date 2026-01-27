@@ -95,10 +95,10 @@ export default function BasketDropdown({
               <div key={item.id}>
                 <div className="flex gap-8 items-center mt-[4px] justify-between max-md:max-w-full mx-[40px]">
                   <div className="flex gap-2.5 items-center self-stretch my-auto min-w-[240px]">
-                    {/* ✅ DÜZƏLDİLDİ: getImageUrl istifadə edilir */}
+                    {/* ✅ DÜZƏLDİLDİ: selected_image prioritet verilir */}
                     <img
                       loading="lazy"
-                      src={getImageUrl(item.product?.image)}
+                      src={getImageUrl((item as any).selected_image || item.product?.image)}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = '/placeholder.png';
@@ -112,9 +112,17 @@ export default function BasketDropdown({
                       </div>
                       <div className="flex flex-col items-start mt-2.5 w-full text-xs text-black text-opacity-80">
                         <div className="flex gap-3 items-start">
-                          {item.options?.map((opt: any, idx: number) => (
-                            <div key={idx}>{opt.option}</div>
-                          ))}
+                          {/* CJ variant məlumatlarını göstər */}
+                          {item.selected_options ? (
+                            Object.entries(item.selected_options).map(([key, value]: [string, any], idx: number) => (
+                              <div key={idx} className="capitalize">{key}: {value}</div>
+                            ))
+                          ) : (
+                            /* Adi filter options */
+                            item.options?.map((opt: any, idx: number) => (
+                              <div key={idx}>{opt.option}</div>
+                            ))
+                          )}
                         </div>
                       </div>
                     </div>

@@ -123,9 +123,15 @@ export default function Products({
     type, brandQuery, isBestseller, isLowStock, isTopRated,
   ]);
 
-  const userStr = localStorage.getItem("user-info");
-  const parsedUser = useMemo(() => (userStr ? JSON.parse(userStr) : null), [userStr]);
-  const token = parsedUser?.token || "";
+  const token = useMemo(() => {
+    try {
+      const userStr = localStorage.getItem("user-info");
+      const parsed = userStr ? JSON.parse(userStr) : null;
+      return parsed?.token || "";
+    } catch {
+      return "";
+    }
+  }, []);
 
   const { data: categories, isLoading: categoriesLoading } = GETRequest<Category[]>(
     `/categories`, "categories", [lang]
@@ -196,7 +202,22 @@ export default function Products({
     if (min_price && +min_price > 0) setminPrice(+min_price);
     if (max_price && +max_price > 0) setmaxPrice(+max_price);
     if (is_discount) setChecked(true);
-  }, [category, subCategory, max_price, min_price, brand_id, is_discount]);
+    
+    // URL-dən sort parametrini oxu
+    const sortFromUrl = queryParams.get("sort");
+    if (sortFromUrl) {
+      setSort(sortFromUrl);
+    } else if (category && !sortFromUrl) {
+      // Kategoriya varsa və URL-də sort yoxdursa, random sırala
+      setSort("random");
+      const currentParams = new URLSearchParams(location.search);
+      currentParams.set("sort", "random");
+      navigate(
+        `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?${currentParams.toString()}`,
+        { replace: true }
+      );
+    }
+  }, [category, subCategory, max_price, min_price, brand_id, is_discount, queryParams, location.search, navigate, lang]);
 
   useEffect(() => {
     if (brand_id) {
@@ -213,6 +234,7 @@ export default function Products({
       is_popular, is_season, third_category_id, selectedBrandIds,
       isBestseller, isLowStock, isTopRated]);
 
+
   useEffect(() => {
     if (collectionProducts && collectionProducts.length > 0) {
       setColProdData(collectionProducts);
@@ -226,6 +248,10 @@ export default function Products({
   }, [fetchNewFilters]);
 
   useEffect(() => {
+    // Clean up previous preload links first
+    const existingPreloads = document.querySelectorAll('link[rel="preload"][as="image"][data-product-preload]');
+    existingPreloads.forEach(link => link.remove());
+
     if (products?.data && Array.isArray(products.data) && products.data.length > 0) {
       const priorityProducts = products.data.slice(0, 4);
       priorityProducts.forEach((product) => {
@@ -235,11 +261,17 @@ export default function Products({
           link.rel = "preload";
           link.as = "image";
           link.href = imageUrl;
-          link.fetchPriority = "high";
+          link.setAttribute('data-product-preload', 'true');
           document.head.appendChild(link);
         }
       });
     }
+
+    return () => {
+      // Cleanup on unmount
+      const preloads = document.querySelectorAll('link[rel="preload"][as="image"][data-product-preload]');
+      preloads.forEach(link => link.remove());
+    };
   }, [products?.data]);
 
   const handlePageChange = useCallback(
@@ -252,6 +284,36 @@ export default function Products({
         { replace: true }
       );
       window.scrollTo({ top: 0, behavior: "smooth" });
+      
+      // Google Translate-i yenidən tətbiq et (dinamik content üçün)
+      setTimeout(() => {
+        const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+        if (savedLangCode && savedLangCode !== "en") {
+          // Cookie-ni yenilə
+          const domain = window.location.hostname;
+          document.cookie = `googtrans=/en/${savedLangCode};path=/`;
+          document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=${domain}`;
+          document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=.${domain}`;
+          
+          const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
+          if (select) {
+            select.value = savedLangCode;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+      }, 500);
+      
+      // Əlavə trigger 1 saniyə sonra
+      setTimeout(() => {
+        const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+        if (savedLangCode && savedLangCode !== "en") {
+          const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
+          if (select) {
+            select.value = savedLangCode;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        }
+      }, 1000);
     },
     [location.search, navigate, lang]
   );
@@ -310,7 +372,7 @@ export default function Products({
 
   const FilterSection = ({ isMobile = false }: { isMobile?: boolean }) => (
     <div className={isMobile ? "space-y-4" : "flex flex-col mt-2 text-black whitespace-nowrap gap-4"}>
-      {!isMobile && <label className="text-black">{translation?.Kateqoriyalar || "Категории"}</label>}
+      {!isMobile && <label className="text-black">{translation?.Kateqoriyalar || "Kateqoriyalar"}</label>}
       {category && category.length > 0 ? (
         newFiltersLoading ? <FilterSkeleton /> : newFiltersData?.subCategories?.map((categoryItem) => (
           <DropdownItemC key={categoryItem.id} data={categoryItem} />
@@ -332,7 +394,7 @@ export default function Products({
       <PriceRange t={translation} minPrice={minPrice} maxPrice={maxPrice} setMinPrice={setminPrice} setMaxPrice={setmaxPrice} />
       <div className="flex gap-3 items-center self-start mt-4 font-medium text-black text-opacity-80">
         <div onClick={() => setChecked(!checked)} className={`flex shrink-0 self-stretch my-auto w-6 h-6 border border-solid border-black border-opacity-40 rounded-[100px] cursor-pointer transition-colors ${checked ? "bg-[#3873C3]" : ""}`} />
-        <div className="self-stretch my-auto">{translation?.Endirimli_məhsullar || "Товары со скидкой"}</div>
+        <div className="self-stretch my-auto">{translation?.Endirimli_məhsullar || "Endirimli məhsullar"}</div>
       </div>
       <div className="flex gap-3 items-center self-start mt-4 font-medium text-black text-opacity-80">
         <div onClick={() => handleTypeFilter('bestseller')} className={`flex shrink-0 self-stretch my-auto w-6 h-6 border border-solid border-black border-opacity-40 rounded-[100px] cursor-pointer transition-colors ${isBestseller ? "bg-[#3873C3]" : ""}`} />
@@ -371,7 +433,7 @@ export default function Products({
         <section className="flex flex-col w-full max-md:px-5 max-sm:px-0">
           <div className="flex lg:flex-row flex-col mt-[20px] md:mt-[60px] lg:px-[40px] px-[10px] gap-4">
             <aside className="flex flex-col w-full lg:max-w-[280px]">
-              <h2 className="text-xl font-semibold text-black">{translation?.Filter || "Фильтр"}</h2>
+              <h2 className="text-xl font-semibold text-black">{translation?.Filter || "Filtr"}</h2>
               <div className="md:hidden">
                 <Suspense fallback={<SkeletonItem className="h-12 rounded-full" />}>
                   <MobileFilter translation={translation} selectedItems={{ category: category, subCategory: null, thirdCategory: null, options: options }} onClose={closeFilter}>

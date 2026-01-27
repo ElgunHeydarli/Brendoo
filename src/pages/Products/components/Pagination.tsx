@@ -1,7 +1,16 @@
 // pages/Products/components/Pagination.tsx
 
 import { memo, useCallback, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import type { TranslationsKeys } from "../../../setting/Types";
+
+// Multi-language pagination labels
+const paginationLabels: Record<string, { previous: string; next: string }> = {
+  az: { previous: "Əvvəlki", next: "Növbəti" },
+  ru: { previous: "Предыдущая", next: "Следующая" },
+  en: { previous: "Previous", next: "Next" },
+  tr: { previous: "Önceki", next: "Sonraki" },
+};
 
 interface PaginationProps {
   currentPage: number;
@@ -16,6 +25,9 @@ const Pagination = memo(({
   onPageChange,
   translation,
 }: PaginationProps) => {
+  const { lang = "az" } = useParams<{ lang: string }>();
+  const labels = paginationLabels[lang] || paginationLabels.az;
+
   if (lastPage <= 1) return null;
 
   const getPageNumbers = useCallback(() => {
@@ -58,7 +70,7 @@ const Pagination = memo(({
             : "bg-white text-black hover:bg-gray-50 border-gray-300"
         }`}
       >
-        {translation?.previous || "Previous"}
+        {translation?.previous || labels.previous}
       </button>
 
       {pageNumbers.map((pageNum, index) =>
@@ -90,7 +102,7 @@ const Pagination = memo(({
             : "bg-white text-black hover:bg-gray-50 border-gray-300"
         }`}
       >
-        {translation?.next || "Next"}
+        {translation?.next || labels.next}
       </button>
     </div>
   );

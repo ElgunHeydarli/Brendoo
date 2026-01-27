@@ -1,6 +1,6 @@
 // pages/Products/components/ProductCard.tsx
 
-import { memo, useState, useCallback, useRef, useEffect } from "react";
+import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Product, TranslationsKeys } from "../../../setting/Types";
 import ROUTES from "../../../setting/routes";
@@ -8,7 +8,7 @@ import OptimizedImage from "./OptimizedImage";
 import CountdownTimer from "./CountdownTimer";
 import { formatPrice } from "../../../utils/currency";
 import { axiosInstance } from "../../../setting/Request";
-import { useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProductCardProps {
   product: Product;
@@ -22,62 +22,75 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
   const [isDiscountExpired, setIsDiscountExpired] = useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const queryClient = useQueryClient();
 
-  // Get user token
-  const userStr = localStorage.getItem('user-info');
-  const parsed = userStr ? JSON.parse(userStr) : null;
-  const token = parsed?.token;
-
-  // Real-time favorites query
-  const { data: favorites, refetch: refetchFavorites } = useQuery({
-    queryKey: ['favorites', lang, token],
-    queryFn: async () => {
-      if (!token) return [];
-      const res = await axiosInstance.get(`/favorites`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Accept-Language': lang,
-        },
-      });
-      return res.data;
-    },
-    staleTime: 0,
-    enabled: !!token,
-  });
-
-  // Check if product is favorited
-  useEffect(() => {
-    // Check login
-    const userStr = localStorage.getItem('user-info');
-    const isLoggedIn = !!userStr;
-    
-    if (isLoggedIn) {
-      // Logged in user - check API favorites
-      const isFav = favorites?.some((item: any) => item?.product?.id === product?.id) || false;
-      setIsFavorite(isFav);
-    } else {
-      // Guest user - check localStorage
-      const guestFavs = JSON.parse(localStorage.getItem('guest_favorites') || '[]');
-      setIsFavorite(guestFavs.some((fav: any) => fav?.id === product?.id));
+  // Simple user check - read once on mount
+  const userInfo = useMemo(() => {
+    try {
+      const userStr = localStorage.getItem('user-info');
+      const parsed = userStr ? JSON.parse(userStr) : null;
+      return { token: parsed?.token, isLoggedIn: !!parsed?.token };
+    } catch {
+      return { token: null, isLoggedIn: false };
     }
-  }, [favorites, product?.id]);
+  }, []);
+
+  // Single effect for favorites - check on mount and listen for updates
+  useEffect(() => {
+    const checkFavorite = () => {
+      if (userInfo.isLoggedIn) {
+        const cachedFavorites = queryClient.getQueryData<any[]>(['favorites']);
+        if (cachedFavorites) {
+          setIsFavorite(cachedFavorites.some((item: any) => item?.product?.id === product?.id));
+        }
+      } else {
+        try {
+          const guestFavs = JSON.parse(localStorage.getItem('guest_favorites') || '[]');
+          setIsFavorite(guestFavs.some((fav: any) => fav?.id === product?.id));
+        } catch {
+          setIsFavorite(false);
+        }
+      }
+    };
+
+    // Check on mount
+    checkFavorite();
+
+    // Listen for updates
+    window.addEventListener('favorites_updated', checkFavorite);
+    window.addEventListener('guest_favorites_updated', checkFavorite);
+
+    return () => {
+      window.removeEventListener('favorites_updated', checkFavorite);
+      window.removeEventListener('guest_favorites_updated', checkFavorite);
+    };
+  }, [userInfo.isLoggedIn, product?.id, queryClient]);
 
   // Null check - əgər product yoxdursa, heç nə göstərmə
   if (!product) {
     return null;
   }
-  
-  const productSlug = typeof product.slug === 'object' 
-    ? product.slug?.[lang as keyof typeof product.slug] || ''
-    : product.slug || '';
-  
-  // Endirim vaxtı keçibsə, endirimi göstərmə
-  const hasDiscount = Number(product.discount || 0) > 0 && !isDiscountExpired;
+
+  // Memoized values
+  const productSlug = useMemo(() =>
+    typeof product.slug === 'object'
+      ? product.slug?.[lang as keyof typeof product.slug] || ''
+      : product.slug || ''
+  , [product.slug, lang]);
+
+  const hasDiscount = useMemo(() =>
+    Number(product.discount || 0) > 0 && !isDiscountExpired
+  , [product.discount, isDiscountExpired]);
+
   const hasDiscountTimer = hasDiscount && product.discount_ends_at;
 
-  const images = product.sliders && product.sliders.length > 0
-    ? product.sliders.map((slider: any) => slider?.image || slider).filter(Boolean)
-    : [product.image].filter(Boolean);
+  // Memoized images array - only compute once
+  const images = useMemo(() => {
+    if (product.sliders && product.sliders.length > 0) {
+      return product.sliders.map((slider: any) => slider?.image || slider).filter(Boolean);
+    }
+    return [product.image].filter(Boolean);
+  }, [product.sliders, product.image]);
 
   const hasMultipleImages = images.length > 1;
 
@@ -85,35 +98,29 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check login
-    const userStr = localStorage.getItem('user-info');
-    const isLoggedIn = !!userStr;
-
-    if (isLoggedIn) {
+    if (userInfo.isLoggedIn && userInfo.token) {
       // Logged in user - API call
       try {
-        const User = JSON.parse(userStr);
-        
         await axiosInstance.post(
           '/favorites/toggleFavorite',
           { product_id: product.id },
           {
             headers: {
-              Authorization: `Bearer ${User.token}`,
+              Authorization: `Bearer ${userInfo.token}`,
               Accept: 'application/json',
             },
           }
         );
 
-        // State güncəllə
-        setIsFavorite(!isFavorite);
-        
-        // Refetch favorites
-        await refetchFavorites();
-        
+        // State optimistically update
+        setIsFavorite(prev => !prev);
+
+        // Invalidate favorites cache
+        queryClient.invalidateQueries({ queryKey: ['favorites'] });
+
         // Header-ə əmr ver
         window.dispatchEvent(new Event('favorites_updated'));
-        
+
       } catch (error) {
         console.error('Xəta:', error);
       }
@@ -122,30 +129,24 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
       try {
         const guestFavKey = 'guest_favorites';
         let guestFavs = JSON.parse(localStorage.getItem(guestFavKey) || '[]');
-        
+
         const index = guestFavs.findIndex((fav: any) => fav?.id === product.id);
-        
+
         if (index > -1) {
-          // Çıxar
           guestFavs.splice(index, 1);
         } else {
-          // Əlavə et - tam product object saxla
           guestFavs.push(product);
         }
-        
+
         localStorage.setItem(guestFavKey, JSON.stringify(guestFavs));
-        
-        // State güncəllə
-        setIsFavorite(!isFavorite);
-        
-        // Event
+        setIsFavorite(prev => !prev);
         window.dispatchEvent(new Event('guest_favorites_updated'));
-        
+
       } catch (error) {
         console.error('Xəta:', error);
       }
     }
-  }, [isFavorite, product.id, refetchFavorites]);
+  }, [userInfo.isLoggedIn, userInfo.token, product.id, queryClient, product]);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentSlide(index);
@@ -209,32 +210,24 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
         onTouchMove={hasMultipleImages ? handleTouchMove : undefined}
         onTouchEnd={hasMultipleImages ? handleTouchEnd : undefined}
       >
-       <Link 
-  to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
-  className="block w-full h-full"
-  target="_blank"
-  rel="noopener noreferrer"
->
-          <div 
-            className="flex h-full transition-transform duration-300 ease-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
-            {images.length > 0 ? (
-              images.map((image: string, index: number) => (
-                <div key={index} className="w-full h-full flex-shrink-0">
-                  <OptimizedImage
-                    src={image}
-                    thumbnail={index === 0 ? product.thumbnail : undefined}
-                    alt={`${product.title || 'Product'} - ${index + 1}`}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="w-full h-full flex-shrink-0 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-400">No Image</span>
-              </div>
-            )}
-          </div>
+        <Link
+          to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
+          className="block w-full h-full"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {/* Only render current image - not all slides for better performance */}
+          {images.length > 0 ? (
+            <OptimizedImage
+              src={images[currentSlide]}
+              thumbnail={currentSlide === 0 ? product.thumbnail : undefined}
+              alt={`${product.title || 'Product'} - ${currentSlide + 1}`}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400">No Image</span>
+            </div>
+          )}
         </Link>
 
         {/* Countdown Timer - Sol üst künc */}
@@ -321,39 +314,36 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
         to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
         className="flex flex-col p-3 flex-grow"
       >
-        {/* Badges */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          {/* ✅ YENİ: Dilə görə "Yeni" yazısı */}
-          {product.is_new && (
+        {/* Badges - yalnız "Yeni" badge */}
+        {product.is_new && (
+          <div className="flex flex-wrap gap-2 mb-2">
             <span className="bg-[#3873C3] text-white px-[8px] py-[2px] rounded-full text-[10px] font-medium">
               {getNewLabel()}
             </span>
-          )}
-          {hasDiscount && (
-            <span className="bg-[#FF4444] text-white px-[8px] py-[2px] rounded-full text-[10px] font-medium">
-              -{Number(product.discount || 0)}%
-            </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Title */}
         <h3 className="text-[12px] font-medium text-black mb-2 line-clamp-2 flex-grow">
           {product.title || 'Untitled Product'}
         </h3>
 
-        {/* Price */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-auto">
+        {/* Price - faiz, endirimli qiymət və köhnə qiymət bir sətirdə */}
+        <div className="flex items-center gap-1 mt-auto flex-nowrap overflow-hidden">
           {hasDiscount ? (
             <>
-              <span className="text-[12px] font-bold text-[#3873C3]">
+              <span className="bg-[#FF4444] text-white px-1 py-[1px] rounded text-[9px] font-medium shrink-0">
+                -{Number(product.discount || 0)}%
+              </span>
+              <span className="text-[12px] font-bold text-[#3873C3] shrink-0">
                 {formatPrice(product.discounted_price || 0)}
               </span>
-              <span className="text-[10px] text-gray-400 line-through">
+              <span className="text-[10px] text-gray-400 line-through truncate">
                 {formatPrice(product.price || 0)}
               </span>
             </>
           ) : (
-            <span className="text-[12px] font-bold text-black">
+            <span className="text-[13px] font-bold text-black">
               {formatPrice(product.price || 0)}
             </span>
           )}

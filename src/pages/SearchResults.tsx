@@ -49,7 +49,7 @@ const filterValidProducts = (products: Product[]): Product[] => {
 export default function SearchResults() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
 
   const query = searchParams.get("q") || "";
   const searchType = searchParams.get("type") || "text";
@@ -195,10 +195,21 @@ export default function SearchResults() {
         }
       }
 
+      console.log("=== SEARCH DEBUG ===");
+      console.log("Search URL:", `https://admin.brendoo.com/api/search?${params.toString()}`);
+
       const res = await axios.get(
         `https://admin.brendoo.com/api/search?${params.toString()}`,
         { headers: { "Accept-Language": lang } }
       );
+
+      console.log("API Response:", res.data);
+      console.log("Response structure:", {
+        hasData: !!res.data?.data,
+        hasMeta: !!res.data?.meta,
+        hasProducts: !!res.data?.products,
+        dataLength: res.data?.data?.length || res.data?.products?.length || 0
+      });
 
       // Backend pagination dəstəkləyirsə
       if (res.data?.data && res.data?.meta) {
@@ -277,6 +288,36 @@ export default function SearchResults() {
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    // Google Translate-i yenidən tətbiq et (dinamik content üçün)
+    setTimeout(() => {
+      const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+      if (savedLangCode && savedLangCode !== "en") {
+        // Cookie-ni yenilə
+        const domain = window.location.hostname;
+        document.cookie = `googtrans=/en/${savedLangCode};path=/`;
+        document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=${domain}`;
+        document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=.${domain}`;
+        
+        const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
+        if (select) {
+          select.value = savedLangCode;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+    }, 500);
+    
+    // Əlavə trigger 1 saniyə sonra
+    setTimeout(() => {
+      const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+      if (savedLangCode && savedLangCode !== "en") {
+        const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
+        if (select) {
+          select.value = savedLangCode;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+    }, 1000);
   }, []);
 
   const closeFilter = useCallback(() => {}, []);
@@ -315,7 +356,7 @@ export default function SearchResults() {
     >
       {!isMobile && (
         <label className="text-black">
-          {translation?.Kateqoriyalar || "Категории"}
+          {translation?.Kateqoriyalar || "Kateqoriyalar"}
         </label>
       )}
 
@@ -357,7 +398,7 @@ export default function SearchResults() {
           }`}
         />
         <span className="self-stretch my-auto">
-          {translation?.Endirimli_məhsullar || "Товары со скидкой"}
+          {translation?.Endirimli_məhsullar || "Endirimli məhsullar"}
         </span>
       </div>
 
@@ -446,7 +487,7 @@ export default function SearchResults() {
           <div className="text-center">
             <div className="text-8xl mb-6">🔍</div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {translation?.axtaris_sorgusu_daxil_edin || "Введите поисковый запрос"}
+              {translation?.axtaris_sorgusu_daxil_edin || "Axtarış sorğusunu daxil edin"}
             </h1>
           </div>
         </div>
@@ -490,7 +531,7 @@ export default function SearchResults() {
                 className="flex gap-2 items-center"
               >
                 <span className="self-stretch my-auto text-white">
-                  {translation?.Ana_səhifə || "Главная"}
+                  {translation?.Ana_səhifə || "Ana səhifə"}
                 </span>
               </Link>
               <img
@@ -501,7 +542,7 @@ export default function SearchResults() {
                 aria-hidden="true"
               />
               <span className="self-stretch my-auto text-white text-opacity-80">
-                {translation?.axtaris_neticeleri || "Результаты поиска"}
+                {translation?.axtaris_neticeleri || "Axtarış nəticələri"}
               </span>
             </nav>
 
@@ -536,7 +577,7 @@ export default function SearchResults() {
           <div className="flex lg:flex-row flex-col mt-[20px] md:mt-[60px] lg:px-[40px] px-[10px] gap-4">
             <aside className="flex flex-col w-full lg:max-w-[280px]">
               <h2 className="text-xl font-semibold text-black">
-                {translation?.Filter || "Фильтр"}
+                {translation?.Filter || "Filtr"}
               </h2>
 
               <div className="md:hidden">
@@ -570,7 +611,7 @@ export default function SearchResults() {
               <div className="flex flex-wrap gap-5 items-center justify-between w-full max-md:max-w-full">
                 <div className="flex gap-4 items-center flex-wrap">
                   <label htmlFor="sort-select" className="self-stretch my-auto text-sm text-black text-opacity-60">
-                    {translation?.Sırala || "Сортировать"}
+                    {translation?.Sırala || "Sırala"}
                   </label>
                   <div className="flex overflow-hidden gap-10 self-stretch px-4 py-3.5 my-auto text-base font-medium text-black bg-neutral-100 rounded-[100px] lg:w-[283px] w-[200px]">
                     <select
@@ -579,20 +620,20 @@ export default function SearchResults() {
                       value={Sort}
                       className="w-full focus:outline-none bg-[#F5F5F5]"
                     >
-                      <option value="">{translation?.Sırala || "Сортировать"}</option>
+                      <option value="">{translation?.Sırala || "Sırala"}</option>
                       <option value="A-Z">A-Z</option>
                       <option value="Z-A">Z-A</option>
                       <option value="expensive-cheap">
-                        {translation?.Expensive_Cheap || "Дорогие - Дешевые"}
+                        {translation?.Expensive_Cheap || "Bahalıdan ucuza"}
                       </option>
                       <option value="cheap-expensive">
-                        {translation?.Cheap_Expensive || "Дешевые - Дорогие"}
+                        {translation?.Cheap_Expensive || "Ucuzdan bahalıya"}
                       </option>
                     </select>
                   </div>
                 </div>
                 <p>
-                  <span className="mr-2">{translation?.Количество_key || "Məhsul sayı"}</span>
+                  <span className="mr-2">{translation?.mehsul_sayi || "Məhsul sayı"}</span>
                   : {totalProducts}
                 </p>
               </div>
@@ -693,18 +734,18 @@ export default function SearchResults() {
                   <h2 className="text-2xl font-bold text-gray-900 mt-6">
                     {(searchType === "image" || searchType === "vision")
                       ? translation?.sekilde_mehsul_tapilmadi || "Şəkildə məhsul tapılmadı"
-                      : translation?.netice_tapilmadi || "Ничего не найдено"}
+                      : translation?.netice_tapilmadi || "Heç nə tapılmadı"}
                   </h2>
                   <p className="text-gray-500 mt-2">
                     {(searchType === "image" || searchType === "vision")
                       ? translation?.basqa_sekil_sinayin || "Başqa şəkil sınayın"
-                      : translation?.basqa_sozu_sinayin || "Попробуйте другие ключевые слова"}
+                      : translation?.basqa_sozu_sinayin || "Başqa açar sözlər sınayın"}
                   </p>
                   <button
                     onClick={() => navigate(-1)}
                     className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
                   >
-                    ← {translation?.geri_qayit || "Назад"}
+                    ← {translation?.geri_qayit || "Geri"}
                   </button>
                 </div>
               )}

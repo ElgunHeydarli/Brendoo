@@ -1,9 +1,85 @@
 import { Link } from "react-router-dom";
 import { BiShoppingBag } from "react-icons/bi";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import ROUTES from "../../setting/routes";
 import MobileMenu from "./MobileMenu";
 import { UseHeaderReturn } from "./types";
 import GoogleTranslate from "../GoogleTranslate";
+
+const API_URL = 'https://admin.brendoo.com';
+const RECENT_SEARCHES_KEY = 'brendoo_recent_searches';
+const MAX_RECENT_SEARCHES = 8;
+
+interface PopularSearch {
+  id: number;
+  query: string;
+  icon: string;
+  category_id: number | null;
+  search_count: number;
+}
+
+const mobileTexts: Record<string, Record<string, string>> = {
+  az: {
+    recentSearches: 'Son axtarışlar',
+    popularNow: 'İndi populyar',
+    clearAll: 'Hamısını sil',
+  },
+  ru: {
+    recentSearches: 'Недавние запросы',
+    popularNow: 'Популярно сейчас',
+    clearAll: 'Очистить все',
+  },
+  en: {
+    recentSearches: 'Recent searches',
+    popularNow: 'Popular now',
+    clearAll: 'Clear all',
+  },
+  tr: {
+    recentSearches: 'Son aramalar',
+    popularNow: 'Şu an popüler',
+    clearAll: 'Tümünü temizle',
+  },
+};
+
+// localStorage helpers
+const getRecentSearches = (): string[] => {
+  try {
+    const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentSearch = (query: string) => {
+  try {
+    const searches = getRecentSearches();
+    const filtered = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+    const updated = [query, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore
+  }
+};
+
+const clearRecentSearches = () => {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // Ignore
+  }
+};
+
+const removeRecentSearch = (query: string) => {
+  try {
+    const searches = getRecentSearches();
+    const updated = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore
+  }
+};
 
 interface MobileHeaderProps extends UseHeaderReturn {}
 
@@ -34,6 +110,37 @@ export default function MobileHeader(props: MobileHeaderProps) {
     isImageSearching,
   } = props;
 
+  // Mobil axtarış dəyəri üçün local state
+  const [mobileSearchValue, setMobileSearchValue] = useState("");
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [popularSearches, setPopularSearches] = useState<PopularSearch[]>([]);
+  const [popularLoading, setPopularLoading] = useState(false);
+
+  const t = mobileTexts[lang] || mobileTexts.az;
+
+  // Load recent searches
+  useEffect(() => {
+    setRecentSearches(getRecentSearches());
+  }, []);
+
+  // Load popular searches
+  useEffect(() => {
+    const fetchPopular = async () => {
+      setPopularLoading(true);
+      try {
+        const { data } = await axios.get(`${API_URL}/api/search/popular`, {
+          headers: { 'Accept-Language': lang }
+        });
+        setPopularSearches(data.popular || []);
+      } catch (error) {
+        console.error('Popular searches error:', error);
+      } finally {
+        setPopularLoading(false);
+      }
+    };
+    fetchPopular();
+  }, [lang]);
+
   // Favorit sayı - logged + guest
   const userStr = localStorage.getItem("user-info");
   const isLoggedIn = !!userStr;
@@ -41,6 +148,45 @@ export default function MobileHeader(props: MobileHeaderProps) {
   const guestFavorites = JSON.parse(localStorage.getItem('guest_favorites') || '[]');
   const guestFavoritesCount = guestFavorites.length || 0;
   const favoritesCount = isLoggedIn ? loggedFavoritesCount : guestFavoritesCount;
+
+  // Axtarış səhifəsinə yönləndir
+  const handleMobileSearch = () => {
+    if (mobileSearchValue.trim()) {
+      saveRecentSearch(mobileSearchValue.trim());
+      setRecentSearches(getRecentSearches());
+      setIsSearchOpen(false);
+      setMobileSearchValue("");
+      navigate(`/${lang}/search?q=${encodeURIComponent(mobileSearchValue.trim())}`);
+    }
+  };
+
+  // Sorğu ilə axtarış
+  const handleSearchQuery = (query: string) => {
+    saveRecentSearch(query);
+    setRecentSearches(getRecentSearches());
+    setIsSearchOpen(false);
+    setMobileSearchValue("");
+    navigate(`/${lang}/search?q=${encodeURIComponent(query)}`);
+  };
+
+  // Son axtarışları təmizlə
+  const handleClearRecent = () => {
+    clearRecentSearches();
+    setRecentSearches([]);
+  };
+
+  // Tək axtarışı sil
+  const handleRemoveRecent = (e: React.MouseEvent, query: string) => {
+    e.stopPropagation();
+    removeRecentSearch(query);
+    setRecentSearches(getRecentSearches());
+  };
+
+  // Input dəyişəndə həm local state-i həm də parent handler-i çağır
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMobileSearchValue(e.target.value);
+    handleMobileSearchChange(e);
+  };
 
   return (
     <>
@@ -74,12 +220,29 @@ export default function MobileHeader(props: MobileHeaderProps) {
             <input
               ref={inputRef}
               type="text"
-              placeholder={translation?.axtar ?? ""}
-              onChange={handleMobileSearchChange}
+              value={mobileSearchValue}
+              placeholder={translation?.axtar ?? "Axtar..."}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleMobileSearch();
+                }
+              }}
               className={`h-full w-full bg-transparent outline-none ${
                 isSearchOpen ? "opacity-100" : "hidden"
               }`}
             />
+
+            {/* Axtar Button - yalnız mətn daxil edildikdə görünür */}
+            {isSearchOpen && mobileSearchValue.trim() && (
+              <button
+                type="button"
+                onClick={handleMobileSearch}
+                className="bg-[#3873C3] text-white text-xs px-3 py-1.5 rounded-full mr-2 whitespace-nowrap"
+              >
+                {translation?.axtar || "Axtar"}
+              </button>
+            )}
 
             {/* Google Lens Button */}
             <button
@@ -157,7 +320,7 @@ export default function MobileHeader(props: MobileHeaderProps) {
             {/* Search Results */}
             {isSearchOpen && (
               <div
-                className={`bg-white rounded-md absolute w-[100%] left-0 z-1000 max-h-[400px] ${
+                className={`bg-white rounded-md absolute w-[100%] left-0 z-1000 max-h-[70vh] shadow-lg ${
                   isProductsListPage
                     ? "top-[68px] rounded-none"
                     : isDetail
@@ -165,7 +328,73 @@ export default function MobileHeader(props: MobileHeaderProps) {
                     : "top-[70px]"
                 } overflow-y-auto`}
               >
-                {isMobileSearchLoading && (
+                {/* Temu-style: Recent + Popular when no search */}
+                {mobileSearchValue.length < 2 && (
+                  <div className="p-4">
+                    {/* Recent Searches */}
+                    {recentSearches.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                            <span>🕐</span> {t.recentSearches}
+                          </h3>
+                          <button
+                            onClick={handleClearRecent}
+                            className="text-[10px] text-gray-400 hover:text-red-500"
+                          >
+                            🗑️ {t.clearAll}
+                          </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {recentSearches.slice(0, 6).map((query, idx) => (
+                            <button
+                              key={`recent-${idx}`}
+                              onClick={() => handleSearchQuery(query)}
+                              className="group px-3 py-1.5 bg-gray-100 hover:bg-blue-500 hover:text-white rounded-full text-xs transition-all flex items-center gap-1"
+                            >
+                              <span className="text-gray-400 group-hover:text-blue-100">🔍</span>
+                              <span>{query}</span>
+                              <span
+                                onClick={(e) => handleRemoveRecent(e, query)}
+                                className="text-gray-300 hover:text-red-500 group-hover:text-white ml-0.5"
+                              >
+                                ✕
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Popular Searches */}
+                    <div>
+                      <h3 className="text-xs font-semibold text-gray-500 flex items-center gap-1 mb-2">
+                        <span>🔥</span> {t.popularNow}
+                      </h3>
+                      {popularLoading ? (
+                        <div className="flex justify-center py-3">
+                          <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1">
+                          {popularSearches.slice(0, 6).map((item) => (
+                            <button
+                              key={`popular-${item.id}`}
+                              onClick={() => handleSearchQuery(item.query)}
+                              className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-orange-50 rounded-lg text-left transition-all"
+                            >
+                              <span className="text-base">{item.icon || '🔍'}</span>
+                              <span className="text-sm text-gray-700">{item.query}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Loading state for search results */}
+                {mobileSearchValue.length >= 2 && isMobileSearchLoading && (
                   <div className="w-full flex items-center justify-center py-6">
                     <svg
                       className="animate-spin h-6 w-6 text-[#3873C3]"
@@ -188,11 +417,14 @@ export default function MobileHeader(props: MobileHeaderProps) {
                   </div>
                 )}
 
-                {FilteredProduct?.data?.map((item: any) => (
+                {/* Search Results */}
+                {mobileSearchValue.length >= 2 && FilteredProduct?.data?.map((item: any) => (
                   <p
-                    className="w-full px-[16px] py-[14px] text-[14px] font-normal border-b border-[#E5E5E5] cursor-pointer"
+                    className="w-full px-[16px] py-[14px] text-[14px] font-normal border-b border-[#E5E5E5] cursor-pointer hover:bg-gray-50"
                     key={item.id}
                     onClick={() => {
+                      saveRecentSearch(item.title);
+                      setRecentSearches(getRecentSearches());
                       navigate(
                         `/${lang}/${
                           ROUTES.product[lang as keyof typeof ROUTES.product]

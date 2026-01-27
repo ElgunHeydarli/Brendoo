@@ -240,49 +240,42 @@ const GoogleTranslate = () => {
         }}
       />
 
-      {/* Custom Button */}
+      {/* Custom Button - yalnız bayraq */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 h-[40px] lg:h-[48px] px-3 py-1.5 bg-[#F5F5F5] rounded-full text-black text-sm font-medium transition-all duration-200"
+        className="notranslate flex items-center gap-1.5 h-[40px] lg:h-[48px] px-3 py-1.5 bg-[#F5F5F5] rounded-full text-black text-sm font-medium transition-all duration-200"
+        translate="no"
       >
-        <span className="flex hidden lg:block items-center justify-center overflow-hidden">
+        <span className="flex items-center justify-center overflow-hidden">
           {flags[currentLang.code]}
         </span>
-        <span>{currentLang.short}</span>
         <ChevronDown
           size={14}
           className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - yalnız bayraqlar */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl overflow-hidden min-w-[160px] border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200">
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => changeLanguage(lang.code, lang.short)}
-              className={`w-full px-4 py-3 text-left text-sm font-medium transition-all duration-150 flex items-center gap-3 ${
-                currentLang.code === lang.code
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              <span className="flex items-center justify-center">{flags[lang.code]}</span>
-              <span>{lang.name}</span>
-              {currentLang.code === lang.code && (
-                <svg className="w-4 h-4 ml-auto text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              )}
-            </button>
-          ))}
+        <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-200 notranslate" translate="no">
+          <div className="flex flex-col p-2 gap-1">
+            {languages.map((lang) => (
+              <button
+                key={lang.code}
+                type="button"
+                onClick={() => changeLanguage(lang.code, lang.short)}
+                className={`p-2 rounded-lg transition-all duration-150 flex items-center justify-center ${
+                  currentLang.code === lang.code
+                    ? "bg-blue-50 ring-2 ring-blue-400"
+                    : "hover:bg-gray-100"
+                }`}
+                title={lang.name}
+              >
+                <span className="flex items-center justify-center w-8 h-6">{flags[lang.code]}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>

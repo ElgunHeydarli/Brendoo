@@ -395,7 +395,13 @@ type BasketItem = {
   options: {
     filter: string;
     option: string;
+    filter_id?: number;
+    option_id?: number;
   }[];
+  // ✅ Variant məlumatları - backend qaytarmalıdır
+  selected_image?: string;
+  variant_key?: string;
+  selected_options?: Record<string, string>;
   product: {
     id: number;
     sub_category_id: number;

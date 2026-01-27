@@ -19,6 +19,9 @@ export default function Basked() {
     quantity: number;
     price: string; // API-də string formatda gəlir
     options: { filter: string; option: string }[];
+    selected_options?: Record<string, string>; // CJ variant məlumatları
+    variant_key?: string;
+    selected_image?: string;
   };
 
   type GuestCart = {
@@ -222,7 +225,13 @@ const { lang = 'en' } = useParams<{ lang: string }>();
                         <div className="flex gap-2.5 items-center self-stretch my-auto min-w-[240px]">
                           <img
                             loading="lazy"
-                            src={item.product?.image?.startsWith('http') ? item.product.image : item.product?.image ? `https://admin.brendoo.com${item.product.image}` : '/placeholder.png'}
+                            src={(() => {
+                              // Seçilmiş variant şəklini prioritet et
+                              const img = (item as any).selected_image || item.product?.image;
+                              if (!img) return '/placeholder.png';
+                              if (img.startsWith('http')) return img;
+                              return `https://admin.brendoo.com${img.startsWith('/') ? '' : '/'}${img}`;
+                            })()}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = '/placeholder.png';
@@ -252,11 +261,21 @@ const { lang = 'en' } = useParams<{ lang: string }>();
                             </div>
                             <div className="flex flex-col items-start mt-2.5 w-full text-xs text-black text-opacity-80">
                               <div className="flex gap-3 items-start">
-                                {item.options && Array.isArray(item.options) && item.options.map((option, idx) => (
-                                  <div key={idx}>
-                                    {option?.filter} : {option?.option}
-                                  </div>
-                                ))}
+                                {/* CJ variant məlumatlarını göstər */}
+                                {item.selected_options ? (
+                                  Object.entries(item.selected_options).map(([key, value]: [string, any], idx: number) => (
+                                    <div key={idx} className="capitalize">
+                                      {key}: {value}
+                                    </div>
+                                  ))
+                                ) : (
+                                  /* Adi filter options */
+                                  item.options && Array.isArray(item.options) && item.options.map((option, idx) => (
+                                    <div key={idx}>
+                                      {option?.filter} : {option?.option}
+                                    </div>
+                                  ))
+                                )}
                               </div>
                             </div>
                           </div>

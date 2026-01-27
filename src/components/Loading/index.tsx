@@ -13,7 +13,7 @@ const pending: Record<string, Promise<any>> = {};
 // INSTANT TRANSLATIONS HOOK
 // ============================================================================
 
-export const useQuickTranslations = (lang: string = 'ru') => {
+export const useQuickTranslations = (lang: string = 'az') => {
   const [t, setT] = useState<Record<string, string>>(() => cache[lang] || {});
 
   useEffect(() => {
@@ -47,10 +47,10 @@ export const useQuickTranslations = (lang: string = 'ru') => {
 // ============================================================================
 
 const Loading: React.FC = memo(() => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const t = useQuickTranslations(lang);
-  
-  const text = useMemo(() => t?.loading_main_key_isload || 'Загрузка...', [t]);
+
+  const text = useMemo(() => t?.loading_main_key_isload || 'Yüklənir...', [t]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -166,7 +166,7 @@ InlineLoading.displayName = 'InlineLoading';
 // ============================================================================
 
 const preload = () => {
-  ['ru', 'az', 'en']
+  ['az', 'en', 'ru']
     .filter((l) => !cache[l])
     .forEach((l) => {
       axios
