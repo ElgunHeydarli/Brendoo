@@ -310,6 +310,9 @@ export default function Products({
           const rootDomain = domain.substring(domain.indexOf('.'));
           document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
         }
+        
+        // sessionStorage flag-ını təmizlə ki, yeni səhifədə tərcümə tətbiq olunsun
+        sessionStorage.removeItem("languageAutoApplied");
       }
       
       // Səhifəni yenilə
