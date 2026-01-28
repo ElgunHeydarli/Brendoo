@@ -65,8 +65,8 @@ const getSavedLanguage = (): { code: string; short: string } => {
   if (savedCode && savedShort) {
     return { code: savedCode, short: savedShort };
   }
-  // Default olaraq Azərbaycan dili
-  return { code: "az", short: "AZ" };
+  // Default olaraq İngilis dili
+  return { code: "en", short: "EN" };
 };
 
 const GoogleTranslate = () => {
@@ -103,12 +103,6 @@ const GoogleTranslate = () => {
   useEffect(() => {
     const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
     const hasReloaded = sessionStorage.getItem("languageAutoApplied");
-    
-    // Əgər heç dil seçilməyibsə, sadəcə state-i AZ et (amma tərcümə etmə)
-    if (!savedLangCode) {
-      setCurrentLang({ code: "az", short: "AZ" });
-      return;
-    }
     
     // Əgər dil seçilibsə və EN deyilsə, tərcümə tətbiq et
     if (savedLangCode && savedLangCode !== "en") {
