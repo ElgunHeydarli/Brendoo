@@ -98,28 +98,43 @@ const GoogleTranslate = () => {
     }
   }, []);
 
-  // ✅ YENİ: Hər səhifə keçidində dili qoru
+  // ✅ YENİ: Səhifə yüklənəndə saxlanmış dili avtomatik tətbiq et
   useEffect(() => {
-    // İlk yükləmədə
-    const timeouts = [
-      setTimeout(applyStoredLanguage, 300),
-      setTimeout(applyStoredLanguage, 600),
-      setTimeout(applyStoredLanguage, 1000),
-      setTimeout(applyStoredLanguage, 2000),
-    ];
-
-    // URL dəyişəndə (SPA navigation)
-    const handlePopState = () => {
-      setTimeout(applyStoredLanguage, 300);
-      setTimeout(applyStoredLanguage, 1000);
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      timeouts.forEach(clearTimeout);
-      window.removeEventListener("popstate", handlePopState);
-    };
+    const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+    
+    // Əgər Azərbaycan (və ya başqa dil) seçilibsə, amma səhifə hələ tərcümə olunmayıbsa
+    if (savedLangCode && savedLangCode !== "en") {
+      const hasReloaded = sessionStorage.getItem("languageAutoApplied");
+      
+      // Əgər bu session-da hələ reload olmayıbsa
+      if (!hasReloaded) {
+        const domain = window.location.hostname;
+        const cookieValue = `/en/${savedLangCode}`;
+        
+        // Cookie-ni set et
+        document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+        if (domain.includes('.')) {
+          const rootDomain = domain.substring(domain.indexOf('.'));
+          document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
+        }
+        
+        // Flag qoy ki, bir daha reload olmasın
+        sessionStorage.setItem("languageAutoApplied", "true");
+        
+        // Səhifəni reload et ki, tərcümə tətbiq olunsun
+        window.location.reload();
+      } else {
+        // Əgər artıq reload olubsa, sadəcə Google Translate-i yenilə
+        const timeouts = [
+          setTimeout(applyStoredLanguage, 300),
+          setTimeout(applyStoredLanguage, 600),
+          setTimeout(applyStoredLanguage, 1000),
+        ];
+        
+        return () => timeouts.forEach(clearTimeout);
+      }
+    }
   }, [applyStoredLanguage]);
 
   // Body style-ı təmizlə
