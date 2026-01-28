@@ -65,7 +65,8 @@ const getSavedLanguage = (): { code: string; short: string } => {
   if (savedCode && savedShort) {
     return { code: savedCode, short: savedShort };
   }
-  return { code: "en", short: "EN" };
+  // Default olaraq Azərbaycan dili
+  return { code: "az", short: "AZ" };
 };
 
 const GoogleTranslate = () => {
@@ -102,14 +103,22 @@ const GoogleTranslate = () => {
   useEffect(() => {
     const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
     
+    // Əgər heç dil seçilməyibsə, default olaraq AZ-a keçir
+    if (!savedLangCode) {
+      localStorage.setItem("selectedGoogleLang", "AZ");
+      localStorage.setItem("selectedGoogleLangCode", "az");
+      setCurrentLang({ code: "az", short: "AZ" });
+    }
+    
     // Əgər Azərbaycan (və ya başqa dil) seçilibsə, amma səhifə hələ tərcümə olunmayıbsa
-    if (savedLangCode && savedLangCode !== "en") {
+    const currentSavedLang = localStorage.getItem("selectedGoogleLangCode");
+    if (currentSavedLang && currentSavedLang !== "en") {
       const hasReloaded = sessionStorage.getItem("languageAutoApplied");
       
       // Əgər bu session-da hələ reload olmayıbsa
       if (!hasReloaded) {
         const domain = window.location.hostname;
-        const cookieValue = `/en/${savedLangCode}`;
+        const cookieValue = `/en/${currentSavedLang}`;
         
         // Cookie-ni set et
         document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
