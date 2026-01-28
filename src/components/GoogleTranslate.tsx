@@ -65,8 +65,8 @@ const getSavedLanguage = (): { code: string; short: string } => {
   if (savedCode && savedShort) {
     return { code: savedCode, short: savedShort };
   }
-  // Default olaraq İngilis dili
-  return { code: "en", short: "EN" };
+  // Default olaraq Azərbaycan dili
+  return { code: "az", short: "AZ" };
 };
 
 const GoogleTranslate = () => {
@@ -104,6 +104,34 @@ const GoogleTranslate = () => {
     const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
     const hasReloaded = sessionStorage.getItem("languageAutoApplied");
     
+    // Əgər heç dil seçilməyibsə, default olaraq AZ-a keçir və tərcümə et
+    if (!savedLangCode) {
+      localStorage.setItem("selectedGoogleLang", "AZ");
+      localStorage.setItem("selectedGoogleLangCode", "az");
+      setCurrentLang({ code: "az", short: "AZ" });
+      
+      // Əgər hələ reload olmayıbsa
+      if (!hasReloaded) {
+        const domain = window.location.hostname;
+        const cookieValue = `/en/az`;
+        
+        // Cookie-ni set et
+        document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+        if (domain.includes('.')) {
+          const rootDomain = domain.substring(domain.indexOf('.'));
+          document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
+        }
+        
+        sessionStorage.setItem("languageAutoApplied", "true");
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+        return;
+      }
+    }
+    
     // Əgər dil seçilibsə və EN deyilsə, tərcümə tətbiq et
     if (savedLangCode && savedLangCode !== "en") {
       // Əgər bu session-da hələ reload olmayıbsa
@@ -119,10 +147,8 @@ const GoogleTranslate = () => {
           document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
         }
         
-        // Flag qoy ki, bir daha reload olmasın
         sessionStorage.setItem("languageAutoApplied", "true");
         
-        // Bir az gözlə ki, cookie-lər set olunsun, sonra reload et
         setTimeout(() => {
           window.location.reload();
         }, 100);
