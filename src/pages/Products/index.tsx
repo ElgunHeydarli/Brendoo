@@ -297,7 +297,22 @@ export default function Products({
       currentParams.set("page", newPage.toString());
       const newUrl = `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?${currentParams.toString()}`;
       
-      // Google Translate üçün location.href istifadə et (tam səhifə yenilənməsi)
+      // Google Translate cookie-lərini düzgün təyin et
+      const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+      if (savedLangCode && savedLangCode !== "en") {
+        const domain = window.location.hostname;
+        const cookieValue = `/en/${savedLangCode}`;
+        
+        // Cookie-ləri müxtəlif domain variantları ilə təyin et
+        document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+        if (domain.includes('.')) {
+          const rootDomain = domain.substring(domain.indexOf('.'));
+          document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
+        }
+      }
+      
+      // Səhifəni yenilə
       window.location.href = newUrl;
     },
     [location.search, lang]

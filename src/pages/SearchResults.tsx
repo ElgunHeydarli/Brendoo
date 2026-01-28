@@ -287,9 +287,23 @@ export default function SearchResults() {
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
     
-    // Google Translate üçün səhifəni yenilə
+    // Google Translate cookie-lərini düzgün təyin et
+    const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+    if (savedLangCode && savedLangCode !== "en") {
+      const domain = window.location.hostname;
+      const cookieValue = `/en/${savedLangCode}`;
+      
+      // Cookie-ləri müxtəlif domain variantları ilə təyin et
+      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+      if (domain.includes('.')) {
+        const rootDomain = domain.substring(domain.indexOf('.'));
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
+      }
+    }
+    
+    // Səhifəni yenilə
     setTimeout(() => {
       window.location.reload();
     }, 100);
