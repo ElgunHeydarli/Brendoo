@@ -81,9 +81,13 @@ const GoogleTranslate = () => {
     if (savedLangCode && savedLangCode !== "en") {
       // Cookie-ni yenilə
       const domain = window.location.hostname;
-      document.cookie = `googtrans=/en/${savedLangCode};path=/`;
-      document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=${domain}`;
-      document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=.${domain}`;
+      const cookieValue = `/en/${savedLangCode}`;
+      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+      if (domain.includes('.')) {
+        const rootDomain = domain.substring(domain.indexOf('.'));
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
+      }
       
       // Google Translate select-i tap və dəyiş
       const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
@@ -208,18 +212,16 @@ const GoogleTranslate = () => {
 
     // Cookie təyin et
     const domain = window.location.hostname;
-    document.cookie = `googtrans=/en/${langCode};path=/`;
-    document.cookie = `googtrans=/en/${langCode};path=/;domain=${domain}`;
-    document.cookie = `googtrans=/en/${langCode};path=/;domain=.${domain}`;
-
-    // Google Translate select-i dəyiş
-    const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
-    if (select) {
-      select.value = langCode;
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    } else {
-      window.location.reload();
+    const cookieValue = `/en/${langCode}`;
+    document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+    document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
+    if (domain.includes('.')) {
+      const rootDomain = domain.substring(domain.indexOf('.'));
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
     }
+
+    // Səhifəni reload et ki, tərcümə düzgün tətbiq olunsun
+    window.location.reload();
   }, []);
 
   return (
