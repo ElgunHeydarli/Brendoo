@@ -228,11 +228,28 @@ export default function Products({
     }
   }, [brand_id]);
 
+  // URL-dən page parametrini oxu
   useEffect(() => {
-    setPage(1);
+    const pageFromUrl = queryParams.get("page");
+    if (pageFromUrl) {
+      const pageNum = parseInt(pageFromUrl, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        setPage(pageNum);
+      }
+    } else {
+      setPage(1);
+    }
+  }, [location.search]);
+
+  // Filter dəyişəndə page-i 1-ə qaytarma (yalnız URL-də page yoxdursa)
+  useEffect(() => {
+    const pageFromUrl = queryParams.get("page");
+    if (!pageFromUrl) {
+      setPage(1);
+    }
   }, [category, subCategory, checked, options, Sort, minPrice, maxPrice,
       is_popular, is_season, third_category_id, selectedBrandIds,
-      isBestseller, isLowStock, isTopRated]);
+      isBestseller, isLowStock, isTopRated, queryParams]);
 
 
   useEffect(() => {
