@@ -289,35 +289,10 @@ export default function SearchResults() {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
     
-    // Google Translate-i yenidən tətbiq et (dinamik content üçün)
+    // Google Translate üçün səhifəni yenilə
     setTimeout(() => {
-      const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
-      if (savedLangCode && savedLangCode !== "en") {
-        // Cookie-ni yenilə
-        const domain = window.location.hostname;
-        document.cookie = `googtrans=/en/${savedLangCode};path=/`;
-        document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=${domain}`;
-        document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=.${domain}`;
-        
-        const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
-        if (select) {
-          select.value = savedLangCode;
-          select.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-      }
-    }, 500);
-    
-    // Əlavə trigger 1 saniyə sonra
-    setTimeout(() => {
-      const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
-      if (savedLangCode && savedLangCode !== "en") {
-        const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
-        if (select) {
-          select.value = savedLangCode;
-          select.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-      }
-    }, 1000);
+      window.location.reload();
+    }, 100);
   }, []);
 
   const closeFilter = useCallback(() => {}, []);

@@ -293,46 +293,14 @@ export default function Products({
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      setPage(newPage);
       const currentParams = new URLSearchParams(location.search);
       currentParams.set("page", newPage.toString());
-      navigate(
-        `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?${currentParams.toString()}`,
-        { replace: true }
-      );
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const newUrl = `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?${currentParams.toString()}`;
       
-      // Google Translate-i yenidən tətbiq et (dinamik content üçün)
-      setTimeout(() => {
-        const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
-        if (savedLangCode && savedLangCode !== "en") {
-          // Cookie-ni yenilə
-          const domain = window.location.hostname;
-          document.cookie = `googtrans=/en/${savedLangCode};path=/`;
-          document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=${domain}`;
-          document.cookie = `googtrans=/en/${savedLangCode};path=/;domain=.${domain}`;
-          
-          const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
-          if (select) {
-            select.value = savedLangCode;
-            select.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-        }
-      }, 500);
-      
-      // Əlavə trigger 1 saniyə sonra
-      setTimeout(() => {
-        const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
-        if (savedLangCode && savedLangCode !== "en") {
-          const select = document.querySelector(".goog-te-combo") as HTMLSelectElement;
-          if (select) {
-            select.value = savedLangCode;
-            select.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-        }
-      }, 1000);
+      // Google Translate üçün location.href istifadə et (tam səhifə yenilənməsi)
+      window.location.href = newUrl;
     },
-    [location.search, navigate, lang]
+    [location.search, lang]
   );
 
   const closeFilter = useCallback(() => {}, []);
