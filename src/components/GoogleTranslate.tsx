@@ -102,23 +102,20 @@ const GoogleTranslate = () => {
   // ✅ YENİ: Səhifə yüklənəndə saxlanmış dili avtomatik tətbiq et
   useEffect(() => {
     const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
+    const hasReloaded = sessionStorage.getItem("languageAutoApplied");
     
-    // Əgər heç dil seçilməyibsə, default olaraq AZ-a keçir
+    // Əgər heç dil seçilməyibsə, sadəcə state-i AZ et (amma tərcümə etmə)
     if (!savedLangCode) {
-      localStorage.setItem("selectedGoogleLang", "AZ");
-      localStorage.setItem("selectedGoogleLangCode", "az");
       setCurrentLang({ code: "az", short: "AZ" });
+      return;
     }
     
-    // Əgər Azərbaycan (və ya başqa dil) seçilibsə, amma səhifə hələ tərcümə olunmayıbsa
-    const currentSavedLang = localStorage.getItem("selectedGoogleLangCode");
-    if (currentSavedLang && currentSavedLang !== "en") {
-      const hasReloaded = sessionStorage.getItem("languageAutoApplied");
-      
+    // Əgər dil seçilibsə və EN deyilsə, tərcümə tətbiq et
+    if (savedLangCode && savedLangCode !== "en") {
       // Əgər bu session-da hələ reload olmayıbsa
       if (!hasReloaded) {
         const domain = window.location.hostname;
-        const cookieValue = `/en/${currentSavedLang}`;
+        const cookieValue = `/en/${savedLangCode}`;
         
         // Cookie-ni set et
         document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
@@ -131,8 +128,10 @@ const GoogleTranslate = () => {
         // Flag qoy ki, bir daha reload olmasın
         sessionStorage.setItem("languageAutoApplied", "true");
         
-        // Səhifəni reload et ki, tərcümə tətbiq olunsun
-        window.location.reload();
+        // Bir az gözlə ki, cookie-lər set olunsun, sonra reload et
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
       } else {
         // Əgər artıq reload olubsa, sadəcə Google Translate-i yenilə
         const timeouts = [
