@@ -14,7 +14,7 @@ interface Props {
 
 const StoriesModal: React.FC<Props> = ({ isActiveStory, setActiveStory, allStories }) => {
 
-    const { lang = "ru" } = useParams();
+    const { lang = "az" } = useParams();
 
     const navigate = useNavigate();
     const filteredStories = allStories;
@@ -109,7 +109,7 @@ const StoriesModal: React.FC<Props> = ({ isActiveStory, setActiveStory, allStori
                                                             )
                                                         }}
                                                     >
-                                                        Купить сейчаз
+                                                        {lang === "en" ? "Buy now" : "İndi al"}
                                                     </div>
                                                 </div>
                                             </SwiperSlide>

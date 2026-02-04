@@ -17,17 +17,21 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'swiper', 'swiper/react'],
+    include: ['react', 'react-dom', 'swiper', 'swiper/react', '@tanstack/react-query'],
   },
   build: {
     target: "esnext",
     cssCodeSplit: true,
     sourcemap: false,
     minify: "esbuild",
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {
-          react: ["react", "react-dom"],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'ui-vendor': ['swiper', 'lucide-react', 'react-icons'],
+          'form-vendor': ['formik', 'yup'],
         },
       },
     },

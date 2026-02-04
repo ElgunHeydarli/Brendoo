@@ -166,7 +166,7 @@ InlineLoading.displayName = 'InlineLoading';
 // ============================================================================
 
 const preload = () => {
-  ['az', 'en', 'ru']
+  ['az', 'en']
     .filter((l) => !cache[l])
     .forEach((l) => {
       axios

@@ -107,7 +107,7 @@ export type Product = {
   sliders: Slider[];
   slug: {
     en: string;
-    ru: string;
+    az: string;
   };
   variants?: Array<{
     variantKey?: string;
@@ -239,7 +239,7 @@ export type ColorVariant = {
   id: number;
   slug: {
     en: string;
-    ru: string;
+    az: string;
   };
   color_name: string;
   color_code: string | null;
@@ -272,7 +272,7 @@ export interface ProductDetail {
   size_image: string;
   slug: {
     en: string;
-    ru: string;
+    az: string;
   };
   price: string;
   discount: string | null;
@@ -415,7 +415,7 @@ type BasketItem = {
     description: string;
     slug: {
       en: string;
-      ru: string;
+      az: string;
     };
     price: string;
     discount: number | null;

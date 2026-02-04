@@ -6,7 +6,7 @@ import CategoryNavigation from "../CategoryPop";
 import SearchDropdown from "./SearchDropdown";
 import BasketDropdown from "./BasketDropdown";
 import { UseHeaderReturn } from "./types";
-import GoogleTranslate from "../GoogleTranslate";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 interface DesktopHeaderProps extends UseHeaderReturn {}
 
@@ -306,7 +306,7 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
                 )}
               </div>
             </div>
-            <GoogleTranslate />
+            <LanguageSwitcher />
           </div>
         </div>
       </div>
@@ -339,28 +339,28 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
               to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?sort=new-old`}
               className="text-[16px] font-normal leading-[24px] hover:text-[#3873C3] transition-colors"
             >
-              {translation?.yeni_mallar || "Yeni mallar"}
+              {translation?.yeni_mallar || (lang === 'az' ? 'Yeni mallar' : 'New Products')}
             </Link>
             <Link
               reloadDocument
               to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?type=bestsellers`}
               className="text-[16px] font-normal leading-[24px] hover:text-[#3873C3] transition-colors"
             >
-              {translation?.cox_satilan || "Çox satılan"}
+              {translation?.cox_satilan || (lang === 'az' ? 'Çox satılanlar' : 'Best Sellers')}
             </Link>
             <Link
               reloadDocument
               to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}?type=top_rated`}
               className="text-[16px] font-normal leading-[24px] hover:text-[#3873C3] transition-colors"
             >
-              {translation?.ulduzlu_mehsullar || "5 ulduzlu məhsullar"}
+              {translation?.ulduzlu_mehsullar || (lang === 'az' ? '5 ulduzlu məhsullar' : '5 Star Products')}
             </Link>
             <Link
               reloadDocument
               to={`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}`}
               className="text-[16px] font-normal leading-[24px] hover:text-[#3873C3] transition-colors"
             >
-              {translation?.butun_mehsullar_new || "Bütün məhsullar"}
+              {translation?.butun_mehsullar_new || (lang === 'az' ? 'Bütün məhsullar' : 'All products')}
             </Link>
           </div>
         </div>

@@ -62,18 +62,18 @@ const PageWrapper = ({
 // Route Map - sadə versiya, type annotation yoxdur
 const ROUTE_MAP = {
   [ROUTES.home.en]: { Component: Home, metaType: 'home_page' },
-  [ROUTES.home.ru]: { Component: Home, metaType: 'home_page' },
+  [ROUTES.home.az]: { Component: Home, metaType: 'home_page' },
   [ROUTES.about.en]: { Component: Aboutus, metaType: 'about_page' },
-  [ROUTES.about.ru]: { Component: Aboutus, metaType: 'about_page' },
+  [ROUTES.about.az]: { Component: Aboutus, metaType: 'about_page' },
   [ROUTES.product.en]: { Component: Products, metaType: 'product_page' },
-  [ROUTES.product.ru]: { Component: Products, metaType: 'product_page' },
+  [ROUTES.product.az]: { Component: Products, metaType: 'product_page' },
   [ROUTES.rules.en]: { Component: UserRules, metaType: 'using_rules_page' },
-  [ROUTES.rules.ru]: { Component: UserRules, metaType: 'using_rules_page' },
+  [ROUTES.rules.az]: { Component: UserRules, metaType: 'using_rules_page' },
   [ROUTES.deliveryRules.en]: {
     Component: DeliveryRules,
     metaType: 'delivery_rules_page',
   },
-  [ROUTES.deliveryRules.ru]: {
+  [ROUTES.deliveryRules.az]: {
     Component: DeliveryRules,
     metaType: 'delivery_rules_page',
   },
@@ -81,66 +81,66 @@ const ROUTE_MAP = {
     Component: RefundRules,
     metaType: 'delivery_rules_page',
   },
-  [ROUTES.refundRules.ru]: {
+  [ROUTES.refundRules.az]: {
     Component: RefundRules,
     metaType: 'delivery_rules_page',
   },
   [ROUTES.contact.en]: { Component: Contact, metaType: 'contact_page' },
-  [ROUTES.contact.ru]: { Component: Contact, metaType: 'contact_page' },
+  [ROUTES.contact.az]: { Component: Contact, metaType: 'contact_page' },
   [ROUTES.brends.en]: { Component: Brends, metaType: 'brends_page' },
-  [ROUTES.brends.ru]: { Component: Brends, metaType: 'brends_page' },
+  [ROUTES.brends.az]: { Component: Brends, metaType: 'brends_page' },
   [ROUTES.login.en]: { Component: Login, metaType: 'login_page' },
-  [ROUTES.login.ru]: { Component: Login, metaType: 'login_page' },
+  [ROUTES.login.az]: { Component: Login, metaType: 'login_page' },
   [ROUTES.userSettings.en]: {
     Component: UserSettings,
     metaType: 'settings_page',
   },
-  [ROUTES.userSettings.ru]: {
+  [ROUTES.userSettings.az]: {
     Component: UserSettings,
     metaType: 'settings_page',
   },
   [ROUTES.orders.en]: { Component: ORder, metaType: 'order_page' },
-  [ROUTES.orders.ru]: { Component: ORder, metaType: 'order_page' },
+  [ROUTES.orders.az]: { Component: ORder, metaType: 'order_page' },
   [ROUTES.liked.en]: { Component: Liked, metaType: 'Liked_page' },
-  [ROUTES.liked.ru]: { Component: Liked, metaType: 'Liked_page' },
+  [ROUTES.liked.az]: { Component: Liked, metaType: 'Liked_page' },
   [ROUTES.notification.en]: {
     Component: Notification,
     metaType: 'Notification_page',
   },
-  [ROUTES.notification.ru]: {
+  [ROUTES.notification.az]: {
     Component: Notification,
     metaType: 'Notification_page',
   },
   [ROUTES.order.en]: { Component: Basked, metaType: 'Basked_page' },
-  [ROUTES.order.ru]: { Component: Basked, metaType: 'Basked_page' },
+  [ROUTES.order.az]: { Component: Basked, metaType: 'Basked_page' },
   [ROUTES.return.en]: { Component: ReturnPage, metaType: '' },
-  [ROUTES.return.ru]: { Component: ReturnPage, metaType: '' },
+  [ROUTES.return.az]: { Component: ReturnPage, metaType: '' },
   [ROUTES.likedUser.en]: { Component: UserLiked, metaType: 'User_liked_page' },
-  [ROUTES.likedUser.ru]: { Component: UserLiked, metaType: 'User_liked_page' },
+  [ROUTES.likedUser.az]: { Component: UserLiked, metaType: 'User_liked_page' },
   [ROUTES.ordersConfirm.en]: {
     Component: BaskedConfirm,
     metaType: 'Basked_confrim_page',
   },
-  [ROUTES.ordersConfirm.ru]: {
+  [ROUTES.ordersConfirm.az]: {
     Component: BaskedConfirm,
     metaType: 'Basked_confrim_page',
   },
   [ROUTES.register.en]: { Component: Register, metaType: 'register_page' },
-  [ROUTES.register.ru]: { Component: Register, metaType: 'register_page' },
+  [ROUTES.register.az]: { Component: Register, metaType: 'register_page' },
   [ROUTES.resetPasword.en]: { Component: Password, metaType: 'password_page' },
-  [ROUTES.resetPasword.ru]: { Component: Password, metaType: 'password_page' },
+  [ROUTES.resetPasword.az]: { Component: Password, metaType: 'password_page' },
   [ROUTES.resetPaswordSucses.en]: {
     Component: SucsesPassword,
     metaType: 'sucses_password',
   },
-  [ROUTES.resetPaswordSucses.ru]: {
+  [ROUTES.resetPaswordSucses.az]: {
     Component: SucsesPassword,
     metaType: 'sucses_password',
   },
   [ROUTES.BaskedSucses.en]: { Component: Sucses, metaType: 'sucses' },
-  [ROUTES.BaskedSucses.ru]: { Component: Sucses, metaType: 'sucses' },
+  [ROUTES.BaskedSucses.az]: { Component: Sucses, metaType: 'sucses' },
   [ROUTES.address.en]: { Component: ChangeAddress, metaType: '' },
-  [ROUTES.address.ru]: { Component: ChangeAddress, metaType: '' },
+  [ROUTES.address.az]: { Component: ChangeAddress, metaType: '' },
 };
 
 const PageByLang: React.FC = () => {
@@ -161,7 +161,7 @@ const PageByLang: React.FC = () => {
       page === '/az' ||
       !page ||
       page === ROUTES.home.en ||
-      page === ROUTES.home.ru
+      page === ROUTES.home.az
     ) {
       return ROUTE_MAP[ROUTES.home.en];
     }

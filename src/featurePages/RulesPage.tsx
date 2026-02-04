@@ -15,7 +15,7 @@ export interface DataRulesPage {
   image2: string;
   slug: {
     en: string;
-    ru: string;
+    az: string;
   };
 }
 
@@ -41,7 +41,7 @@ const RulesPage: React.FC = () => {
         setData(res.data);
         const correctSlug = res.data.slug[lang as keyof typeof res.data.slug];
         if (slug !== correctSlug) {
-          navigate(`/условия-и-положения/${lang}/${correctSlug}`, { replace: true });
+          navigate(`/terms/${lang}/${correctSlug}`, { replace: true });
         }
       }
     } catch (error) {
@@ -60,7 +60,7 @@ const RulesPage: React.FC = () => {
   React.useEffect(() => {
     if (data) {
       const newSlug = data.slug[newLang as keyof typeof data.slug];
-      navigate(`/условия-и-положения/${newLang}/${newSlug}`, { replace: true });
+      navigate(`/terms/${newLang}/${newSlug}`, { replace: true });
     }
   }, [newLang, data]);
 

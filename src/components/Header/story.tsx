@@ -54,7 +54,7 @@ const StoryThumb: React.FC<{
 };
 
 const Story: React.FC = () => {
-  const { lang = 'en' } = useParams<{ lang: string }>(); // ✅ Default EN
+  const { lang = 'az' } = useParams<{ lang: string }>(); // ✅ Default AZ
 
   const [activeStory, setActiveStory] = useState<number | null>(null);
   const [stories, setStories] = useState<StoriesInterface[]>([]);

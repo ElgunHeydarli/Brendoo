@@ -10,7 +10,7 @@ import Loading from '../components/Loading';
 
 const DynamicPage: React.FC = () => {
   const navigate = useNavigate();
-  const { lang = 'ru', slug } = useParams<{ lang: string; slug: string }>();
+  const { lang = 'az', slug } = useParams<{ lang: string; slug: string }>();
   const { selectedLang: newLang } = useLanguageStore();
 
   const [currentPage, setCurrentPage] = React.useState<any>(null);

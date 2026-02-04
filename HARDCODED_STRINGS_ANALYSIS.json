@@ -1,0 +1,1052 @@
+[
+  {
+    "id": "login_001",
+    "english_text": "Email",
+    "azeri_text": "Email",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "placeholder",
+    "line_number": 233,
+    "current_variable": "tarnslation?.Email"
+  },
+  {
+    "id": "login_002",
+    "english_text": "Email is required",
+    "azeri_text": "Email tələb olunur",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 84,
+    "current_variable": "tarnslation?.is_r_7"
+  },
+  {
+    "id": "login_003",
+    "english_text": "Invalid email",
+    "azeri_text": "Düzgün email deyil",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 82,
+    "current_variable": "tarnslation?.is_r_12"
+  },
+  {
+    "id": "login_004",
+    "english_text": "Password must be at least 6 characters",
+    "azeri_text": "Şifrə minimum 6 simvol olmalıdır",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 86,
+    "current_variable": "tarnslation?.is_r_13"
+  },
+  {
+    "id": "login_005",
+    "english_text": "Password is required",
+    "azeri_text": "Şifrə tələb olunur",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 87,
+    "current_variable": "tarnslation?.is_r_14"
+  },
+  {
+    "id": "login_006",
+    "english_text": "or",
+    "azeri_text": "və ya",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "label",
+    "line_number": 211,
+    "current_variable": "tarnslation?.or"
+  },
+  {
+    "id": "login_007",
+    "english_text": "User",
+    "azeri_text": "İstifadəçi",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "label",
+    "line_number": 228,
+    "current_variable": "tarnslation?.istifadeci_key"
+  },
+  {
+    "id": "login_008",
+    "english_text": "Influencer",
+    "azeri_text": "İnfluenser",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "label",
+    "line_number": 244,
+    "current_variable": "tarnslation?.influencer_key"
+  },
+  {
+    "id": "login_009",
+    "english_text": "Forgot password?",
+    "azeri_text": "Şifrəni unutmusunuz?",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "button",
+    "line_number": 273,
+    "current_variable": "tarnslation?.forgotpassword"
+  },
+  {
+    "id": "login_010",
+    "english_text": "Login",
+    "azeri_text": "Daxil ol",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "button",
+    "line_number": 285,
+    "current_variable": "tarnslation?.login"
+  },
+  {
+    "id": "login_011",
+    "english_text": "No account?",
+    "azeri_text": "Hesabınız yoxdur?",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "label",
+    "line_number": 294,
+    "current_variable": "tarnslation?.Hesabın_yoxdur"
+  },
+  {
+    "id": "login_012",
+    "english_text": "Register",
+    "azeri_text": "Qeydiyyat",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "button",
+    "line_number": 299,
+    "current_variable": "tarnslation?.register"
+  },
+  {
+    "id": "login_013",
+    "english_text": "Invalid user type.",
+    "azeri_text": "Qeyri-düzgün istifadəçi tipi.",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 105,
+    "current_variable": null
+  },
+  {
+    "id": "login_014",
+    "english_text": "Error: {status}",
+    "azeri_text": "Hata: {status}",
+    "file_path": "src/pages/userIn/login.tsx",
+    "component": "Login",
+    "element_type": "error",
+    "line_number": 69,
+    "current_variable": null
+  },
+  {
+    "id": "register_001",
+    "english_text": "Name is required",
+    "azeri_text": "Ad tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 70,
+    "current_variable": null
+  },
+  {
+    "id": "register_002",
+    "english_text": "Phone number is required",
+    "azeri_text": "Telefon nömrəsi tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 72,
+    "current_variable": null
+  },
+  {
+    "id": "register_003",
+    "english_text": "Phone number must be 9 digits",
+    "azeri_text": "Telefon nömrəsi 9 rəqəm olmalıdır",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 73,
+    "current_variable": null
+  },
+  {
+    "id": "register_004",
+    "english_text": "Enter a valid email",
+    "azeri_text": "Düzgün email daxil edin",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 75,
+    "current_variable": null
+  },
+  {
+    "id": "register_005",
+    "english_text": "Email is required",
+    "azeri_text": "Email tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 76,
+    "current_variable": null
+  },
+  {
+    "id": "register_006",
+    "english_text": "Password must be at least 8 characters",
+    "azeri_text": "Şifrə minimum 8 simvol olmalıdır",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 78,
+    "current_variable": null
+  },
+  {
+    "id": "register_007",
+    "english_text": "Password is required",
+    "azeri_text": "Şifrə tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 79,
+    "current_variable": null
+  },
+  {
+    "id": "register_008",
+    "english_text": "FIN code is required",
+    "azeri_text": "FIN kod tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 81,
+    "current_variable": null
+  },
+  {
+    "id": "register_009",
+    "english_text": "FIN code must be 7 characters",
+    "azeri_text": "FIN kod 7 simvol olmalıdır",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 82,
+    "current_variable": null
+  },
+  {
+    "id": "register_010",
+    "english_text": "ID serial is required",
+    "azeri_text": "Şəxsiyyət seriyası tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 84,
+    "current_variable": null
+  },
+  {
+    "id": "register_011",
+    "english_text": "Minimum 8 characters",
+    "azeri_text": "Minimum 8 simvol",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 85,
+    "current_variable": null
+  },
+  {
+    "id": "register_012",
+    "english_text": "Select gender",
+    "azeri_text": "Cins seçin",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 87,
+    "current_variable": null
+  },
+  {
+    "id": "register_013",
+    "english_text": "Gender is required",
+    "azeri_text": "Cins tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 88,
+    "current_variable": null
+  },
+  {
+    "id": "register_014",
+    "english_text": "Birth date is required",
+    "azeri_text": "Doğum tarixi tələb olunur",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 89,
+    "current_variable": null
+  },
+  {
+    "id": "register_015",
+    "english_text": "You must accept the terms",
+    "azeri_text": "Şərtləri qəbul etməlisiniz",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 91,
+    "current_variable": null
+  },
+  {
+    "id": "register_016",
+    "english_text": "Registration completed successfully!",
+    "azeri_text": "Qeydiyyat uğurla tamamlandı!",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "message",
+    "line_number": 107,
+    "current_variable": null
+  },
+  {
+    "id": "register_017",
+    "english_text": "An error occurred",
+    "azeri_text": "Xəta baş verdi",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 116,
+    "current_variable": null
+  },
+  {
+    "id": "register_018",
+    "english_text": "Terms could not be loaded",
+    "azeri_text": "Şərtlər yüklənə bilmədi",
+    "file_path": "src/pages/userIn/register.tsx",
+    "component": "Register",
+    "element_type": "error",
+    "line_number": 40,
+    "current_variable": "tarnslation?.sertler_yuklenmedi"
+  },
+  {
+    "id": "baskedconfirm_001",
+    "english_text": "Order",
+    "azeri_text": "Sifariş",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "breadcrumb",
+    "line_number": 232,
+    "current_variable": "tarnslation?.basked"
+  },
+  {
+    "id": "baskedconfirm_002",
+    "english_text": "Place Order",
+    "azeri_text": "Sifariş et",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "title",
+    "line_number": 238,
+    "current_variable": "tarnslation?.Sifariş_et"
+  },
+  {
+    "id": "baskedconfirm_003",
+    "english_text": "Personal Information",
+    "azeri_text": "Şəxsi məlumatlarım",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 252,
+    "current_variable": "tarnslation?.Şəxsi_məlumatlarım"
+  },
+  {
+    "id": "baskedconfirm_004",
+    "english_text": "Delivery Method",
+    "azeri_text": "Çatdırılma üsulu",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 277,
+    "current_variable": "tarnslation?.catdirilma_usulu"
+  },
+  {
+    "id": "baskedconfirm_005",
+    "english_text": "Identity Information",
+    "azeri_text": "Şəxsiyyət məlumatları",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 313,
+    "current_variable": "tarnslation?.sexsiyyet_melumatlari"
+  },
+  {
+    "id": "baskedconfirm_006",
+    "english_text": "Identity verification is required for pickup",
+    "azeri_text": "Pickup zamanı şəxsiyyət yoxlaması üçün lazımdır",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "description",
+    "line_number": 318,
+    "current_variable": "tarnslation?.fin_kod_izah"
+  },
+  {
+    "id": "baskedconfirm_007",
+    "english_text": "FIN Code",
+    "azeri_text": "FIN kod",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 325,
+    "current_variable": "tarnslation?.fin_kod"
+  },
+  {
+    "id": "baskedconfirm_008",
+    "english_text": "No information",
+    "azeri_text": "Məlumat yoxdur",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "message",
+    "line_number": 329,
+    "current_variable": "tarnslation?.melumat_yoxdur"
+  },
+  {
+    "id": "baskedconfirm_009",
+    "english_text": "Document Serial Number",
+    "azeri_text": "Vəsiqə seriya №",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 335,
+    "current_variable": "tarnslation?.vesiqe_seriya"
+  },
+  {
+    "id": "baskedconfirm_010",
+    "english_text": "This information must be entered during registration",
+    "azeri_text": "Bu məlumatlar qeydiyyat zamanı daxil edilməlidir",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "warning",
+    "line_number": 348,
+    "current_variable": "tarnslation?.fin_kod_xeberdarliq"
+  },
+  {
+    "id": "baskedconfirm_011",
+    "english_text": "Order Summary",
+    "azeri_text": "Sifariş xülasəsi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 360,
+    "current_variable": "tarnslation?.Ümumi_sifariş"
+  },
+  {
+    "id": "baskedconfirm_012",
+    "english_text": "Amount",
+    "azeri_text": "Məbləğ",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 367,
+    "current_variable": "tarnslation?.Məbləğ"
+  },
+  {
+    "id": "baskedconfirm_013",
+    "english_text": "Discount",
+    "azeri_text": "Endirim",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 370,
+    "current_variable": "tarnslation?.Endirim"
+  },
+  {
+    "id": "baskedconfirm_014",
+    "english_text": "Total",
+    "azeri_text": "Cəmi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 374,
+    "current_variable": "tarnslation?.Cəmi_məbləğ"
+  },
+  {
+    "id": "baskedconfirm_015",
+    "english_text": "Select Gift",
+    "azeri_text": "Hədiyyə seçin",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "message",
+    "line_number": 402,
+    "current_variable": "tarnslation?.hediyye_secin"
+  },
+  {
+    "id": "baskedconfirm_016",
+    "english_text": "Select",
+    "azeri_text": "Seç",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "button",
+    "line_number": 403,
+    "current_variable": "tarnslation?.sec"
+  },
+  {
+    "id": "baskedconfirm_017",
+    "english_text": "Selected",
+    "azeri_text": "Seçildi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "message",
+    "line_number": 404,
+    "current_variable": "tarnslation?.secildi"
+  },
+  {
+    "id": "baskedconfirm_018",
+    "english_text": "Close",
+    "azeri_text": "Bağla",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "button",
+    "line_number": 405,
+    "current_variable": "tarnslation?.bagla"
+  },
+  {
+    "id": "baskedconfirm_019",
+    "english_text": "Warning! Gift cannot be changed after selection.",
+    "azeri_text": "Diqqət! Hədiyyə seçildikdən sonra dəyişdirilə bilməz.",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "warning",
+    "line_number": 406,
+    "current_variable": "tarnslation?.hediyye_xeberdarliq"
+  },
+  {
+    "id": "baskedconfirm_020",
+    "english_text": "Place Order",
+    "azeri_text": "Sifariş et",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "button",
+    "line_number": 426,
+    "current_variable": "tarnslation?.sifarish_et"
+  },
+  {
+    "id": "baskedconfirm_021",
+    "english_text": "Loading...",
+    "azeri_text": "Yüklənir...",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "message",
+    "line_number": 426,
+    "current_variable": "tarnslation?.is_loading"
+  },
+  {
+    "id": "baskedconfirm_022",
+    "english_text": "Cart is empty",
+    "azeri_text": "Səbət boşdur",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 181,
+    "current_variable": "tarnslation?.sebet_bosdur"
+  },
+  {
+    "id": "baskedconfirm_023",
+    "english_text": "Pickup point not selected",
+    "azeri_text": "Pickup nöqtəsi seçilməyib",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 175,
+    "current_variable": "tarnslation?.pickup_secilmeyib"
+  },
+  {
+    "id": "baskedconfirm_024",
+    "english_text": "FIN code not found",
+    "azeri_text": "FIN kod qeydiyyat zamanı daxil edilməyib. Zəhmət olmasa dəstək ilə əlaqə saxlayın.",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 183,
+    "current_variable": "tarnslation?.fin_kod_yoxdur"
+  },
+  {
+    "id": "baskedconfirm_025",
+    "english_text": "Document serial number not found",
+    "azeri_text": "Şəxsiyyət seriyası qeydiyyat zamanı daxil edilməyib. Zəhmət olmasa dəstək ilə əlaqə saxlayın.",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 189,
+    "current_variable": "tarnslation?.vesiqe_seriya_yoxdur"
+  },
+  {
+    "id": "baskedconfirm_026",
+    "english_text": "Payment could not be created",
+    "azeri_text": "Ödəniş yaradıla bilmədi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 232,
+    "current_variable": "tarnslation?.odenis_yaradila_bilmedi"
+  },
+  {
+    "id": "baskedconfirm_027",
+    "english_text": "An error occurred",
+    "azeri_text": "Xəta baş verdi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "error",
+    "line_number": 239,
+    "current_variable": "tarnslation?.xeta_bas_verdi"
+  },
+  {
+    "id": "baskedconfirm_028",
+    "english_text": "Coupon Code",
+    "azeri_text": "Kupon kodu",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "label",
+    "line_number": 443,
+    "current_variable": "tarnslation?.coupon_add"
+  },
+  {
+    "id": "baskedconfirm_029",
+    "english_text": "Enter code",
+    "azeri_text": "Kodu daxil edin",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "placeholder",
+    "line_number": 450,
+    "current_variable": "tarnslation?.Kupon"
+  },
+  {
+    "id": "baskedconfirm_030",
+    "english_text": "Apply",
+    "azeri_text": "Tətbiq et",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "button",
+    "line_number": 461,
+    "current_variable": "tarnslation?.Confirm"
+  },
+  {
+    "id": "baskedconfirm_031",
+    "english_text": "Coupon applied successfully",
+    "azeri_text": "Kupon uğurla tətbiq edildi",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "message",
+    "line_number": 460,
+    "current_variable": "tarnslation?.kupon_ugurla_tetbiq_edildi"
+  },
+  {
+    "id": "baskedconfirm_032",
+    "english_text": "Home",
+    "azeri_text": "Ev",
+    "file_path": "src/pages/userIn/BaskedConfirm.tsx",
+    "component": "BaskedConfirm",
+    "element_type": "breadcrumb",
+    "line_number": 225,
+    "current_variable": "tarnslation?.home"
+  },
+  {
+    "id": "changeaddress_001",
+    "english_text": "Pickup Point",
+    "azeri_text": "Təhvil nöqtəsi",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "title",
+    "line_number": 102,
+    "current_variable": "translation?.tehvil_noqtesi"
+  },
+  {
+    "id": "changeaddress_002",
+    "english_text": "Select the pickup point where you will receive your orders",
+    "azeri_text": "Sifarişlərinizi təhvil alacağınız nöqtəni seçin",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "description",
+    "line_number": 104,
+    "current_variable": "translation?.select_pickup_desc"
+  },
+  {
+    "id": "changeaddress_003",
+    "english_text": "Selected Pickup Point",
+    "azeri_text": "Seçilmiş təhvil nöqtəsi",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "label",
+    "line_number": 112,
+    "current_variable": "translation?.selected_pickup"
+  },
+  {
+    "id": "changeaddress_004",
+    "english_text": "Search pickup point...",
+    "azeri_text": "Təhvil nöqtəsi axtar...",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "placeholder",
+    "line_number": 136,
+    "current_variable": "translation?.search_pickup"
+  },
+  {
+    "id": "changeaddress_005",
+    "english_text": "Loading...",
+    "azeri_text": "Yüklənir...",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 152,
+    "current_variable": "translation?.is_loading"
+  },
+  {
+    "id": "changeaddress_006",
+    "english_text": "No points found",
+    "azeri_text": "Nöqtə tapılmadı",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 159,
+    "current_variable": "translation?.no_pickup_points"
+  },
+  {
+    "id": "changeaddress_007",
+    "english_text": "Try a different search",
+    "azeri_text": "Başqa axtarış edin",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 160,
+    "current_variable": "translation?.try_different_search"
+  },
+  {
+    "id": "changeaddress_008",
+    "english_text": "Please select a pickup point",
+    "azeri_text": "Zəhmət olmasa təhvil nöqtəsi seçin",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "error",
+    "line_number": 88,
+    "current_variable": "translation?.select_pickup_point"
+  },
+  {
+    "id": "changeaddress_009",
+    "english_text": "Pickup point saved",
+    "azeri_text": "Təhvil nöqtəsi saxlanıldı",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 107,
+    "current_variable": "translation?.pickup_saved"
+  },
+  {
+    "id": "changeaddress_010",
+    "english_text": "An error occurred",
+    "azeri_text": "Xəta baş verdi",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "error",
+    "line_number": 112,
+    "current_variable": "translation?.error_occurred"
+  },
+  {
+    "id": "changeaddress_011",
+    "english_text": "Please wait...",
+    "azeri_text": "Gözləyin...",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 203,
+    "current_variable": "translation?.please_wait"
+  },
+  {
+    "id": "changeaddress_012",
+    "english_text": "Save Pickup Point",
+    "azeri_text": "Təhvil nöqtəsini saxla",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "button",
+    "line_number": 210,
+    "current_variable": "translation?.save_pickup"
+  },
+  {
+    "id": "changeaddress_013",
+    "english_text": "{count} points found",
+    "azeri_text": "{count} nöqtə tapıldı",
+    "file_path": "src/pages/userIn/ChangeAddress.tsx",
+    "component": "ChangeAddress",
+    "element_type": "message",
+    "line_number": 194,
+    "current_variable": "translation?.tehvil_noqtesi_count"
+  },
+  {
+    "id": "footer_001",
+    "english_text": "Categories",
+    "azeri_text": "Kateqoriyalar",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "label",
+    "line_number": 137,
+    "current_variable": "translations?.Kateqoriyalar"
+  },
+  {
+    "id": "footer_002",
+    "english_text": "Company",
+    "azeri_text": "Şirkət",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "label",
+    "line_number": 158,
+    "current_variable": "translations?.Şirkət"
+  },
+  {
+    "id": "footer_003",
+    "english_text": "About company",
+    "azeri_text": "Şirkət haqqında",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "link",
+    "line_number": 167,
+    "current_variable": "translations?.Şirkət_haqqında"
+  },
+  {
+    "id": "footer_004",
+    "english_text": "FAQ",
+    "azeri_text": "Tez-tez verilən suallar",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "link",
+    "line_number": 173,
+    "current_variable": "translations?.Tez_tez_verilən_suallar"
+  },
+  {
+    "id": "footer_005",
+    "english_text": "Other Links",
+    "azeri_text": "Digər keçidlər",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "label",
+    "line_number": 188,
+    "current_variable": "translations?.Digər_keçidlər"
+  },
+  {
+    "id": "footer_006",
+    "english_text": "Contact",
+    "azeri_text": "Əlaqə",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "link",
+    "line_number": 198,
+    "current_variable": "translations?.Əlaqə"
+  },
+  {
+    "id": "footer_007",
+    "english_text": "Latest offers",
+    "azeri_text": "Ən son təkliflər",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "label",
+    "line_number": 315,
+    "current_variable": "translations?.Ən_son_təkliflər"
+  },
+  {
+    "id": "footer_008",
+    "english_text": "Subscribe",
+    "azeri_text": "Abunə ol",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "button",
+    "line_number": 329,
+    "current_variable": "translations?.Abunə_ol"
+  },
+  {
+    "id": "footer_009",
+    "english_text": "Subscribed",
+    "azeri_text": "Abunəlik təsdiqləndi",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "message",
+    "line_number": 110,
+    "current_variable": "translations?.subscribed"
+  },
+  {
+    "id": "footer_010",
+    "english_text": "Invalid email",
+    "azeri_text": "Düzgün email deyil",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "error",
+    "line_number": 102,
+    "current_variable": "translations?.invalid_email"
+  },
+  {
+    "id": "footer_011",
+    "english_text": "Subscription error",
+    "azeri_text": "Abunəlik xətası",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "error",
+    "line_number": 116,
+    "current_variable": "translations?.subscription_error"
+  },
+  {
+    "id": "footer_012",
+    "english_text": "2025 | Brendoo",
+    "azeri_text": "2025 | Brendoo",
+    "file_path": "src/components/Footer/index.tsx",
+    "component": "Footer",
+    "element_type": "copyright",
+    "line_number": 343,
+    "current_variable": "translations?.footer_text"
+  },
+  {
+    "id": "product_001",
+    "english_text": "Select size",
+    "azeri_text": "Ölçü seçin",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 619,
+    "current_variable": "tarnslation?.olcu_secin_title"
+  },
+  {
+    "id": "product_002",
+    "english_text": "Please select variant",
+    "azeri_text": "Zəhmət olmasa variant seçin",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 611,
+    "current_variable": "tarnslation?.variant_secin"
+  },
+  {
+    "id": "product_003",
+    "english_text": "This variant is out of stock",
+    "azeri_text": "Bu variant stokda yoxdur",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 614,
+    "current_variable": "tarnslation?.stokda_yoxdur"
+  },
+  {
+    "id": "product_004",
+    "english_text": "This size is out of stock",
+    "azeri_text": "Bu ölçü stokda yoxdur",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 627,
+    "current_variable": "tarnslation?.bu_olcude_stokda_yox"
+  },
+  {
+    "id": "product_005",
+    "english_text": "Product not found",
+    "azeri_text": "Məhsul tapılmadı",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 597,
+    "current_variable": null
+  },
+  {
+    "id": "product_006",
+    "english_text": "Added",
+    "azeri_text": "Əlavə edildi",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "message",
+    "line_number": 809,
+    "current_variable": "tarnslation?.mehsul_added"
+  },
+  {
+    "id": "product_007",
+    "english_text": "An error occurred",
+    "azeri_text": "Xəta baş verdi",
+    "file_path": "src/pages/Products/Id.tsx",
+    "component": "ProductId",
+    "element_type": "error",
+    "line_number": 810,
+    "current_variable": null
+  },
+  {
+    "id": "order_001",
+    "english_text": "Orders",
+    "azeri_text": "Sifarişlər",
+    "file_path": "src/pages/userIn/Order.tsx",
+    "component": "Order",
+    "element_type": "title",
+    "line_number": 39,
+    "current_variable": "translation?.oders"
+  },
+  {
+    "id": "order_002",
+    "english_text": "Return",
+    "azeri_text": "Geri qaytarma",
+    "file_path": "src/pages/userIn/Order.tsx",
+    "component": "Order",
+    "element_type": "button",
+    "line_number": 46,
+    "current_variable": "translation?.return_text"
+  },
+  {
+    "id": "order_003",
+    "english_text": "All",
+    "azeri_text": "Hamısı",
+    "file_path": "src/pages/userIn/Order.tsx",
+    "component": "Order",
+    "element_type": "filter",
+    "line_number": 60,
+    "current_variable": "translation?.Hamısı"
+  },
+  {
+    "id": "password_001",
+    "english_text": "Password Recovery!",
+    "azeri_text": "Şifrənin bərpası!",
+    "file_path": "src/pages/userIn/Pasword.tsx",
+    "component": "Password",
+    "element_type": "title",
+    "line_number": 51,
+    "current_variable": "tarnslation?.Şifrənin_bərpası!"
+  },
+  {
+    "id": "password_002",
+    "english_text": "Recover your password!",
+    "azeri_text": "Şifrəni bərpa etmək!",
+    "file_path": "src/pages/userIn/Pasword.tsx",
+    "component": "Password",
+    "element_type": "description",
+    "line_number": 53,
+    "current_variable": "tarnslation?.Şifrəni_bərpa_etmək!"
+  },
+  {
+    "id": "password_003",
+    "english_text": "Send",
+    "azeri_text": "Göndər",
+    "file_path": "src/pages/userIn/Pasword.tsx",
+    "component": "Password",
+    "element_type": "button",
+    "line_number": 80,
+    "current_variable": "tarnslation?.send"
+  },
+  {
+    "id": "notification_001",
+    "english_text": "Notifications",
+    "azeri_text": "Bildirişlər",
+    "file_path": "src/pages/userIn/Nptifications.tsx",
+    "component": "Notification",
+    "element_type": "title",
+    "line_number": 44,
+    "current_variable": "tarnslation?.notification"
+  },
+  {
+    "id": "liked_001",
+    "english_text": "Favorites",
+    "azeri_text": "Bəyəndiklərim",
+    "file_path": "src/pages/userIn/Liked.tsx",
+    "component": "UserLiked",
+    "element_type": "title",
+    "line_number": 41,
+    "current_variable": "tarnslation?.Bəyəndiklərim"
+  },
+  {
+    "id": "basked_form_001",
+    "english_text": "Personal Information",
+    "azeri_text": "Şəxsi məlumatlarım",
+    "file_path": "src/components/Basked/index.tsx",
+    "component": "BaskedForum",
+    "element_type": "label",
+    "line_number": 29,
+    "current_variable": "translation?.Şəxsi_məlumatlarım"
+  }
+]

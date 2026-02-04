@@ -2,6 +2,7 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useMemo } from 'react';
+import type { Category } from './Types';
 
 // Optimized Axios Instance
 export const axiosInstance = axios.create({
@@ -45,32 +46,18 @@ const getUserInfo = () => {
   }
 };
 
-// ✅ YENİ: Google Translate-dən seçilmiş dili al
-const getSelectedLanguage = (): string => {
-  // 1. Əvvəlcə localStorage-dan Google Translate dilini yoxla
-  const googleLang = localStorage.getItem('selectedGoogleLangCode');
-  if (googleLang && ['az', 'en', 'ru', 'tr'].includes(googleLang)) {
-    return googleLang;
-  }
-  
-  // 2. Cookie-dən googtrans yoxla
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'googtrans' && value) {
-      // Format: /en/az veya /en/ru
-      const parts = value.split('/');
-      if (parts.length >= 3) {
-        const targetLang = parts[2];
-        if (['az', 'en', 'ru', 'tr'].includes(targetLang)) {
-          return targetLang;
-        }
-      }
-    }
-  }
-  
-  // 3. Default: en
-  return 'en';
+const SUPPORTED_LANGS = ['az', 'en'] as const;
+type SupportedLang = typeof SUPPORTED_LANGS[number];
+
+const normalizeLang = (value?: string | null): SupportedLang | null => {
+  if (value === 'az' || value === 'en') return value;
+  return null;
+};
+
+// ✅ Dili localStorage-dan al (default: az)
+const getSelectedLanguage = (): SupportedLang => {
+  const stored = normalizeLang(localStorage.getItem('selectedLang'));
+  return stored || 'az';
 };
 
 const isProtectedEndpoint = (api: string): boolean => {
@@ -86,9 +73,8 @@ export default function GETRequest<T>(
     dependencies: any[] = [],
     params?: Record<string, any>
 ) {
-  // ✅ DÜZƏLDİLDİ: Default 'en' və Google Translate dilini istifadə et
   const { lang: urlLang } = useParams<{ lang: string }>();
-  const lang = urlLang || getSelectedLanguage();
+  const lang = normalizeLang(urlLang) || getSelectedLanguage();
 
   const isProtected = useMemo(() => isProtectedEndpoint(api), [api]);
   const userInfo = useMemo(() => getUserInfo(), []);
@@ -115,6 +101,23 @@ export default function GETRequest<T>(
 
         return response.data;
       } catch (error) {
+        // /productSingle endpoint-ində az dilində 404 alırsa, en dilində cəhd et
+        if (api.includes('/productSingle') && lang === 'az' && axios.isAxiosError(error) && error.response?.status === 404) {
+          console.warn(`Product not found in ${lang}, trying English...`);
+          try {
+            const fallbackResponse = await axiosInstance.get<T>(api, {
+              headers: {
+                'Accept-Language': 'en',
+                ...(userInfo.token && { Authorization: `Bearer ${userInfo.token}` }),
+              },
+              params,
+            });
+            return fallbackResponse.data;
+          } catch (fallbackError) {
+            console.warn(`API Error [${querykey}]:`, fallbackError);
+            throw fallbackError;
+          }
+        }
         console.warn(`API Error [${querykey}]:`, error);
         throw error;
       }
@@ -152,9 +155,8 @@ export function useFastRequest<T>(
     dependencies: any[] = [],
     params?: Record<string, any>
 ) {
-  // ✅ DÜZƏLDİLDİ: Default 'en' və Google Translate dilini istifadə et
   const { lang: urlLang } = useParams<{ lang: string }>();
-  const lang = urlLang || getSelectedLanguage();
+  const lang = normalizeLang(urlLang) || getSelectedLanguage();
   const userInfo = getUserInfo();
 
   return useQuery<T>({
@@ -182,7 +184,6 @@ export const createMutation = (
 ) => {
   return async (data?: any) => {
     const userInfo = getUserInfo();
-    // ✅ YENİ: Mutation-larda da düzgün dili istifadə et
     const lang = getSelectedLanguage();
 
     const headers: Record<string, string> = {
@@ -259,6 +260,76 @@ export const getPickupCities = async (lang: string = 'az'): Promise<string[]> =>
   }
 };
 
+// Bütün tərcümələri əldə et (həm Azərbaycan, həm İngilis)
+// Format: { az: { key: "mətni" }, en: { key: "text" } }
+export const useAllTranslations = () => {
+  const { lang: urlLang } = useParams<{ lang: string }>();
+  const lang = normalizeLang(urlLang) || getSelectedLanguage();
+
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ['all-translations'],
+    queryFn: async () => {
+      try {
+        const response = await axiosInstance.get('/translates/all', {
+          headers: {
+            'Accept-Language': lang,
+          },
+        });
+        // Response formatı: { az: {...}, en: {...} }
+        return response.data as {
+          az: Record<string, string>;
+          en: Record<string, string>;
+        };
+      } catch (error) {
+        console.error('All translations fetch error:', error);
+        return { az: {}, en: {} };
+      }
+    },
+    staleTime: 30 * 60 * 1000, // 30 dəqiqə cache
+    gcTime: 60 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  // Cari dil üçün tərcümələri filtrə et
+  const currentLanguageTranslations = useMemo(() => {
+    if (!data) return {};
+    const langData = lang === 'az' ? data.az : data.en;
+    return langData || {};
+  }, [data, lang]);
+
+  // Hər iki dili birlikdə döndər
+  return {
+    translations: data || { az: {}, en: {} },
+    currentLanguage: currentLanguageTranslations,
+    isLoading,
+    isError,
+    refetch,
+    lang,
+  };
+};
+
+// Helper: Tərcümə key-indən mətn almaq
+export const getTranslationValue = (
+  translations: Record<string, string>,
+  key: string,
+  fallback: string = ''
+): string => {
+  return translations[key] || fallback;
+};
+
+// Helper: Həm az, həm en dillərindən ayrı ayrı mətnləri almaq
+export const getTranslationInBothLanguages = (
+  allTranslations: { az: Record<string, string>; en: Record<string, string> },
+  key: string
+): { az: string; en: string } => {
+  return {
+    az: allTranslations.az?.[key] || '',
+    en: allTranslations.en?.[key] || '',
+  };
+};
+
 // Sifariş tracking məlumatlarını əldə et
 export const getOrderTracking = async (orderNumber: string, lang: string = 'az'): Promise<OrderTrackingResponse | null> => {
   try {
@@ -272,6 +343,21 @@ export const getOrderTracking = async (orderNumber: string, lang: string = 'az')
     return response.data;
   } catch (error) {
     console.error('Order tracking fetch error:', error);
+    return null;
+  }
+};
+
+// Kateqoriyanın filtrlərini əldə et
+export const getFilters = async (categoryId: number, lang: string = 'az'): Promise<Category | null> => {
+  try {
+    const response = await axiosInstance.get<Category>(`/category/${categoryId}/get-filters`, {
+      headers: {
+        'Accept-Language': lang,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Filters fetch error for category ${categoryId}:`, error);
     return null;
   }
 };

@@ -11,7 +11,7 @@ import { baseUrlInf } from '../../InfluencerBaseURL';
 
 export default function Login() {
   const [userType, setUserType] = useState<'user' | 'influencer'>('user');
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const { data: tarnslation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',
@@ -208,7 +208,7 @@ export default function Login() {
                   />
                   {tarnslation?.istifadeci_key}
                 </label>
-                <label className="hidden items-center gap-2">
+                <label className="flex items-center gap-2">
                   <input
                     style={{
                       minWidth: '21px',

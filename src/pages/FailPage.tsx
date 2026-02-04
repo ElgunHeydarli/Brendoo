@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 
 const FailPage = () => {
   const navigate = useNavigate();
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   useEffect(() => {
     localStorage.removeItem('order_ID');
@@ -20,12 +20,6 @@ const FailPage = () => {
       home: 'Ana səhifəyə qayıt',
       retry: 'Yenidən cəhd et',
     },
-    ru: {
-      title: 'Платеж не прошёл!',
-      desc: 'Произошла ошибка при оплате. Пожалуйста, попробуйте снова.',
-      home: 'Вернуться на домашнюю страницу',
-      retry: 'Попробовать снова',
-    },
     en: {
       title: 'Payment Failed!',
       desc: 'An error occurred during payment. Please try again.',
@@ -34,7 +28,7 @@ const FailPage = () => {
     },
   };
 
-  const t = texts[lang as keyof typeof texts] || texts.ru;
+  const t = texts[lang as keyof typeof texts] || texts.az;
 
   return (
     <>

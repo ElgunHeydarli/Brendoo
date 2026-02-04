@@ -30,7 +30,7 @@ type PieDataItem = {
 };
 
 const BottomChart: React.FC = () => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const { data: translation } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [
     lang,
   ]);

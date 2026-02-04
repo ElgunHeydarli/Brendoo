@@ -1,0 +1,200 @@
+Key,English,Azərbaycan,Type,Component,Priority,Notes
+auth_welcome_title,Welcome,Xoş gəldiniz,title,Login,critical,Login page main heading
+auth_welcome_desc,Please login to your account,Hesabınıza daxil olun,description,Login,critical,Login subtitle
+auth_or,OR,VƏ YA,label,Login/Register,critical,Divider text between login options
+auth_user_type,User,İstifadəçi,label,Login,critical,User type option
+auth_influencer_type,Influencer,Influencer,label,Login,critical,Influencer type option
+auth_email_label,Email,Email,label,Login/Register,critical,Email field label
+auth_password_label,Password,Şifrə,label,Login/Register,critical,Password field label
+auth_forgot_password,Forgot password?,Şifrəni unutdunuz?,link,Login,critical,Forgot password link
+auth_login_button,Login,Daxil Ol,button,Login,critical,Login form submit button
+auth_no_account,Don't have an account?,Hesabınız yoxdur?,text,Login,critical,Prompt to register
+auth_register_button,Register,Qeydiyyat Ol,button,Login/Register,critical,Register button
+auth_register_title,Create Your Account,Hesab Yaradın,title,Register,critical,Register page title
+auth_register_desc,Join us today,Bizə bu gün qoşulun,description,Register,critical,Register subtitle
+auth_email_invalid,Please enter a valid email,Düzgün email daxil edin,error,Register,critical,Email validation error
+auth_email_required,Email is required,Email tələb olunur,error,Register,critical,Email required error
+auth_password_required,Password is required,Şifrə tələb olunur,error,Register,critical,Password required error
+auth_password_min,Password must be at least 6 characters,Şifrə minimum 6 simvol olmalıdır,error,Register,critical,Password length validation
+auth_name_required,Name is required,Ad tələb olunur,error,Register,critical,Name required error
+auth_phone_required,Phone number is required,Telefon nömrəsi tələb olunur,error,Register,critical,Phone required error
+auth_phone_invalid,Phone must be 9 digits,Telefon nömrəsi 9 rəqəm olmalıdır,error,Register,critical,Phone format validation
+auth_fin_code_required,FIN code is required,FIN kod tələb olunur,error,Register,critical,FIN code required error
+auth_fin_code_invalid,FIN code must be 7 characters,FIN kod 7 simvol olmalıdır,error,Register,critical,FIN code format validation
+auth_gender_required,Gender is required,Cins tələb olunur,error,Register,critical,Gender required error
+auth_birthday_required,Date of birth is required,Doğum tarixi tələb olunur,error,Register,critical,Birthday required error
+auth_terms_required,You must accept the terms,Şərtləri qəbul etməlisiniz,error,Register,critical,Terms acceptance error
+auth_gender_male,Male,Erkək,label,Register,high,Male gender option
+auth_gender_female,Female,Qadın,label,Register,high,Female gender option
+auth_login_success,Login successful,Giriş uğurlu oldu,message,Login,critical,Success notification after login
+auth_register_success,Registration completed successfully,Qeydiyyat uğurla tamamlandı,message,Register,critical,Success notification after registration
+auth_loading,Loading...,Yüklənir...,label,Login,high,Loading state indicator
+footer_latest_offers,Latest offers,Ən son təkliflər,title,Footer,critical,Newsletter section heading
+footer_subscribe_button,Subscribe,Abunə ol,button,Footer,critical,Newsletter subscribe button
+footer_subscribing,Subscribing...,Abunə olunur...,label,Footer,high,Subscribe loading state
+footer_copyright,2025 | Brendoo,2025 | Brendoo,text,Footer,medium,Copyright text
+footer_have_question,Any questions?,Sualınız var?,title,Footer,high,Contact form section heading
+footer_name_label,Name and surname,Ad və soyad,label,Footer,high,Contact form name field
+footer_phone_label,Phone number,Telefon nömrəsi,placeholder,Footer,high,Contact form phone field
+footer_email_label,Email,Email,label,Footer,high,Contact form email field
+footer_message_label,Message,Mesaj,placeholder,Footer,high,Contact form message textarea
+footer_send_button,Send,Göndər,button,Footer,high,Contact form submit button
+footer_sending,Sending...,Göndərilir...,label,Footer,high,Send loading state
+footer_contact_success,Message sent successfully,Mesaj uğurla göndərildi,message,Footer,high,Contact form success notification
+footer_contact_error,Error sending message,Mesaj göndərilərkən xəta,error,Footer,high,Contact form error notification
+cart_title,Shopping Cart,Alış-veriş Səbəti,title,Basket,critical,Page title
+cart_empty,Your cart is empty,Səbətiniz boşdur,message,Basket,critical,Empty cart message
+cart_continue_shopping,Continue Shopping,Alış-verişi Dəvam Et,button,Basket,critical,Continue shopping button
+cart_quantity_label,Quantity,Miqdar,label,Basket,critical,Quantity selector label
+cart_remove,Remove,Sil,button,Basket,critical,Remove item from cart
+cart_subtotal,Subtotal,Ara Cəmi,label,Basket,critical,Subtotal label
+cart_shipping,Shipping,Çatdırılma,label,Basket,critical,Shipping cost label
+cart_tax,Tax,Vergi,label,Basket,critical,Tax amount label
+cart_total,Total,Cəmi,label,Basket,critical,Total price label
+cart_checkout_button,Proceed to Checkout,Ödənişə Keç,button,Basket,critical,Checkout button
+cart_update_quantity,Update Quantity,Miqdarı Güncəllə,button,Basket,high,Update quantity button
+checkout_title,Checkout,Ödəniş,title,BasketConfirm,critical,Checkout page title
+checkout_delivery_title,Delivery Address,Çatdırılma Ünvanı,title,BasketConfirm,critical,Delivery section heading
+checkout_billing_title,Billing Information,Ödəniş Məlumatları,title,BasketConfirm,critical,Billing section heading
+checkout_payment_title,Payment Method,Ödəniş Metodu,title,BasketConfirm,critical,Payment section heading
+checkout_order_summary,Order Summary,Sifariş Xülasəsi,title,BasketConfirm,critical,Order summary section heading
+checkout_place_order,Place Order,Sifariş Et,button,BasketConfirm,critical,Place order button
+checkout_continue_button,Continue,Dəvam Et,button,BasketConfirm,high,Continue button
+product_price,Price,Qiymət,label,ProductCard,critical,Price label
+product_original_price,Original Price,Orijinal Qiymət,label,ProductCard,high,Full price label
+product_discount,Discount,Endirim,label,ProductCard,high,Discount amount label
+product_add_to_cart,Add to Cart,Səbətə Əlavə Et,button,ProductCard,critical,Add to cart button
+product_in_stock,In Stock,Stokda Var,label,ProductCard,high,In stock indicator
+product_out_of_stock,Out of Stock,Stok Yoxdur,label,ProductCard,high,Out of stock indicator
+product_color,Color,Rəng,label,ProductCard,high,Color variant label
+product_size,Size,Ölçü,label,ProductCard,high,Size variant label
+product_select_color,Please select a color,Xahiş olaraq rəng seçin,message,ProductCard,high,Color selection prompt
+product_select_size,Please select a size,Xahiş olaraq ölçü seçin,message,ProductCard,high,Size selection prompt
+product_description,Description,Təsvir,title,ProductCard,high,Description section heading
+product_specifications,Specifications,Texniki Xüsusiyyətlər,title,ProductCard,high,Specifications section heading
+product_reviews,Reviews,Rəylər,title,ProductCard,high,Reviews section heading
+product_add_review,Add Review,Rəy Əlavə Et,button,ProductCard,high,Add review button
+product_rating,Rating,Reytinq,label,ProductCard,high,Rating label
+product_best_sellers,Best Sellers,Ən Çox Satılan,title,ProductCard,medium,Best sellers badge
+dashboard_title,Dashboard,Paneli,title,Dashboard,high,Main dashboard page title
+dashboard_welcome,Welcome,Xoş gəldiniz,greeting,Dashboard,high,User greeting
+dashboard_collections,Collections,Kolleksiyalar,link,Dashboard,high,Collections sidebar link
+dashboard_products,Products,Məhsullar,link,Dashboard,high,Products sidebar link
+dashboard_orders,Orders,Sifarişlər,link,Dashboard,high,Orders sidebar link
+dashboard_payments,Payments,Ödənişlər,link,Dashboard,high,Payments sidebar link
+dashboard_promocodes,Promo Codes,Promo Kodları,link,Dashboard,high,Promo codes sidebar link
+dashboard_analytics,Analytics,Analitika,link,Dashboard,medium,Analytics sidebar link
+dashboard_settings,Settings,Ayarlar,link,Dashboard,medium,Settings sidebar link
+dashboard_logout,Logout,Çıxış,button,Dashboard,high,Logout button
+dashboard_edit_profile,Edit Profile,Profili Redaktə Et,button,Dashboard,high,Edit profile button
+dashboard_pending,Pending,Gözləmədə,label,Dashboard,high,Pending status badge
+dashboard_approved,Approved,Təsdiq Edildi,label,Dashboard,high,Approved status badge
+dashboard_rejected,Rejected,Rədd Edildi,label,Dashboard,high,Rejected status badge
+dashboard_active,Active,Aktiv,label,Dashboard,high,Active status badge
+dashboard_inactive,Inactive,Fasiləsi,label,Dashboard,high,Inactive status badge
+search_placeholder,Search...,Axtar...,placeholder,Search,critical,Search input placeholder
+search_searching,Searching...,Axtarış edilir...,label,Search,high,Searching state indicator
+search_no_results,No results found,Nəticə tapılmadı,message,Search,high,Empty search results message
+search_popular,Popular,Məşhur,title,Search,high,Popular section heading
+search_recent,Recent,Yenilər,title,Search,high,Recent searches heading
+search_categories,Categories,Kateqoriyalar,title,Search,high,Categories section heading
+filter_by_price,Filter by Price,Qiymətə Görə Sıxla,title,Filter,high,Price filter section heading
+filter_by_category,Filter by Category,Kateqoriyaya Görə Sıxla,title,Filter,high,Category filter section heading
+filter_by_brand,Filter by Brand,Brenda Görə Sıxla,title,Filter,high,Brand filter section heading
+filter_sort_relevance,Sort by Relevance,Uyğunluğa Görə,option,Sort,high,Relevance sort option
+filter_sort_price_low,Price: Low to High,Qiymət: Aşağıdan Yuxarıya,option,Sort,high,Low to high price sort option
+filter_sort_price_high,Price: High to Low,Qiymət: Yuxarıdan Aşağıya,option,Sort,high,High to low price sort option
+filter_sort_newest,Newest,Ən Yeni,option,Sort,high,Newest first sort option
+filter_reset,Reset Filters,Filtrləri Sıfırla,button,Filter,high,Reset all filters button
+notification_success,Success,Uğurlu,title,Toast,high,Success notification title
+notification_error,Error,Xəta,title,Toast,high,Error notification title
+notification_warning,Warning,Xəbərdarlıq,title,Toast,high,Warning notification title
+notification_info,Information,Məlumat,title,Toast,high,Info notification title
+notification_item_added,Item added to cart,Element səbətə əlavə edildi,message,Toast,high,Add to cart notification
+notification_item_removed,Item removed from cart,Element səbətdən silindi,message,Toast,high,Remove from cart notification
+notification_loading,Loading...,Yüklənir...,label,Loader,high,Generic loading indicator
+notification_please_wait,Please wait...,Lütfən gözləyin...,label,Loader,high,Loading prompt
+button_yes,Yes,Bəli,button,Modal,medium,Confirmation dialog yes button
+button_no,No,Xeyr,button,Modal,medium,Confirmation dialog no button
+button_ok,OK,Tamam,button,Modal,medium,Confirmation dialog ok button
+button_cancel,Cancel,Ləğv Et,button,Modal,medium,Confirmation dialog cancel button
+button_save,Save,Yadda Saxla,button,Form,high,Save form changes button
+button_delete,Delete,Sil,button,Form,high,Delete item button
+button_edit,Edit,Redaktə Et,button,Form,high,Edit item button
+button_next,Next,Sonrakı,button,Navigation,high,Next page/step button
+button_previous,Previous,Əvvəlki,button,Navigation,high,Previous page/step button
+label_required,Required,Tələb olunur,label,Form,medium,Required field indicator
+label_optional,Optional,Seçimli,label,Form,medium,Optional field indicator
+error_network,Network error,Şəbəkə xətası,error,General,high,Network connectivity error
+error_server,Server error,Server xətası,error,General,high,Server error message
+error_unknown,An unknown error occurred,Bilinməyən xəta baş verdi,error,General,high,Unknown error message
+pickup_select_point,Select Pickup Point,Seçilmə Nöqtəsi Seçin,label,PickupPointSelector,high,Main pickup point selector label
+pickup_search,Search...,Axtar...,placeholder,PickupPointSelector,high,Pickup point search field placeholder
+pickup_no_location,No location selected,Ünvan seçilməyib,message,PickupPointSelector,high,Empty state message
+pickup_loading,Loading...,Yüklənir...,label,PickupPointSelector,high,Loading pickup points indicator
+pickup_error_required,Please select a pickup point,Xahiş olaraq bir seçilmə nöqtəsi seçin,error,PickupPointSelector,high,Validation error for pickup point
+otp_title,Verify Your Email,E-mailinizi Doğrulayın,title,OTPDialog,high,OTP verification dialog title
+otp_description,We sent a code to your email,Kod e-mailə göndərildi,description,OTPDialog,high,OTP verification instructions
+otp_enter_code,Enter the 6-digit code,6 rəqəmli kodu daxil edin,label,OTPDialog,high,OTP input field label
+otp_verify_button,Verify,Doğrula,button,OTPDialog,high,OTP verification submit button
+otp_resend,Resend Code,Kodu Yenidən Göndər,button,OTPDialog,high,Resend OTP code button
+otp_expires_in,Code expires in,Kod bittiyə,label,OTPDialog,high,OTP expiry timer label
+otp_invalid,Invalid code,Yanlış kod,error,OTPDialog,high,Invalid OTP code error
+otp_too_many_attempts,Too many attempts,Çox sayda cəhd,error,OTPDialog,high,OTP rate limit error
+address_title,Address,Ünvan,label,AddressForm,high,Address field label
+address_street,Street Address,Küçə Ünvanı,label,AddressForm,high,Street address field label
+address_city,City,Şəhər,label,AddressForm,high,City field label
+address_region,Region,Rayon,label,AddressForm,high,Region/District field label
+address_postal_code,Postal Code,Poçt Kodu,label,AddressForm,high,Postal code field label
+address_country,Country,Ölkə,label,AddressForm,high,Country field label
+address_add,Add Address,Ünvan Əlavə Et,button,AddressForm,high,Add new address button
+address_edit,Edit Address,Ünvanı Redaktə Et,button,AddressForm,high,Edit address button
+address_delete,Delete Address,Ünvanı Sil,button,AddressForm,high,Delete address button
+address_default,Set as Default,Standart kimi təyin et,button,AddressForm,high,Set default address button
+address_required,Address is required,Ünvan tələb olunur,error,AddressForm,high,Address field required error
+password_reset_title,Reset Password,Şifrəni Sıfırla,title,PasswordReset,high,Password reset page title
+password_reset_desc,Enter your email to reset your password,Şifrənizi sıfırlamaq üçün e-mailə daxil olun,description,PasswordReset,high,Password reset instructions
+password_new,New Password,Yeni Şifrə,label,PasswordReset,high,New password field label
+password_confirm,Confirm Password,Şifrəni Təsdiq Et,label,PasswordReset,high,Confirm password field label
+password_mismatch,Passwords do not match,Şifrələr uyğun gəlmir,error,PasswordReset,high,Password mismatch error
+password_reset_sent,Reset link sent to your email,Sıfırlama keçidi e-mailə göndərildi,message,PasswordReset,high,Reset link sent confirmation
+password_reset_success,Password reset successfully,Şifrə uğurla sıfırlandı,message,PasswordReset,high,Password reset success message
+pagination_previous,Previous,Əvvəlki,button,Pagination,high,Previous page button
+pagination_next,Next,Sonrakı,button,Pagination,high,Next page button
+pagination_page,Page,Səhifə,label,Pagination,medium,Page indicator label
+pagination_of,of,arasında,label,Pagination,medium,Pagination divider text
+breadcrumb_home,Home,Əsas Səhifə,link,Breadcrumb,medium,Home breadcrumb link
+breadcrumb_back,Back,Geri,button,Navigation,medium,Back navigation button
+form_required,This field is required,Bu sahə tələb olunur,error,Form,high,Generic field required error
+form_invalid,This field is invalid,Bu sahə etibarsızdır,error,Form,high,Generic field validation error
+form_submit,Submit,Göndər,button,Form,high,Generic form submit button
+form_reset,Reset,Sıfırla,button,Form,high,Generic form reset button
+form_success,Form submitted successfully,Form uğurla göndərildi,message,Form,high,Form success message
+form_error,Error submitting form,Form göndərilərkən xəta,error,Form,high,Form submission error message
+return_title,Return Request,Geri Qaytarma Tələbi,title,Returns,high,Return request page title
+return_reason,Reason for Return,Geri Qaytarma Səbəbi,label,Returns,high,Return reason field label
+return_description,Return Details,Geri Qaytarma Detalları,label,Returns,high,Return details textarea label
+return_submit,Submit Return Request,Geri Qaytarma Tələbini Göndər,button,Returns,high,Submit return request button
+return_approved,Approved,Təsdiq Edildi,label,Returns,high,Approved return status
+return_pending,Pending,Gözləmədə,label,Returns,high,Pending return status
+return_rejected,Rejected,Rədd Edildi,label,Returns,high,Rejected return status
+rating_title,Rate This Product,Bu Məhsulu Qiymətləndirin,title,Rating,high,Rating dialog title
+rating_please_rate,Please rate this product,Xahiş olaraq bu məhsulu qiymətləndirin,label,Rating,high,Rating instruction
+rating_comment,Your Comment,Sizin Şərhiniz,placeholder,Rating,high,Rating comment field placeholder
+rating_submit,Submit Rating,Qiymətləndirməni Göndər,button,Rating,high,Submit rating button
+rating_success,Rating submitted successfully,Qiymətləndirmə uğurla göndərildi,message,Rating,high,Rating success message
+rating_1_star,1 Star,1 Ulduz,label,Rating,medium,Single star rating label
+rating_5_stars,5 Stars,5 Ulduz,label,Rating,medium,Five star rating label
+sort_by,Sort by,Sırala,label,Sort,high,Sort selector label
+results_per_page,Results per page,Səhifə üzrə nəticələr,label,Pagination,high,Results per page selector label
+total_results,Total Results,Cəmi Nəticələr,label,Results,high,Total search results label
+home_featured_title,500000+ Products — Affordable Prices High Quality,500.000+ məhsul — Sərfəli qiymət yüksək keyfiyyət,title,Home,critical,Home page main headline
+home_featured_subtitle,Everything You're Looking For — All in One Platform,Axtardığın hər şey — bir platformada,description,Home,critical,Home page subtitle
+home_customer_promise,Customer Satisfaction is Our Main Principle,Müştəri məmnuniyyəti əsas prinsipimizdir,tagline,Home,critical,Home page promise statement
+home_new_products,New Products,Yeni məhsullar,title,Home,critical,New products section heading
+home_recently_viewed,Recently Viewed Products,Son baxılan məhsullar,title,Home,high,Recently viewed products section heading
+home_mobile_app,Mobile App iOS & Android Coming Soon,Mobil tətbiq ios & android tezliklə xidmətinizdə,message,Home,high,Mobile app notification message
+home_catalog,Catalog,Katalog,label,Home,critical,Catalog section label
+home_direct_from_china,Products Directly from China to Azerbaijan,Çindən bir başa Azərbaycana məhsullar,description,Home,high,Catalog section description
+home_categories,Categories,Kateqoriyalar,title,Home,critical,Categories section heading
+home_products_view,View Products,Məhsullara bax,button,Home,critical,View products button text

@@ -128,14 +128,14 @@ const handleSubmit = async (e: React.FormEvent) => {
     }));
 
     setSuccess(true);
-      toast.success("Профиль обновлён.")
+    toast.success(lang === 'en' ? 'Profile updated.' : 'Profil yeniləndi.');
 
   } catch (err: any) {
     console.error(err);
     setError(
       err?.response?.data?.message ||
       err?.message ||
-      toast.error("Профиль не был обновлён.")
+      toast.error(lang === 'en' ? 'Profile was not updated.' : 'Profil yenilənmədi.')
     );
   } finally {
     setLoading(false);

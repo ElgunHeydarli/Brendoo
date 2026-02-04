@@ -5,7 +5,7 @@ interface ColorVariant {
   id: number;
   slug: {
     en: string;
-    ru: string;
+    az: string;
   } | string;
   title?: string;  // Optional etdim
   color_name: string;
@@ -26,18 +26,18 @@ const ColorVariants: React.FC<ColorVariantsProps> = ({
   variants,
   currentColorName,
 }) => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   if (!variants || !Array.isArray(variants) || variants.length === 0) {
     return null;
   }
 
-  const getSlugValue = (slug: { en: string; ru: string } | string): string => {
+  const getSlugValue = (slug: { en: string; az: string } | string): string => {
     if (typeof slug === 'string') {
       return slug;
     }
     if (slug && typeof slug === 'object') {
-      return slug[lang as keyof typeof slug] || slug.ru || slug.en || '';
+      return slug[lang as keyof typeof slug] || slug.az || slug.en || '';
     }
     return '';
   };

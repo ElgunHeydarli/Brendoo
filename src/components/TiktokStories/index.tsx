@@ -12,7 +12,7 @@ const TiktokStories = () => {
     Record<string | number, boolean>
   >({});
 
-  const { lang = 'ru' } = useParams<{
+  const { lang = 'az' } = useParams<{
     lang: string;
   }>();
 

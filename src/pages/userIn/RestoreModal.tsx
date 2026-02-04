@@ -13,7 +13,7 @@ type Props = {
 };
 
 const RestoreModal: React.FC<Props> = ({ order_item_id, onClose, productd }) => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   // fetch
   const userInfoRaw = localStorage.getItem('user-info');
   const userInfo = userInfoRaw ? JSON.parse(userInfoRaw) : null;

@@ -64,7 +64,7 @@ export default function ProductCard({
     }
   };
 
-  const { lang = 'ru' } = useParams<{
+  const { lang = 'az' } = useParams<{
     lang: string;
   }>();
 
@@ -170,11 +170,17 @@ export default function ProductCard({
   const mutation = useMutation({
     mutationFn: addToBasket,
     onSuccess: () => {
-      toast.success('Товар добавлен в корзину');
+      toast.success(
+        translation?.added_to_cart ||
+          (lang === 'en' ? 'Added to cart' : 'Səbətə əlavə edildi')
+      );
       queryClient.invalidateQueries({ queryKey: ['basket_items'] });
     },
     onError: error => {
-      toast.error('Произошла ошибка.');
+      toast.error(
+        translation?.error_occurred ||
+          (lang === 'en' ? 'An error occurred.' : 'Xəta baş verdi.')
+      );
       console.error(error);
     },
   });
@@ -230,17 +236,22 @@ export default function ProductCard({
 
     trackProductView();
 
+    // Slug fallback: əgər az slug yoxdursa, en slug istifadə et
+    const azSlug = typeof data.slug === 'object' ? data.slug?.az : data.slug;
+    const enSlug = typeof data.slug === 'object' ? data.slug?.en : data.slug;
+    
+    const targetSlug = lang === 'az' 
+      ? (azSlug || enSlug) 
+      : enSlug;
+
+    if (!targetSlug) {
+      console.warn('No slug available for product', data.id);
+      return;
+    }
+
     localStorage.setItem('ProductSlug', JSON.stringify(data.slug));
-    // navigate(
-    //   `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${
-    //     data.slug[lang as keyof typeof data.slug]
-    //   }`
-    // );
-    window.open(
-      `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${
-        data.slug[lang as keyof typeof data.slug]
-      }`,
-      '_blank',
+    navigate(
+      `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${targetSlug}`
     );
   }, [data, lang, navigate, trackProductView]);
 

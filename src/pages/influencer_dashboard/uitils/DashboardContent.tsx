@@ -10,7 +10,7 @@ import StoryInner from './sidebarPages/StoryInner';
 
 const DashboardContent: React.FC = () => {
   const location = useLocation();
-  const { lang = 'ru' } = useParams();
+  const { lang = 'az' } = useParams();
 
   const storyDetailMatch = location.pathname.match(
     new RegExp(`^/${lang}/influencer/story/(\\d+)$`),

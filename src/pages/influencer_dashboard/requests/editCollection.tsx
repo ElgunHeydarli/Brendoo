@@ -20,7 +20,7 @@ export const handleEditCollectionReq = async (collectionId: number, data: EditCo
         });
 
         if (res.data) {
-            toast.success("Успешное обновление!");
+            toast.success("Yeniləndi.");
             data.title = '';
             data.description = '';
             closeModal();

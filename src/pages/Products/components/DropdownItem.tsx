@@ -11,7 +11,7 @@ interface DropdownItemProps {
 
 const DropdownItem = memo(({ data }: DropdownItemProps) => {
   const navigate = useNavigate();
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
   const location = useLocation();
 
   const queryParams = useMemo(

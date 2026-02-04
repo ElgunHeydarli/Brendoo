@@ -3,7 +3,7 @@ import { TranslationsKeys } from '../../setting/Types';
 import GETRequest from '../../setting/Request';
 
 export function BreadCump() {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter(x => x);
   const { data: tarnslation } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [

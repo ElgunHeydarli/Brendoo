@@ -8,7 +8,7 @@ import { AiFillProduct } from 'react-icons/ai';
 
 export default function CategoryNavigation({ handleClose }: { handleClose: () => void }) {
   const [CurretCategory, setCurrentCategory] = useState<number>(0);
-  const { lang = 'ru' } = useParams<{
+  const { lang = 'az' } = useParams<{
     lang: string;
   }>();
   const { data: catalog_categories } = GETRequest<CatalogCategory[]>(

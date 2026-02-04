@@ -28,7 +28,7 @@ export default function VerificationDialog({
     e.preventDefault();
     onSubmit(otp); // Call the onSubmit handler with the OTP value
   };
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: tarnslation } = GETRequest<TranslationsKeys>(
     `/translates`,
@@ -75,7 +75,8 @@ export default function VerificationDialog({
               <button
                 type="submit"
                 className="gap-2.5 self-start w-full px-10 leading-[19px] py-4 text-base font-medium text-white border border-solid bg-[#3873C3] border-[#3873C3] rounded-[100px] max-md:px-5">
-                {tarnslation?.testiq_et || 'Подтверждать '}
+                {tarnslation?.testiq_et ||
+                  (lang === 'en' ? 'Confirm' : 'Təsdiqlə')}
               </button>
             </div>
           </form>

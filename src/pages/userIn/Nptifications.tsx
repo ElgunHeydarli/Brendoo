@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function Notification() {
-  const { lang = 'ru' } = useParams<{
+  const { lang = 'az' } = useParams<{
     lang: string;
   }>();
   const [isPopOpen, setIsPopOpen] = useState(false);

@@ -106,7 +106,7 @@ function DiscountProductCard({ product, lang }: { product: Product; lang: string
 
 // Main Slider
 export default function TimedDiscountSlider({ translation }: TimedDiscountSliderProps) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const sliderRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -147,7 +147,7 @@ export default function TimedDiscountSlider({ translation }: TimedDiscountSlider
         <div className="flex items-center justify-between mb-5">
          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
   <span translate="yes">
-    {translation?.Limitli_təkliflər || 'Лимитированные предложения'}
+    {translation?.Limitli_təkliflər || (lang === 'en' ? 'Limited offers' : 'Limitli təkliflər')}
   </span>
 </h2>
           <div className="flex items-center gap-2">

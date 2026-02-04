@@ -26,11 +26,16 @@ export type LanguageStore = {
   setSelectedLang: (lang: string) => void;
 };
 
+const normalizeLang = (value?: string | null): 'az' | 'en' => {
+  return value === 'en' ? 'en' : 'az';
+};
+
 export const useLanguageStore = create<LanguageStore>((set) => ({
-  selectedLang: localStorage.getItem('selectedLang') || 'en',
+  selectedLang: normalizeLang(localStorage.getItem('selectedLang')),
   setSelectedLang: (lang) => {
-    localStorage.setItem('selectedLang', lang);
-    set({ selectedLang: lang });
+    const normalized = normalizeLang(lang);
+    localStorage.setItem('selectedLang', normalized);
+    set({ selectedLang: normalized });
   },
 }));
 
@@ -58,7 +63,7 @@ const getGuestCart = (): Basket => {
 export function useHeader(): UseHeaderReturn {
   const navigate = useNavigate();
   const location = useLocation();
-  const { lang = 'en' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   // Refs
   const inputRef = useRef<HTMLInputElement>(null);

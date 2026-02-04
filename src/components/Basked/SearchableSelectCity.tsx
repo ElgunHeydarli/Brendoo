@@ -27,7 +27,7 @@ const SearchableSelectCity = ({
     setShowDropdown(false);
   };
 
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
@@ -88,7 +88,9 @@ const SearchableSelectCity = ({
             ))
           ) : (
             <li className="px-4 py-2 text-gray-500">
-              {translation?.Ничего_не_найдено}
+              {translation?.nothing_found ||
+                translation?.nothingFound ||
+                (lang === 'en' ? 'Nothing found' : 'Heç nə tapılmadı')}
             </li>
           )}
         </ul>

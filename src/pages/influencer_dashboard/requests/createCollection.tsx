@@ -13,7 +13,7 @@ export const handleCreateCollectionReq = async (
   closeModal: () => void,
   msg: string,
 ) => {
-  const { lang = 'ru' } = useParams();
+  const { lang = 'az' } = useParams();
   const userStr = localStorage.getItem('user-info');
   const user = userStr ? JSON.parse(userStr) : '';
   const token = user?.token;

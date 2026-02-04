@@ -21,7 +21,7 @@ export default function Borttomswipper({
     }
   };
 
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const { data: tarnslation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',

@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import ROUTES from '../setting/routes';
 
 export default function Aboutus() {
-    const { lang = 'ru' } = useParams<{
+    const { lang = 'az' } = useParams<{
         lang: string;
     }>();
     const { data: tarnslation, isLoading: tarnslationLoading } =

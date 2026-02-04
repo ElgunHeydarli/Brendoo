@@ -5,7 +5,7 @@ import axios from "axios";
 import ROUTES from "../../setting/routes";
 import MobileMenu from "./MobileMenu";
 import { UseHeaderReturn } from "./types";
-import GoogleTranslate from "../GoogleTranslate";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 const API_URL = 'https://admin.brendoo.com';
 const RECENT_SEARCHES_KEY = 'brendoo_recent_searches';
@@ -25,20 +25,10 @@ const mobileTexts: Record<string, Record<string, string>> = {
     popularNow: 'İndi populyar',
     clearAll: 'Hamısını sil',
   },
-  ru: {
-    recentSearches: 'Недавние запросы',
-    popularNow: 'Популярно сейчас',
-    clearAll: 'Очистить все',
-  },
   en: {
     recentSearches: 'Recent searches',
     popularNow: 'Popular now',
     clearAll: 'Clear all',
-  },
-  tr: {
-    recentSearches: 'Son aramalar',
-    popularNow: 'Şu an popüler',
-    clearAll: 'Tümünü temizle',
   },
 };
 
@@ -441,9 +431,9 @@ export default function MobileHeader(props: MobileHeaderProps) {
             )}
           </div>
 
-            {/* ✅ Dil ikonu - Axtarışın YANINDA */}
-            {!isSearchOpen && <GoogleTranslate />}
           </div>
+
+          {!isSearchOpen && <LanguageSwitcher />}
 
           {/* User Icon */}
           {!isSearchOpen && (

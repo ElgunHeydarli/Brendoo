@@ -12,16 +12,16 @@ const InnerPageByLang: React.FC = () => {
         page: string;
         slug: string;
     }>();
-    if (page === ROUTES.product.en || page === ROUTES.product.ru) {
+    if (page === ROUTES.product.en || page === ROUTES.product.az) {
         return <ProductId />;
     }
     if (
         page === ROUTES.password_reset_confrim.en ||
-        page === ROUTES.password_reset_confrim.ru
+        page === ROUTES.password_reset_confrim.az
     ) {
         return <ResetPasswordConfrim />;
     }
-    if (page === ROUTES.orderdetail.en || page === ROUTES.orderdetail.ru) {
+    if (page === ROUTES.orderdetail.en || page === ROUTES.orderdetail.az) {
         return <OrderItemsDetail />;
     }
     return (

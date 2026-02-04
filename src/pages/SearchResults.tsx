@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
 import {
   useSearchParams,
   useNavigate,
@@ -6,7 +6,7 @@ import {
   Link,
 } from "react-router-dom";
 import axios from "axios";
-import GETRequest from "../setting/Request";
+import GETRequest, { getFilters } from "../setting/Request";
 import ROUTES from "../setting/routes";
 import type {
   Category,
@@ -15,6 +15,7 @@ import type {
   Product,
 } from "../setting/Types";
 import SEO from "../components/SEO";
+import DynamicFilters from "../components/DynamicFilters";
 
 // Components from Products
 import {
@@ -53,6 +54,8 @@ export default function SearchResults() {
 
   const query = searchParams.get("q") || "";
   const searchType = searchParams.get("type") || "text";
+  const optionsFromUrl = searchParams.get("options") ? 
+    searchParams.get("options")!.split(",").map(Number) : [];
 
   // State
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,7 +63,7 @@ export default function SearchResults() {
   const [Sort, setSort] = useState<string>("");
   const [minPrice, setMinPrice] = useState<number>(0);
   const [maxPrice, setMaxPrice] = useState<number>(0);
-  const [options, setOptions] = useState<number[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<number[]>(optionsFromUrl);
   const [checked, setChecked] = useState(false);
   const [isBestseller, setIsBestseller] = useState(false);
   const [isLowStock, setIsLowStock] = useState(false);
@@ -69,6 +72,8 @@ export default function SearchResults() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [lastPage, setLastPage] = useState(1);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
+  const [categoryFilters, setCategoryFilters] = useState<Filter[]>([]);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
 
   // API requests
   const { data: categories, isLoading: categoriesLoading } = GETRequest<Category[]>(
@@ -88,6 +93,31 @@ export default function SearchResults() {
     "filters",
     [lang]
   );
+  
+  // Filterləri qruplaşdır (dublikat ID-li filterləri birləşdir)
+  const groupedFilters = useMemo(() => {
+    if (!filters) return [];
+    const uniqueFilters: Filter[] = [];
+    const seenIds = new Set<number>();
+    
+    filters.forEach((filter) => {
+      if (!seenIds.has(filter.id)) {
+        seenIds.add(filter.id);
+        const allOptionsForThisId = filters
+          .filter(f => f.id === filter.id)
+          .flatMap(f => f.options);
+        const uniqueOptions = Array.from(
+          new Map(allOptionsForThisId.map(opt => [opt.id, opt])).values()
+        );
+        uniqueFilters.push({
+          id: filter.id,
+          title: filter.title,
+          options: uniqueOptions
+        });
+      }
+    });
+    return uniqueFilters;
+  }, [filters]);
 
   const { data: product_hero } = GETRequest<any>(
     `/product_hero`,
@@ -166,6 +196,13 @@ export default function SearchResults() {
       if (minPrice > 0) params.append('min_price', String(minPrice));
       if (maxPrice > 0) params.append('max_price', String(maxPrice));
 
+      // Dinamik filtrlər (options)
+      if (selectedOptions.length > 0) {
+        selectedOptions.forEach((optionId) => {
+          params.append('options[]', String(optionId));
+        });
+      }
+
       // Endirimli
       if (checked) params.append('discount', '1');
 
@@ -215,7 +252,20 @@ export default function SearchResults() {
       if (res.data?.data && res.data?.meta) {
         // Laravel pagination strukturu
         const validProducts = filterValidProducts(res.data.data || []);
-        setProducts(validProducts);
+
+        // Backend sıralama etmirsə, səhifə içində client-side sort et
+        const sortedPageProducts = [...validProducts];
+        if (Sort === "cheap-expensive") {
+          sortedPageProducts.sort((a, b) => parseFloat(String(a.price)) - parseFloat(String(b.price)));
+        } else if (Sort === "expensive-cheap") {
+          sortedPageProducts.sort((a, b) => parseFloat(String(b.price)) - parseFloat(String(a.price)));
+        } else if (Sort === "A-Z") {
+          sortedPageProducts.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        } else if (Sort === "Z-A") {
+          sortedPageProducts.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+        }
+
+        setProducts(sortedPageProducts);
         setTotalProducts(res.data.meta.total || validProducts.length);
         setLastPage(res.data.meta.last_page || 1);
       } else if (res.data?.products) {
@@ -242,25 +292,26 @@ export default function SearchResults() {
           data = data.filter((p: any) => p.is_top_rated === true);
         }
 
-        // Client-side sıralama
+        // Client-side sıralama - TƏK BİR DƏFƏ TÜM DATA-DA TƏTBİQ ET
+        const sortedData = [...data]; // Yeni array yaratmaq mühüm - orijinal data-yı dəyişmə
         if (Sort === "cheap-expensive") {
-          data.sort((a, b) => parseFloat(String(a.price)) - parseFloat(String(b.price)));
+          sortedData.sort((a, b) => parseFloat(String(a.price)) - parseFloat(String(b.price)));
         } else if (Sort === "expensive-cheap") {
-          data.sort((a, b) => parseFloat(String(b.price)) - parseFloat(String(a.price)));
+          sortedData.sort((a, b) => parseFloat(String(b.price)) - parseFloat(String(a.price)));
         } else if (Sort === "A-Z") {
-          data.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+          sortedData.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
         } else if (Sort === "Z-A") {
-          data.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
+          sortedData.sort((a, b) => (b.title || "").localeCompare(a.title || ""));
         }
 
         // Total-dan pagination hesabla
-        const total = res.data?.total || data.length;
+        const total = res.data?.total || sortedData.length;
         setTotalProducts(total);
         setLastPage(Math.ceil(total / 24));
 
-        // Client-side pagination
+        // Client-side pagination - sıralanmış data-dan
         const startIndex = (page - 1) * 24;
-        const paginatedData = data.slice(startIndex, startIndex + 24);
+        const paginatedData = sortedData.slice(startIndex, startIndex + 24);
         setProducts(paginatedData);
       } else {
         setProducts([]);
@@ -273,7 +324,7 @@ export default function SearchResults() {
     } finally {
       setIsLoading(false);
     }
-  }, [query, lang, minPrice, maxPrice, checked, Sort, page, searchType, isBestseller, isLowStock, isTopRated]);
+  }, [query, lang, minPrice, maxPrice, checked, page, searchType, isBestseller, isLowStock, isTopRated, Sort, selectedOptions]);
 
   useEffect(() => {
     if (searchType === "text") {
@@ -281,38 +332,59 @@ export default function SearchResults() {
     }
   }, [performSearch, searchType]);
 
+  // URL-dən page parametrini oxu
   useEffect(() => {
-    setPage(1);
-  }, [query, minPrice, maxPrice, checked, Sort, isBestseller, isLowStock, isTopRated]);
+    const pageFromUrl = searchParams.get("page");
+    if (pageFromUrl) {
+      const pageNum = parseInt(pageFromUrl, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        setPage(pageNum);
+      }
+    }
+  }, [searchParams]);
+
+  // Filter dəyişəndə page-i 1-ə qaytarma (yalnız URL-də page yoxdursa)
+  useEffect(() => {
+    const pageFromUrl = searchParams.get("page");
+    if (!pageFromUrl) {
+      setPage(1);
+    }
+  }, [query, minPrice, maxPrice, checked, Sort, isBestseller, isLowStock, isTopRated, selectedOptions]);
+
+  // URL-dən options parametrini oxu
+  useEffect(() => {
+    const optionsFromUrl = searchParams.get("options") ? 
+      searchParams.get("options")!.split(",").map(Number) : [];
+    setSelectedOptions(optionsFromUrl);
+  }, [searchParams]);
+
+
 
   const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-    
-    // Google Translate cookie-lərini düzgün təyin et
-    const savedLangCode = localStorage.getItem("selectedGoogleLangCode");
-    if (savedLangCode && savedLangCode !== "en") {
-      const domain = window.location.hostname;
-      const cookieValue = `/en/${savedLangCode}`;
-      
-      // Cookie-ləri müxtəlif domain variantları ilə təyin et
-      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
-      if (domain.includes('.')) {
-        const rootDomain = domain.substring(domain.indexOf('.'));
-        document.cookie = `googtrans=${cookieValue}; path=/; domain=${rootDomain}; max-age=31536000`;
-      }
-      
-      // sessionStorage flag-ını təmizlə ki, yeni səhifədə tərcümə tətbiq olunsun
-      sessionStorage.removeItem("languageAutoApplied");
-    }
-    
-    // Səhifəni yenilə
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
-  }, []);
+    // URL-ə page parametrini əlavə et
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set("page", newPage.toString());
+    const newUrl = `/${lang}/search?${currentParams.toString()}`;
+
+    // Yeni URL-ə keç
+    window.location.href = newUrl;
+  }, [lang]);
 
   const closeFilter = useCallback(() => {}, []);
+
+  // Filtrlər dəyişdikdə URL-i güncəllə
+  const handleFilterChange = useCallback((newOptions: number[]) => {
+    const currentParams = new URLSearchParams(window.location.search);
+    if (newOptions.length > 0) {
+      currentParams.set("options", newOptions.join(","));
+    } else {
+      currentParams.delete("options");
+    }
+    // Page-i reset et
+    currentParams.delete("page");
+    const newUrl = `/${lang}/search?${currentParams.toString()}`;
+    window.location.href = newUrl;
+  }, [lang]);
 
   // Radio button handler
   const handleTypeFilter = (filterType: 'bestseller' | 'lowStock' | 'topRated') => {
@@ -360,18 +432,16 @@ export default function SearchResults() {
         ))
       )}
 
+      {/* Dinamik Filtrlər */}
       {filtersLoading ? (
         <FilterSkeleton />
-      ) : (
-        filters?.map((item) => (
-          <DropdownItemFilter
-            key={item.id}
-            options={options}
-            setoptions={setOptions}
-            data={item}
-          />
-        ))
-      )}
+      ) : groupedFilters && groupedFilters.length > 0 ? (
+        <DynamicFilters
+          filters={groupedFilters}
+          selectedOptions={selectedOptions}
+          onFilterChange={handleFilterChange}
+        />
+      ) : null}
 
       <PriceRange
         t={translation}
@@ -403,7 +473,7 @@ export default function SearchResults() {
           }`}
         />
         <span className="self-stretch my-auto">
-          {translation?.cox_satilan || "Çox satılanlar"}
+          {translation?.cox_satilan || 'Best Sellers'}
         </span>
       </div>
 
@@ -656,8 +726,8 @@ export default function SearchResults() {
                 {/* Aktiv filter badge-ləri */}
                 {isBestseller && (
                   <div className="flex gap-2.5 justify-center items-center px-7 py-3.5 text-base font-medium text-black border border-solid border-black border-opacity-10 rounded-[100px] max-md:px-5">
-                    <span className="self-stretch my-auto">{translation?.cox_satilan || "Çox satılanlar"}</span>
-                    <button onClick={() => setIsBestseller(false)} aria-label="Çox satılanlar filterini sil">
+                    <span className="self-stretch my-auto">{translation?.cox_satilan || 'Best Sellers'}</span>
+                    <button onClick={() => setIsBestseller(false)} aria-label="Remove best sellers filter">
                       <img
                         loading="lazy"
                         src="https://cdn.builder.io/api/v1/image/assets/TEMP/4cb50113a191ac3232ff04e9cd73f88231de4b607b8e1436abe0365b70e6b221"

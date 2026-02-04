@@ -12,7 +12,22 @@ type Return = {
 };
 
 export default function ReturnPage() {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
+  const labels = {
+    az: {
+      processing: 'Emalda',
+      approved: 'Təsdiqləndi',
+      rejected: 'Rədd edildi',
+      noReturns: 'Qaytarılmış məhsulunuz yoxdur',
+    },
+    en: {
+      processing: 'Processing',
+      approved: 'Approved',
+      rejected: 'Rejected',
+      noReturns: 'You have no returned items',
+    },
+  } as const;
+  const t = labels[lang === 'en' ? 'en' : 'az'];
 
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
@@ -27,17 +42,17 @@ export default function ReturnPage() {
   );
 
   const statusIndicator = (status?: string) => {
-    if (!status) return translation?.processing || 'В обработке';
+    if (!status) return translation?.processing || t.processing;
     
     switch (status) {
       case 'approved':
-        return translation?.approved || 'Одобрено';
+        return translation?.approved || t.approved;
       case 'rejected':
-        return translation?.rejected || 'Отклонено';
+        return translation?.rejected || t.rejected;
       case 'pending':
-        return translation?.pending || 'В обработке';
+        return translation?.pending || t.processing;
       default:
-        return translation?.pending || 'В обработке';
+        return translation?.pending || t.processing;
     }
   };
 
@@ -130,7 +145,7 @@ export default function ReturnPage() {
               // No returns
               <div className="text-center py-10">
                 <div className="text-gray-500">
-                  {translation?.no_returns || 'У вас нет возвращенных товаров'}
+                  {translation?.no_returns || t.noReturns}
                 </div>
               </div>
             )}

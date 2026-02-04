@@ -60,7 +60,7 @@ function FAQSection({
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [CurrentFaqCategory, setCurrentFaqCategory] = useState<number>(-1);
   const navigate = useNavigate();
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: faqCategory } = GETRequest<FaqCategory[]>(
     `/faqCategory`,
@@ -125,7 +125,7 @@ function FAQSection({
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
-                {tarnslation?.All || 'Все'}
+                {tarnslation?.All || (lang === 'en' ? 'All' : 'Hamısı')}
               </button>
               {faqCategory?.map((faq: FaqCategory) => (
                 <button

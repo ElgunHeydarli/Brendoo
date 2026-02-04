@@ -16,7 +16,7 @@ interface Props {
 }
 
 const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
-  const { lang = 'ru' } = useParams();
+  const { lang = 'az' } = useParams();
   const [clothImage, setClothImage] = useState<File | null>(null);
   const [humanImage, setHumanImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +30,27 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
     'translates',
     [lang],
   );
+  const ui = {
+    az: {
+      success: 'Uğurlu!',
+      back: 'Geri',
+      result: 'Nəticə',
+      tryOnTitle: 'Geyimi üzərinizdə yoxlayın',
+      loading: 'Yüklənir...',
+      tryOn: 'Yoxla',
+      termsPath: 'terms',
+    },
+    en: {
+      success: 'Success!',
+      back: 'Back',
+      result: 'Result',
+      tryOnTitle: 'Try on the outfit',
+      loading: 'Loading...',
+      tryOn: 'Try on',
+      termsPath: 'terms',
+    },
+  } as const;
+  const t = ui[lang === 'en' ? 'en' : 'az'];
 
   useEffect(() => {
     document.body.style.overflow = openSidebar ? 'hidden' : '';
@@ -124,7 +145,7 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
       if (imageUrl) {
         setResultImageUrl(imageUrl);
         window.open(imageUrl, '_blank');
-        toast.success(tarnslation?.succ_t ?? 'Успешно!');
+        toast.success(tarnslation?.succ_t ?? t.success);
       } else {
         toast.error(tarnslation?.r_i_n_f ?? '');
       }
@@ -240,12 +261,12 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
                 <span>
                   <RiArrowGoBackFill />
                 </span>
-                Назад
+                {t.back}
               </button>
 
               <div className="mt-8">
                 <h4 className="text-[16px] font-semibold mb-2">
-                  {tarnslation?.Результат ?? ''}
+                  {tarnslation?.result ?? t.result}
                 </h4>
                 <img
                   src={resultImageUrl}
@@ -258,7 +279,7 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
             <>
               <div className="mb-[40px]">
                 <h4 className="font-[500] text-[28px]">
-                  {tarnslation?.Примерьтеодеждa ?? ''}
+                  {tarnslation?.try_on_title ?? t.tryOnTitle}
                 </h4>
                 <p className="text-[15px]">{tarnslation?.RES ?? ''}</p>
               </div>
@@ -296,8 +317,8 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
                     disabled={isSubmitting || !clothImage || !humanImage}
                   >
                     {isSubmitting
-                      ? tarnslation?.Загружается ?? ''
-                      : tarnslation?.Примерить ?? ''}
+                      ? (tarnslation?.loading ?? t.loading)
+                      : (tarnslation?.try_on ?? t.tryOn)}
                   </button>
                 </div>
               )}
@@ -308,7 +329,7 @@ const SelectSizeSidebar = ({ openSidebar, onClose }: Props) => {
             <Link
               reloadDocument
               className="font-[400] text-[14px] text-[#3873C3] hover:text-[blue] transition-[300ms]"
-              to={`/условия-и-положения/${lang}/${
+              to={`/${t.termsPath}/${lang}/${
                 dataRulesPage
                   ? dataRulesPage?.slug[lang as keyof typeof dataRulesPage.slug]
                   : ''

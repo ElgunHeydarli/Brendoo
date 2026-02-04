@@ -63,7 +63,7 @@ interface ClothingListProps {
 }
 
 export const ClothingList: React.FC<ClothingListProps> = ({ item }) => {
-    const { lang = 'ru' } = useParams<{ lang: string }>();
+    const { lang = 'az' } = useParams<{ lang: string }>();
     return (
         <ul
             className="custom-scrollbar flex flex-col  py-3 items-center max-md:px-0 max-md:rounded-none px-5 mt-4 w-full text-base text-black whitespace-nowrap rounded-3xl aspect-square bg-stone-50 max-h-[150px] overflow-y-scroll"
@@ -103,7 +103,7 @@ interface ClothingMenuProps {
 
 const ClothingMenu: React.FC<ClothingMenuProps> = ({ data, translation }) => {
     const [isClothingOpen, setIsClothingOpen] = useState<number>(-1);
-    const { lang = 'ru' } = useParams<{ lang: string }>();
+    const { lang = 'az' } = useParams<{ lang: string }>();
 
     const toggleClothingCategory = (i: number) => {
         if (isClothingOpen === i) {

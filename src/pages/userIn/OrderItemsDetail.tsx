@@ -49,6 +49,37 @@ const OrderItemsDetail = () => {
   const [cityId, setCityId] = useState<number | ''>('');
 
   const { lang, slug } = useParams<{ lang: string; page: string; slug: string }>();
+  const labels = {
+    az: {
+      changeAddress: 'Ünvanı dəyiş',
+      newAddress: 'Yeni ünvan',
+      orderNumber: 'Sifariş nömrəsi',
+      orderHistory: 'Sifariş tarixi',
+      productCount: 'Məhsul sayı',
+      product: 'məhsul',
+      downloadInvoice: 'Faktura yüklə',
+      rateProduct: 'Məhsulu qiymətləndir',
+      discount: 'Endirim',
+      delivery: 'Çatdırılma',
+      total: 'Ümumi məbləğ',
+      loginPath: 'az',
+    },
+    en: {
+      changeAddress: 'Change address',
+      newAddress: 'New address',
+      orderNumber: 'Order number',
+      orderHistory: 'Order history',
+      productCount: 'Product count',
+      product: 'product',
+      downloadInvoice: 'Download invoice',
+      rateProduct: 'Rate product',
+      discount: 'Discount',
+      delivery: 'Delivery',
+      total: 'Total',
+      loginPath: 'en',
+    },
+  } as const;
+  const ui = labels[lang === 'en' ? 'en' : 'az'];
 
   // API'den bölgeleri çek
   const getRegions = async () => {
@@ -104,7 +135,7 @@ const OrderItemsDetail = () => {
   useEffect(() => {
     const uStr = localStorage.getItem('user-info');
     if (!uStr) {
-      navigate(`/en/login`);
+      navigate(`/${ui.loginPath}/login`);
     }
   }, [navigate]);
 
@@ -296,13 +327,13 @@ const OrderItemsDetail = () => {
                   <IoClose size={22} />
                 </button>
                 <h2 className="text-xl font-semibold mb-4">
-                  {tarnslation?.Изменитьадрес ?? 'Ünvanı dəyiş'}
+                  {tarnslation?.izmen_ad || ui.changeAddress}
                 </h2>
 
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg p-3 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={tarnslation?.noviy_adress ?? 'Yeni ünvan'}
+                  placeholder={tarnslation?.noviy_adress || ui.newAddress}
                   value={addressInput}
                   onChange={(e) => setAddressInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -336,7 +367,7 @@ const OrderItemsDetail = () => {
                   onClick={handleSaveAddress}
                   disabled={savingAddress}
                 >
-                  {savingAddress ? (tarnslation?.coxranenie ?? 'Saxlanılır...') : (tarnslation?.izmen_ad ?? 'Ünvanı dəyiş')}
+                  {savingAddress ? (tarnslation?.coxranenie ?? 'Saxlanılır...') : (tarnslation?.izmen_ad || ui.changeAddress)}
                 </button>
               </div>
             </div>
@@ -352,19 +383,19 @@ const OrderItemsDetail = () => {
                       <Package className="h-6 w-6 text-slate-600" />
                     </div>
                     <div>
-                      <div className="text-sm text-slate-500">{tarnslation?.Номерзаказа ?? 'Sifariş nömrəsi'}</div>
+                      <div className="text-sm text-slate-500">{ui.orderNumber}</div>
                       <div className="font-semibold">{order.order_number}</div>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-sm text-slate-500">{tarnslation?.Историязаказов ?? 'Sifariş tarixi'}</div>
+                    <div className="text-sm text-slate-500">{ui.orderHistory}</div>
                     <div className="font-semibold">{new Date(order.order_date).toLocaleDateString()}</div>
                   </div>
 
                   <div>
-                    <div className="text-sm text-slate-500">{tarnslation?.Номерпродукта ?? 'Məhsul sayı'}</div>
-                    <div className="font-semibold">{order.order_items_count} {tarnslation?.продукт ?? 'məhsul'}</div>
+                    <div className="text-sm text-slate-500">{ui.productCount}</div>
+                    <div className="font-semibold">{order.order_items_count} {ui.product}</div>
                   </div>
 
                   <button
@@ -373,7 +404,7 @@ const OrderItemsDetail = () => {
                     className="bg-blue-100 text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors flex items-center gap-2 disabled:opacity-50"
                   >
                     <Download className="w-4 h-4" />
-                    {invoiceLoading ? (tarnslation?.yuklenir || 'Yüklənir...') : (tarnslation?.Загрузитьсчетфактуру ?? 'Faktura yüklə')}
+                    {invoiceLoading ? (tarnslation?.yuklenir || 'Yüklənir...') : ui.downloadInvoice}
                   </button>
                 </div>
               </div>
@@ -400,7 +431,7 @@ const OrderItemsDetail = () => {
                         <div className="font-bold">{formatCurrency(item?.price)}</div>
                         {item?.product && (
                           <button className="text-blue-600 text-sm" onClick={() => setProductCommit(item.id)}>
-                            {tarnslation?.Оценитепродукт ?? 'Məhsulu qiymətləndir'}
+                            {ui.rateProduct}
                           </button>
                         )}
                       </div>
@@ -670,16 +701,16 @@ const OrderItemsDetail = () => {
                       </div>
                       {order.discount && Number.parseFloat(order.discount) > 0 && (
                         <div className="flex justify-between items-center">
-                          <div className="text-slate-500">{tarnslation?.Скидка ?? 'Endirim'}</div>
+                          <div className="text-slate-500">{ui.discount}</div>
                           <div className="font-medium text-red-500">-{formatCurrency(order.discount)}</div>
                         </div>
                       )}
                       <div className="flex justify-between items-center">
-                        <div className="text-slate-500">{tarnslation?.Сумма ?? 'Çatdırılma'}</div>
+                        <div className="text-slate-500">{ui.delivery}</div>
                         <div className="font-medium">{order.delivered_price ? formatCurrency(order.delivered_price) : '0.00 ₼'}</div>
                       </div>
                       <div className="border-t pt-4 flex justify-between items-center">
-                        <div className="text-slate-500">{tarnslation?.Суммадоставки ?? 'Ümumi məbləğ'}</div>
+                        <div className="text-slate-500">{ui.total}</div>
                         <div className="font-bold text-green-600">{formatCurrency(order.final_price)}</div>
                       </div>
                       {order.payment_type === 'card' && (

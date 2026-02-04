@@ -15,7 +15,7 @@ const FilterModal = ({
   onRequestReminder,
   isLoading,
 }: OutOfStockNotificationProps) => {
-  const { lang = 'ru' } = useParams<{
+  const { lang = 'az' } = useParams<{
     lang: string;
     slug: string;
   }>();

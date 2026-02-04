@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import ROUTES from "../../setting/routes";
 
 export default function Password() {
-  const { lang } = useParams<{ lang: string }>() || { lang: "ru" };
+  const { lang } = useParams<{ lang: string }>() || { lang: "az" };
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type");
   const isUser = type === "user";

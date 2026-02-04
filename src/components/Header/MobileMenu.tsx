@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { AiFillProduct } from "react-icons/ai";
 import ROUTES from "../../setting/routes";
-import GoogleTranslate from "../GoogleTranslate";
+import LanguageSwitcher from "../LanguageSwitcher";
 
 interface MobileMenuProps {
   showaside: boolean;
@@ -103,7 +103,7 @@ export default function MobileMenu({
                 />
               </svg>
               <div className="sm:hidden">
-                <GoogleTranslate />
+                <LanguageSwitcher />
               </div>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function MobileMenu({
                 <div className="w-10 aspect-square rounded-full bg-[#F0F6FF] flex justify-center items-center">
                   <AiFillProduct />
                 </div>
-                {translation?.butun_mehsullar_new}
+                {translation?.butun_mehsullar_new || (lang === 'az' ? 'Bütün məhsullar' : 'All products')}
               </div>
               <ChevronRightIcon />
             </div>

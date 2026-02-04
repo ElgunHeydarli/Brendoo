@@ -7,7 +7,7 @@ import ROUTES from '../../setting/routes';
 export default function SucsesPassword() {
     const navigate = useNavigate();
 
-    const { lang = 'ru' } = useParams<{ lang: string }>();
+    const { lang = 'az' } = useParams<{ lang: string }>();
 
     const { data: tarnslation } = GETRequest<TranslationsKeys>(
         `/translates`,

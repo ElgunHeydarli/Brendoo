@@ -23,7 +23,7 @@ interface Gift {
 
 export default function BaskedConfirm() {
   const queryClient = useQueryClient();
-const { lang = 'en' } = useParams<{ lang: string }>();
+const { lang = 'az' } = useParams<{ lang: string }>();
   const [_Body, _setBody] = useState<any>(null);
   const [FINAL_price, setFINAL_price] = useState(0);
   const user = localStorage.getItem("user-info");
@@ -65,7 +65,7 @@ const { lang = 'en' } = useParams<{ lang: string }>();
     const fetchMinimumOrder = async () => {
       try {
         const res = await axios.get('https://admin.brendoo.com/api/settings/minimum-order', {
-          headers: { 'Accept-Language': lang },
+          headers: { 'Accept-Language': 'az' }, // Həmişə Azərbaycanca
         });
         setMinimumOrder(res.data);
       } catch (error) {
@@ -73,13 +73,14 @@ const { lang = 'en' } = useParams<{ lang: string }>();
       }
     };
     fetchMinimumOrder();
-  }, [lang]);
+  }, []);
 
   useEffect(() => {
     const fetchGifts = async () => {
       try {
+        const apiLang = lang === 'en' ? 'en' : 'az';
         const res = await axios.get(`https://admin.brendoo.com/api/gifts?amount=${currentTotal}`, {
-          headers: { 'Accept-Language': lang },
+          headers: { 'Accept-Language': apiLang },
         });
         setGifts(res.data.gifts || []);
       } catch (error) {

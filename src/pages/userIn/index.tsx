@@ -21,7 +21,7 @@ export default function UserSettings() {
   const [ChangeEmail, setChangeEmail] = useState(false);
   const [NewEmail, setNewEmail] = useState("");
 
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
     "translates",
@@ -280,10 +280,10 @@ export default function UserSettings() {
                       >
                         <option value="">{translation?.gender || "Cins"}</option>
                         <option value="man">
-                          {lang === "az" ? "Kişi" : lang === "en" ? "Male" : "Мужчина"}
+                          {lang === "en" ? "Male" : "Kişi"}
                         </option>
                         <option value="woman">
-                          {lang === "az" ? "Qadın" : lang === "en" ? "Female" : "Женщина"}
+                          {lang === "en" ? "Female" : "Qadın"}
                         </option>
                       </select>
                     </div>
@@ -363,7 +363,7 @@ export default function UserSettings() {
                       className="overflow-hidden px-5 py-5 w-full bg-white border border-solid border-black border-opacity-10 rounded-[100px] mb-7"
                       type="email"
                       name="email"
-                      placeholder={lang === "az" ? "Yeni email" : lang === "en" ? "New email" : "Новый email"}
+                      placeholder={lang === "en" ? "New email" : "Yeni email"}
                       value={values.email}
                       onChange={handleChange}
                     />
@@ -371,7 +371,7 @@ export default function UserSettings() {
                       type="submit"
                       className="gap-2.5 self-start w-full px-10 leading-[19px] py-4 text-base font-medium text-white border border-solid bg-[#3873C3] border-[#3873C3] rounded-[100px] max-md:px-5"
                     >
-                      {lang === "az" ? "Kod göndər" : lang === "en" ? "Send Code" : "Отправить код"}
+                      {lang === "en" ? "Send Code" : "Kod göndər"}
                     </button>
                   </form>
                 )}
@@ -402,11 +402,9 @@ export default function UserSettings() {
                   )
                   .then((res) => {
                     toast.success(
-                      lang === "az"
-                        ? "Email uğurla dəyişdirildi"
-                        : lang === "en"
+                      lang === "en"
                         ? "Email successfully changed"
-                        : "Email успешно изменен"
+                        : "Email uğurla dəyişdirildi"
                     );
                     const userStr = localStorage.getItem("user-info");
                     if (userStr) {

@@ -9,7 +9,7 @@ import OrderMainItem from './OrderMainItem';
 import axios from 'axios';
 // https://admin.brendoo.com/api/getOrders
 export default function ORder() {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const [, setLoading] = useState(false);
   const [checkedRetunProductsIds, setCheckedRetunProductsIds] = useState<number[]>([]);
 

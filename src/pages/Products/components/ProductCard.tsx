@@ -1,7 +1,7 @@
 // pages/Products/components/ProductCard.tsx
 
 import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import type { Product, TranslationsKeys } from "../../../setting/Types";
 import ROUTES from "../../../setting/routes";
 import OptimizedImage from "./OptimizedImage";
@@ -17,6 +17,7 @@ interface ProductCardProps {
 
 const ProductCard = memo(({ product, translation }: ProductCardProps) => {
   const { lang = "az" } = useParams<{ lang: string }>();
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isDiscountExpired, setIsDiscountExpired] = useState(false);
@@ -72,11 +73,29 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
   }
 
   // Memoized values
-  const productSlug = useMemo(() =>
-    typeof product.slug === 'object'
-      ? product.slug?.[lang as keyof typeof product.slug] || ''
-      : product.slug || ''
-  , [product.slug, lang]);
+  const productSlug = useMemo(() => {
+    // Az slug-u al
+    const azSlug = typeof product.slug === 'object'
+      ? product.slug?.az || ''
+      : product.slug || '';
+    
+    // Əgər az slug varsa, istifadə et
+    if (azSlug && lang === 'az') {
+      return azSlug;
+    }
+    
+    // Əgər az slug yoxdursa, en slug-u fallback olaraq istifadə et
+    if (lang === 'az') {
+      const enSlug = typeof product.slug === 'object' ? product.slug?.en : '';
+      return enSlug || '';
+    }
+    
+    // En dilində en slug istifadə et
+    const enSlug = typeof product.slug === 'object'
+      ? product.slug?.en || ''
+      : product.slug || '';
+    return enSlug;
+  }, [product.slug, lang]);
 
   const hasDiscount = useMemo(() =>
     Number(product.discount || 0) > 0 && !isDiscountExpired
@@ -196,7 +215,6 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
     switch (lang) {
       case 'az': return 'Yeni';
       case 'en': return 'New';
-      case 'ru': return 'Новый';
       default: return 'Yeni';
     }
   };
@@ -205,17 +223,17 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
     <div className="flex flex-col w-full h-full rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg bg-[#F5F5F5] group">
       {/* Image Container with Slider */}
       <div 
-        className="relative w-full aspect-[1/1] overflow-hidden"
+        className="relative w-full aspect-[1/1] overflow-hidden cursor-pointer"
+        onClick={() => {
+          if (productSlug && productSlug.trim() !== '') {
+            navigate(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`);
+          }
+        }}
         onTouchStart={hasMultipleImages ? handleTouchStart : undefined}
         onTouchMove={hasMultipleImages ? handleTouchMove : undefined}
         onTouchEnd={hasMultipleImages ? handleTouchEnd : undefined}
       >
-        <Link
-          to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
-          className="block w-full h-full"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <div className="block w-full h-full cursor-pointer pointer-events-none">
           {/* Only render current image - not all slides for better performance */}
           {images.length > 0 ? (
             <OptimizedImage
@@ -228,7 +246,7 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
               <span className="text-gray-400">No Image</span>
             </div>
           )}
-        </Link>
+        </div>
 
         {/* Countdown Timer - Sol üst künc */}
         {hasDiscountTimer && (

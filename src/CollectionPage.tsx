@@ -6,7 +6,7 @@ import { Product } from "./setting/Types";
 import Products from "./pages/Products";
 
 const CollectionPage: React.FC = () => {
-    const { lang = "ru", slug } = useParams<{ lang: string; slug: string }>();
+    const { lang = "az", slug } = useParams<{ lang: string; slug: string }>();
     const [searchParams] = useSearchParams();
     const collection_id = searchParams.get("collection_id") || "";
 

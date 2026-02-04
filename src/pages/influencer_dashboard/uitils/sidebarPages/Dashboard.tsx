@@ -7,7 +7,7 @@ import { TranslationsKeys } from '../../../../setting/Types';
 import { useParams } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const { data: translation } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [
     lang,
   ]);

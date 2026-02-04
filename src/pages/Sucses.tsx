@@ -22,7 +22,7 @@ interface OrderDetails {
 }
 
 export default function Sucses() {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const [searchParams] = useSearchParams();
   const userInfo = localStorage.getItem('user-info');
   const parsedInfo = userInfo ? JSON.parse(userInfo) : null;

@@ -15,7 +15,7 @@ export interface GetPaymentsData {
 export const useGetPayments = () => {
   const [loadingPayData, setLoadingPayData] = useState(false);
   const [paymentData, setPaymentData] = useState<GetPaymentsData[]>([]);
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const getPromocodes = async (params?: { search: string }) => {
     const userStr = localStorage.getItem('user-info');
     const user = userStr ? JSON.parse(userStr) : '';

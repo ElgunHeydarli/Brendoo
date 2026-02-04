@@ -8,7 +8,7 @@ import Loading from '../components/Loading';
 import ROUTES from '../setting/routes';
 
 export default function Brends() {
-    const { lang = 'ru' } = useParams<{ lang: string }>();
+    const { lang = 'az' } = useParams<{ lang: string }>();
     const { data: Brends, isLoading: BrendsLoading } = GETRequest<Brand[]>(
         `/brands`,
         'brands',
@@ -19,41 +19,6 @@ export default function Brends() {
     if (BrendsLoading || tarnslationLoading) {
         return <Loading />;
     }
-    // const russianAlphabet = [
-    //     'А',
-    //     'Б',
-    //     'В',
-    //     'Г',
-    //     'Д',
-    //     'Е',
-    //     'Ё',
-    //     'Ж',
-    //     'З',
-    //     'И',
-    //     'Й',
-    //     'К',
-    //     'Л',
-    //     'М',
-    //     'Н',
-    //     'О',
-    //     'П',
-    //     'Р',
-    //     'С',
-    //     'Т',
-    //     'У',
-    //     'Ф',
-    //     'Х',
-    //     'Ц',
-    //     'Ч',
-    //     'Ш',
-    //     'Щ',
-    //     'Ъ',
-    //     'Ы',
-    //     'Ь',
-    //     'Э',
-    //     'Ю',
-    //     'Я',
-    // ];
     const englishAlphabet = [
         'A',
         'B',
@@ -130,12 +95,7 @@ export default function Brends() {
                     <h3 className="text-[40px] max-sm:text-[32px] font-semibold mt-[28px] mb-[40px]">
                         {tarnslation?.Brendlər}{' '}
                     </h3>{' '}
-                    <AlphabeticalList
-                        Brends={Brends}
-                        letters={
-                            lang === 'ru' ? englishAlphabet : englishAlphabet
-                        }
-                    />
+                    <AlphabeticalList Brends={Brends} letters={englishAlphabet} />
                 </section>
             </main>
             <Footer />

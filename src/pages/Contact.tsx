@@ -8,7 +8,7 @@ import { useParams, Link } from 'react-router-dom';
 import ROUTES from '../setting/routes';
 
 export default function Contact() {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(
     `/translates`,
@@ -30,16 +30,12 @@ export default function Contact() {
 
   const titles: Record<string, string> = {
     az: 'Əlaqə Məlumatları',
-    ru: 'Контактная информация',
     en: 'Contact Information',
-    tr: 'İletişim Bilgileri',
   };
 
   const socialTitles: Record<string, string> = {
     az: 'Sosial şəbəkələr',
-    ru: 'Социальные сети',
     en: 'Social Media',
-    tr: 'Sosyal Medya',
   };
 
   const socialLinks = socials && socials.length > 0 ? socials : [];
@@ -71,7 +67,7 @@ export default function Contact() {
             <div className="lg:w-[35%] w-full">
               <div className="bg-[#8E98B8] rounded-3xl p-4 md:p-8 h-full">
                 <h2 className="text-xl font-semibold text-white mb-6">
-                  {titles[lang] || titles.ru}
+                  {titles[lang] || titles.az}
                 </h2>
                 
                 <div className="space-y-4">
@@ -93,7 +89,7 @@ export default function Contact() {
 
                 <div className="mt-8">
                   <p className="text-white/80 text-sm mb-4">
-                    {socialTitles[lang] || socialTitles.ru}
+                    {socialTitles[lang] || socialTitles.az}
                   </p>
                   <div className="flex gap-3 flex-wrap">
                     {socialLinks.map((item, index) => {

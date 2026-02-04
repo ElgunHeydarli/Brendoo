@@ -85,7 +85,7 @@ export default function ProductId() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
-  const [selectedSize, setSelectedSize] = useState<{ id: number; name: string } | null>(null);
+  const [selectedSize, setSelectedSize] = useState<{ id: number; name: string; price?: number } | null>(null);
   const [selectedColor, setSelectedColor] = useState<{ id: number; name: string; code?: string; price?: number; image?: string } | null>(null);
   const [selectedFilters, setSelectedFilters] = useState<Record<number, { id: number; name: string; price?: number }>>({});
   const [isInStock, setIsInStock] = useState<boolean>(true);
@@ -113,13 +113,21 @@ export default function ProductId() {
   const [mainSwipeOffset, setMainSwipeOffset] = useState(0);
   const [isMainSwiping, setIsMainSwiping] = useState(false);
 
-  const { lang = 'en', slug } = useParams<{ lang: string; slug: string }>();
+  const { lang = 'az', slug } = useParams<{ lang: string; slug: string }>();
   const userStr = localStorage.getItem('user-info');
   const parse = userStr ? JSON.parse(userStr) : null;
   const token = parse?.token;
   const collectionId = localStorage.getItem('collection_id') || '';
 
-  const { data: Productslingle, isLoading: ProductslingleLoading } = GETRequest<ProductDetail>(`/productSingle/${slug}`, 'productSingle', [lang, slug]);
+  // Slug ya da ID-dən məhsul tapa bilərik
+  const productParam = slug; // Burada ID da ola bilərik
+
+  // İlk olaraq /productSingle cəhd et, əgər olmadısa /products/:id cəhd et
+  const { data: Productslingle, isLoading: ProductslingleLoading } = GETRequest<ProductDetail>(
+    `/productSingle/${productParam}`, 
+    'productSingle', 
+    [lang, productParam]
+  );
   const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
   const { data: favorites } = GETRequest<Favorite[]>(`/favorites`, 'favorites', [lang]);
   const { data: basked } = GETRequest<Basket>(`/basket_items`, 'basket_items', [lang]);
@@ -215,9 +223,9 @@ export default function ProductId() {
       });
     };
 
-    const rawSizeFilter = filters.find(f => f?.filter_name && ['Size', 'Ölçü', 'Размер'].includes(f.filter_name));
-    const rawColorFilter = filters.find(f => f?.filter_name && ['Color', 'Rəng', 'Цвет'].includes(f.filter_name));
-    const rawOtherFilters = filters.filter(f => f?.filter_name && !['Size', 'Ölçü', 'Размер', 'Color', 'Rəng', 'Цвет'].includes(f.filter_name));
+    const rawSizeFilter = filters.find(f => f?.filter_name && ['Size', 'Ölçü'].includes(f.filter_name));
+    const rawColorFilter = filters.find(f => f?.filter_name && ['Color', 'Rəng'].includes(f.filter_name));
+    const rawOtherFilters = filters.filter(f => f?.filter_name && !['Size', 'Ölçü', 'Color', 'Rəng'].includes(f.filter_name));
 
     return {
       sizeFilter: rawSizeFilter ? { ...rawSizeFilter, options: getUniqueOptions(rawSizeFilter.options) } : undefined,
@@ -236,38 +244,16 @@ export default function ProductId() {
 
   // ✅ Default seçimləri yalnız ID dəyişəndə et - filter-lər hazır olandan sonra
   useEffect(() => {
-    console.log('🔄 [useEffect] Triggered:', {
-      productId: Productslingle?.id,
-      hasSizeFilter: !!sizeFilter,
-      hasColorFilter: !!colorFilter,
-      sizeFilterId: sizeFilter?.filter_id,
-      colorFilterId: colorFilter?.filter_id,
-      initializedId: defaultsInitializedRef.current,
-      willRun: !!(Productslingle?.id && sizeFilter && colorFilter && defaultsInitializedRef.current !== Productslingle.id)
-    });
-    
-    if (!Productslingle?.id) {
-      console.log('❌ [useEffect] SKIP - No product ID');
-      return;
-    }
-    if (!sizeFilter || !colorFilter) {
-      console.log('❌ [useEffect] SKIP - Filters not loaded yet');
-      return; // Filter-lər hələ yüklənməyib
-    }
-    if (defaultsInitializedRef.current === Productslingle.id) {
-      console.log('⏭️ [useEffect] SKIP - Already initialized for product:', Productslingle.id);
-      return; // Artıq initialize olunub
-    }
-    
-    console.log('✅ [useEffect] RUNNING - Initializing defaults for product:', Productslingle.id);
+    if (!Productslingle?.id) return;
+    if (defaultsInitializedRef.current === Productslingle.id) return;
+
     defaultsInitializedRef.current = Productslingle.id;
     
     // Size filter varsa, default seç
     if (sizeFilter && sizeFilter.options?.length) {
       const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
-      if (def) { 
-        console.log('📏 [useEffect] Setting DEFAULT size:', { id: def.option_id, name: def.name });
-        setSelectedSize({ id: def.option_id, name: def.name || 'Unknown' }); 
+      if (def) {
+        setSelectedSize({ id: def.option_id, name: def.name || 'Unknown', price: def.price ? Number(def.price) : undefined }); 
         setIsInStock(!!def.is_stock); 
       }
     } else {
@@ -279,7 +265,6 @@ export default function ProductId() {
     if (colorFilter?.options?.length) {
       const defColor = colorFilter.options.find(o => o?.is_default) || colorFilter.options[0];
       if (defColor) {
-        console.log('🎨 [useEffect] Setting DEFAULT color:', { id: defColor.option_id, name: defColor.name });
         // Variant şəklini tap
         const variant = Productslingle?.variants?.find(v => 
           v?.color?.toLowerCase() === defColor.name?.toLowerCase() || 
@@ -397,7 +382,7 @@ export default function ProductId() {
   useEffect(() => {
     setSelectedImageIndex(0);
     setShowVideo(false);
-    setSelectedVariantOptions({}); // CJ variant seçimlərini sıfırla
+    // NOT: setSelectedVariantOptions({}) buradan silindi - defaults useEffect artıq bunu idarə edir
   }, [Productslingle?.id]);
 
   // Şəkilləri əvvəlcədən yüklə (preload)
@@ -533,14 +518,12 @@ export default function ProductId() {
 
   const handleSizeSelect = useCallback((option: any) => {
     if (!option) return;
-    console.log('👆 [USER] Size selected:', { id: option.option_id, name: option.name });
-    setSelectedSize({ id: option.option_id, name: option.name || 'Unknown' });
+    setSelectedSize({ id: option.option_id, name: option.name || 'Unknown', price: option.price ? Number(option.price) : undefined });
     setIsInStock(!!option.is_stock);
     if (!option.is_stock) setNotifyOptionId(option.option_id);
   }, []);
 
   const handleColorSelect = useCallback((option: any, variantPrice?: number, variantImage?: string | null) => {
-    console.log('👆 [USER] Color selected:', { id: option.option_id, name: option.name, image: variantImage });
     if (!option) return;
     setSelectedColor({ id: option.option_id, name: option.name || '', code: option.color_code || undefined, price: variantPrice, image: variantImage || undefined });
     if (variantImage && productImages.length > 0) {
@@ -576,26 +559,36 @@ export default function ProductId() {
       });
     });
 
-    // 2. Tapılmadısa, variantKey ilə match cəhd et
+    // 2. Tapılmadısa, variantKey ilə match cəhd et (dəqiq hissə müqayisəsi)
     if (!matched) {
       matched = Productslingle.variants.find(v => {
         if (!v?.variantKey) return false;
-        const key = v.variantKey.toLowerCase();
-        // Bütün seçilmiş dəyərlər variantKey-də olmalıdır
-        return selectedValues.every(val => key.includes(val.toLowerCase()));
+        const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
+        return selectedValues.every(val => {
+          const lval = val.toLowerCase();
+          // Dəqiq uyğunluq: hissə tam uyğun olmalıdır
+          if (parts.includes(lval)) return true;
+          // Uzun adlar üçün (3+ hərf): hissənin daxilində axtara bilərik
+          if (lval.length >= 3) return parts.some(p => p.includes(lval) || lval.includes(p));
+          return false;
+        });
       });
     }
 
-    // 3. Hələ də tapılmadısa, partial match cəhd et (ən azı bir dəyər uyğun gəlsin)
+    // 3. Hələ də tapılmadısa, partial match cəhd et (ən çox uyğun gələni tap)
     if (!matched && selectedValues.length > 0) {
-      // Ən çox uyğun gələni tap
       let bestMatch: typeof Productslingle.variants[0] | null = null;
       let bestMatchCount = 0;
 
       Productslingle.variants.forEach(v => {
         if (!v?.variantKey) return;
-        const key = v.variantKey.toLowerCase();
-        const matchCount = selectedValues.filter(val => key.includes(val.toLowerCase())).length;
+        const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
+        const matchCount = selectedValues.filter(val => {
+          const lval = val.toLowerCase();
+          if (parts.includes(lval)) return true;
+          if (lval.length >= 3) return parts.some(p => p.includes(lval) || lval.includes(p));
+          return false;
+        }).length;
         if (matchCount > bestMatchCount) {
           bestMatchCount = matchCount;
           bestMatch = v;
@@ -643,15 +636,6 @@ export default function ProductId() {
     }
     setIsAddingToCart(true);
 
-    console.log('\n📦 ===== SƏBƏTƏ ƏLAVƏ EDİLIR =====');
-    console.log('Has CJ variants:', !!Productslingle.variant_options);
-    console.log('Selected Variant Options (CJ):', selectedVariantOptions);
-    console.log('Selected Size (Filter):', selectedSize);
-    console.log('  └─ Size ID:', selectedSize?.id, '| Name:', selectedSize?.name);
-    console.log('Selected Color (Filter):', selectedColor);
-    console.log('  └─ Color ID:', selectedColor?.id, '| Name:', selectedColor?.name);
-    console.log('===========================\n');
-
     // Bütün seçilmiş filtrləri topla
     const options: { filter_id: number; option_id: number }[] = [];
 
@@ -661,13 +645,11 @@ export default function ProductId() {
       // Adi filter sistemi
       // Size filter
       if (sizeFilter && selectedSize && selectedSize.id !== 0) {
-        console.log('✅ [ADD TO CART] Adding SIZE to options:', selectedSize);
         options.push({ filter_id: sizeFilter.filter_id, option_id: selectedSize.id });
       }
 
       // Color filter - ƏHƏMİYYƏTLİ: rəng də options-a əlavə olunmalıdır
       if (colorFilter && selectedColor && selectedColor.id !== 0) {
-        console.log('✅ [ADD TO CART] Adding COLOR to options:', selectedColor);
         options.push({ filter_id: colorFilter.filter_id, option_id: selectedColor.id });
       }
       
@@ -678,10 +660,7 @@ export default function ProductId() {
         }
       });
     } else {
-      console.log('ℹ️ [ADD TO CART] CJ variant məhsulu - options array boş saxlanır');
     }
-    
-    console.log('📦 [ADD TO CART] Final options array:', options);
 
     // CJ variant_key və selected_options hazırla - DƏRİN KOPYA et!
     const variantKey = selectedCJVariant?.variantKey || null;
@@ -829,11 +808,8 @@ export default function ProductId() {
       if (cjSelectedOptions) payload.selected_options = cjSelectedOptions;
       if (collectionId?.length) payload.collection_id = collectionId;
 
-      console.log('🚀 [SENDING TO BACKEND] Payload:', JSON.stringify(payload, null, 2));
+      await axios.post(`${API_URL}/api/basket_items`, payload, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
       
-      const response = await axios.post(`${API_URL}/api/basket_items`, payload, { headers: { Authorization: `Bearer ${token}`, 'Accept-Language': lang } });
-      
-      console.log('✅ [BACKEND RESPONSE] Data:', response.data);
       if (collectionId) localStorage.removeItem('collection_id');
       setisinbusked(true);
       toast.success(tarnslation?.handle_added || 'Əlavə edildi');
@@ -867,38 +843,74 @@ export default function ProductId() {
   }, [userStr, lang, navigate, Productslingle?.id, token, queryClient, isTogglingFavorite]);
 
   // Variants massivindən kombinasiya qiymətini tap - HOOK MUST BE BEFORE EARLY RETURN
+  // Ölçü, rəng və digər filtrləri birlikdə nəzərə alır
+  // variantKey hissələrə bölünür (məs. "Blue-S" → ["blue","s"]) və dəqiq müqayisə edilir
   const getVariantPrice = useMemo(() => {
     if (!Productslingle?.variants?.length) return null;
 
-    // Seçilmiş filter adlarını al
-    const selectedNames = Object.values(selectedFilters).map(f => f?.name).filter(Boolean);
-
-    if (selectedNames.length === 0) return null;
-
-    // variantKey-də bütün seçilmiş adları axtar
-    const matchingVariant = Productslingle.variants.find(v => {
-      if (!v?.variantKey) return false;
-      const key = v.variantKey.toLowerCase();
-      // Bütün seçilmiş filtrlər variantKey-də olmalıdır
-      return selectedNames.every(name => key.includes(name.toLowerCase()));
+    // Bütün seçilmiş adları topla: ölçü + rəng + digər filtrlər
+    const allSelectedNames: string[] = [];
+    if (selectedSize?.name) allSelectedNames.push(selectedSize.name);
+    if (selectedColor?.name) allSelectedNames.push(selectedColor.name);
+    Object.values(selectedFilters).forEach(f => {
+      if (f?.name) allSelectedNames.push(f.name);
     });
 
-    if (matchingVariant?.price) {
-      return Number(matchingVariant.price);
-    }
+    if (allSelectedNames.length === 0) return null;
 
-    // Alternativ: tək bir seçilmiş ada görə axtar
-    for (const name of selectedNames) {
-      const variant = Productslingle.variants.find(v =>
-        v?.variantKey?.toLowerCase().includes(name.toLowerCase())
-      );
-      if (variant?.price) {
-        return Number(variant.price);
+    // variantKey-i hissələrə böl (delimiterlər: "-", "_", "/", " ")
+    const splitKey = (key: string): string[] =>
+      key.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
+
+    // Adın variantKey hissələrindən birində DƏQIQ olub-olmadığını yoxla
+    const nameMatchesParts = (name: string, parts: string[]): boolean => {
+      const n = name.toLowerCase();
+      // Dəqiq uyğunluq: "S" === "s", "Blue" === "blue"
+      if (parts.includes(n)) return true;
+      // Uzun adlar üçün (2+ hərf): hissənin daxilində axtara bilərik
+      if (n.length >= 3) {
+        return parts.some(p => p.includes(n) || n.includes(p));
       }
+      return false;
+    };
+
+    // 1. Əvvəlcə BÜTÜN seçilmiş adları variantKey-də dəqiq axtar
+    const fullMatch = Productslingle.variants.find(v => {
+      if (!v?.variantKey) return false;
+      const parts = splitKey(v.variantKey);
+      return allSelectedNames.every(name => nameMatchesParts(name, parts));
+    });
+    if (fullMatch?.price) return Number(fullMatch.price);
+
+    // 2. Alternativ: variant-ın öz field-lərini yoxla (size, color field-ləri)
+    const fieldMatch = Productslingle.variants.find(v => {
+      if (!v) return false;
+      let matches = true;
+      if (selectedSize?.name) {
+        matches = matches && (v.size?.toLowerCase() === selectedSize.name.toLowerCase());
+      }
+      if (selectedColor?.name) {
+        matches = matches && (v.color?.toLowerCase() === selectedColor.name.toLowerCase());
+      }
+      return matches && (!!selectedSize?.name || !!selectedColor?.name);
+    });
+    if (fieldMatch?.price) return Number(fieldMatch.price);
+
+    // 3. Ölçü+rəng kombinasiyası ilə variantKey yoxla
+    const sizeColorNames: string[] = [];
+    if (selectedSize?.name) sizeColorNames.push(selectedSize.name);
+    if (selectedColor?.name) sizeColorNames.push(selectedColor.name);
+    if (sizeColorNames.length > 0) {
+      const sizeColorMatch = Productslingle.variants.find(v => {
+        if (!v?.variantKey) return false;
+        const parts = splitKey(v.variantKey);
+        return sizeColorNames.every(name => nameMatchesParts(name, parts));
+      });
+      if (sizeColorMatch?.price) return Number(sizeColorMatch.price);
     }
 
     return null;
-  }, [Productslingle?.variants, selectedFilters]);
+  }, [Productslingle?.variants, selectedSize?.name, selectedColor?.name, selectedFilters]);
 
   // Mövcud variant opsiyalarını filtrələ - seçilmiş opsiyalara görə
   const getAvailableOptions = useCallback((optionType: string): string[] => {
@@ -978,6 +990,24 @@ export default function ProductId() {
     return labels[type] || type;
   }, [tarnslation]);
 
+  // ✅ useMemo MUST be before early returns (Rules of Hooks)
+  const sizeVariantPrice = useMemo(() => {
+    if (!selectedSize?.name || !Productslingle?.variants?.length) return null;
+    const sizeName = selectedSize.name.toLowerCase();
+    // Əvvəlcə variant.size field-i ilə dəqiq match
+    const fieldMatch = Productslingle.variants.find(v =>
+      v?.size?.toLowerCase() === sizeName
+    );
+    if (fieldMatch?.price) return Number(fieldMatch.price);
+    // Sonra variantKey-i hissələrə bölüb dəqiq match
+    const keyMatch = Productslingle.variants.find(v => {
+      if (!v?.variantKey) return false;
+      const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/);
+      return parts.includes(sizeName);
+    });
+    return keyMatch?.price ? Number(keyMatch.price) : null;
+  }, [selectedSize?.name, Productslingle?.variants]);
+
   if (ProductslingleLoading || tarnslationLoading) return <Loading />;
 
   if (!Productslingle) {
@@ -997,13 +1027,18 @@ export default function ProductId() {
 
   // CJ variant qiymətini prioritet ver
   const cjVariantPrice = selectedCJVariant?.price ? Number(selectedCJVariant.price) : null;
-  const displayPrice = cjVariantPrice || getVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0;
+
+  // CJ variant sistemi aktivdirsə cjVariantPrice prioritet, yoxsa filter-əsaslı qiymət
+  const hasCJVariants = !!Productslingle.variant_options && Object.keys(selectedVariantOptions).length > 0;
+  const displayPrice = hasCJVariants
+    ? (cjVariantPrice || getVariantPrice || sizeVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0)
+    : (getVariantPrice || sizeVariantPrice || selectedSize?.price || cjVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0);
   const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
   const cjVariantInStock = selectedCJVariant ? selectedCJVariant.in_stock !== false : true;
 
   return (
     <div className="bg-white min-h-screen">
-      <SEO title={`${Productslingle.meta_title || Productslingle.title || 'Product'} | Brendoo`} description={Productslingle.meta_description || Productslingle.short_title || ''} image={getImageUrl(currentImage)} url={`https://brendoo.com/${lang}/product/${slug}`} type="product" price={String(displayPrice)} currency="AZN" availability={isInStock ? 'in stock' : 'out of stock'} />
+      <SEO title={`${Productslingle.meta_title || Productslingle.title || 'Product'} | Brendoo`} description={Productslingle.meta_description || Productslingle.short_title || ''} image={getImageUrl(currentImage)} url={`https://brendoo.com/${lang}/product/${productParam}`} type="product" price={String(displayPrice)} currency="AZN" availability={isInStock ? 'in stock' : 'out of stock'} />
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1158,17 +1193,18 @@ export default function ProductId() {
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">{Productslingle.title || 'Product'}</h1>
             <p className="text-sm text-gray-500 mb-4">SKU: {Productslingle.product_code || Productslingle.code || `PRD-${Productslingle.id}`}</p>
 
-            <div className="flex items-baseline gap-3 mb-6">
+            <div className="flex items-baseline gap-3 mb-6 notranslate" translate="no" key={`price-${displayPrice}-${cjVariantPrice}-${selectedSize?.name}-${selectedColor?.name}`}>
               {(() => {
-                // CJ variant qiymətini prioritet ver
-                const variantPrice = cjVariantPrice || getVariantPrice || selectedColor?.price;
+                // CJ variant sistemi aktivdirsə cjVariantPrice prioritet
+                const variantPrice = hasCJVariants
+                  ? (cjVariantPrice || getVariantPrice || sizeVariantPrice || selectedColor?.price)
+                  : (getVariantPrice || sizeVariantPrice || selectedSize?.price || cjVariantPrice || selectedColor?.price);
                 const baseOriginalPrice = Number(Productslingle.price) || 0;
                 const baseDiscountedPrice = Number(Productslingle.discounted_price) || baseOriginalPrice;
 
                 // Variant seçilibsə, onun qiymətini göstər
                 if (variantPrice) {
                   if (hasDiscount && baseOriginalPrice > variantPrice) {
-                    // Endirim var və orijinal qiymət variant qiymətindən yüksəkdir
                     return (
                       <>
                         <span className="text-3xl font-bold text-blue-600">{variantPrice.toFixed(2)}₼</span>
@@ -1176,7 +1212,6 @@ export default function ProductId() {
                       </>
                     );
                   } else {
-                    // Endirim yoxdur və ya qiymətlər bərabərdir
                     return <span className="text-3xl font-bold text-gray-900">{variantPrice.toFixed(2)}₼</span>;
                   }
                 }
@@ -1190,7 +1225,6 @@ export default function ProductId() {
                     </>
                   );
                 } else {
-                  // Sadə qiymət
                   return <span className="text-3xl font-bold text-gray-900">{Number(displayPrice).toFixed(2)}₼</span>;
                 }
               })()}
@@ -1402,7 +1436,9 @@ export default function ProductId() {
               </div>
               <div className={`flex items-center gap-1.5 text-sm font-medium ${isInStock && cjVariantInStock ? 'text-green-600' : 'text-red-500'}`}>
                 {isInStock && cjVariantInStock ? <FiCheck className="w-4 h-4" /> : <FiX className="w-4 h-4" />}
-                {isInStock && cjVariantInStock ? tarnslation?.Stokda_var || 'In stock' : tarnslation?.Out_of_Stock || 'Out of stock'}
+                {isInStock && cjVariantInStock
+                  ? (tarnslation?.product_in_stock || (lang === 'az' ? 'Stokda var' : 'In stock'))
+                  : (tarnslation?.product_out_of_stock || (lang === 'az' ? 'Stokda yoxdur' : 'Out of stock'))}
               </div>
             </div>
 

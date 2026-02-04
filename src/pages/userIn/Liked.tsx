@@ -7,7 +7,7 @@ import Loading from '../../components/Loading';
 import GETRequest from '../../setting/Request';
 
 export default function UserLiked() {
-    const { lang = 'ru' } = useParams<{
+    const { lang = 'az' } = useParams<{
         lang: string;
     }>();
     const { data: favorites, isLoading: loading } = GETRequest<Favorite[]>(

@@ -13,7 +13,7 @@ interface Props {
 }
 
 const AddProductCollection: React.FC<Props> = ({ opener, onClose }) => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',

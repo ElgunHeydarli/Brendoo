@@ -10,7 +10,7 @@ import Loading from "../components/Loading";
 
 const DynamicPageTwo: React.FC = () => {
   const navigate = useNavigate();
-  const { lang = "ru", slug } = useParams<{ lang: string; slug: string }>();
+  const { lang = "az", slug } = useParams<{ lang: string; slug: string }>();
   const { selectedLang: newLang } = useLanguageStore(); 
 
   const [dataPages, setDataPages] = React.useState<any | null>(null);

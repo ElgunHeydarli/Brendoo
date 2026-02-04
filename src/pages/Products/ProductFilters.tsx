@@ -13,9 +13,9 @@ type ProductsFiltersProps = {
 };
 
 // Çoklu dil desteği için anahtarlar
-const SIZE_KEYS = ['Размер', 'Size', 'Ölçü'];
-const COLOR_KEYS = ['Цвет', 'Color', 'Rəng', 'Renk'];
-const GENDER_KEYS = ['Пол', 'Gender', 'Cins', 'Cinsiyyət', 'Cinsiyet'];
+const SIZE_KEYS = ['Size', 'Ölçü'];
+const COLOR_KEYS = ['Color', 'Rəng'];
+const GENDER_KEYS = ['Gender', 'Cins', 'Cinsiyyət'];
 
 const ProductFilters = ({
   Productslingle,

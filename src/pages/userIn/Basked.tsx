@@ -50,7 +50,7 @@ export default function Basked() {
   const parsed = userStr ? JSON.parse(userStr) : null;
   const token = parsed?.token;
 
-const { lang = 'en' } = useParams<{ lang: string }>();
+const { lang = 'az' } = useParams<{ lang: string }>();
   const [baskedLoading, setBaskedLoading] = React.useState<boolean>(false);
   const [basketItemsData, setBasketItemsData] = React.useState<Basket | GuestCart>();
 

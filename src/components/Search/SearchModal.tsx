@@ -43,7 +43,7 @@ const filterProducts = (products: SearchResult[]): SearchResult[] => {
 };
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -66,15 +66,6 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       viewAll: 'Hamısına bax',
       searching: 'Axtarılır...',
     },
-    ru: {
-      placeholder: 'Поиск товаров, категорий или брендов...',
-      recent: 'Недавние поиски',
-      popular: 'Популярные запросы',
-      clear: 'Очистить',
-      noResults: 'Ничего не найдено',
-      viewAll: 'Смотреть все',
-      searching: 'Поиск...',
-    },
     en: {
       placeholder: 'Search products, categories or brands...',
       recent: 'Recent searches',
@@ -85,7 +76,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
       searching: 'Searching...',
     },
   };
-  const t = texts[lang as keyof typeof texts] || texts.ru;
+  const t = texts[lang as keyof typeof texts] || texts.az;
 
   // Modal açılanda focus
   useEffect(() => {

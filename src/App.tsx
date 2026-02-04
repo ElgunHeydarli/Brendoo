@@ -119,10 +119,7 @@ const App = () => {
 
   // Scroll to top
   useEffect(() => {
-    if (
-      !location.pathname.includes('онас#faq') &&
-      !location.pathname.includes('about#faq')
-    ) {
+    if (!location.pathname.includes('about#faq')) {
       window.scrollTo(0, 0);
     }
   }, [location.pathname]);
@@ -163,12 +160,15 @@ const App = () => {
               {/* Routing */}
               <Suspense fallback={<Loading />}>
                 <Routes>
-                  {/* ✅ "/" URL-ə girsə "/en/home"-a redirect et */}
-                  <Route path="/" element={<Navigate to="/en/home" replace />} />
+                  {/* ✅ "/" URL-ə girsə "/az/home"-a redirect et */}
+                  <Route path="/" element={<Navigate to="/az/home" replace />} />
                   
                   {/* ✅ Search Results Page */}
                   <Route path="/:lang/search" element={<SearchResults />} />
-                  
+
+                  {/* ✅ Product Detail Page - must be before /:lang/:page/:slug */}
+                  <Route path="/:lang/product/:slug" element={<ProductId />} />
+
                   {!location.pathname?.includes('influencer') && (
                     <Route path="/:lang/:page" element={<PageByLang />} />
                   )}
@@ -202,10 +202,7 @@ const App = () => {
                   <Route path="/fail" element={<FailPage />} />
                   <Route path="/i/:lang/:slug" element={<DynamicPage />} />
                   <Route path="/:lang/collections/:slug" element={<CollectionPage />} />
-                  <Route
-                    path="/условия-и-положения/:lang/:slug"
-                    element={<RulesPage />}
-                  />
+                  <Route path="/terms/:lang/:slug" element={<RulesPage />} />
 
                   {/* Influencer */}
                   {type === 'influencer' && (

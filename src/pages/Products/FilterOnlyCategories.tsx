@@ -26,12 +26,10 @@
 // }) => {
 //   return (
 //     <section className="flex flex-col w-full lg:max-w-[330px]">
-//       <div className="text-xl font-semibold text-black">{tarnslation?.Filter || 'Фильтр'}</div>
 
 //       {/* Desktop Filter - always visible on desktop */}
 //       <div className="hidden md:flex overflow-hidden flex-col px-5 py-6 mt-5 w-full rounded-3xl border border-solid border-black border-opacity-10">
 //         <div className="flex flex-col mt-2 text-black whitespace-nowrap gap-4">
-//           <label className="text-black">{tarnslation?.Kateqoriyalar || 'Категории'}</label>
 
 //           {categoriesLoading ? (
 //             <Loader />
@@ -43,20 +41,17 @@
 
 //           {/* Price Filter */}
 //           <div className="flex flex-col mt-4 w-full text-sm whitespace-nowrap">
-//             <label className="text-black">{tarnslation?.Qiymət || 'Цена'}</label>
 //             <div className="flex overflow-hidden gap-2 p-1.5 mt-2 w-full bg-neutral-100 rounded-[100px] text-black text-opacity-60">
 //               <input
 //                 onChange={e => setminPrice(+e.target.value)}
 //                 value={minPrice === 0 ? '' : minPrice}
 //                 type="number"
-//                 placeholder={tarnslation?.min_placeholder || 'мин'}
 //                 className="overflow-hidden p-3 bg-white rounded-[100px] outline-none w-full"
 //               />
 //               <input
 //                 onChange={e => setmaxPrice(+e.target.value)}
 //                 value={maxPrice === 0 ? '' : maxPrice}
 //                 type="number"
-//                 placeholder={tarnslation?.max_placeholder || 'макс'}
 //                 className="overflow-hidden p-3 bg-white rounded-[100px] outline-none w-full"
 //               />
 //             </div>
@@ -71,7 +66,6 @@
 //               }`}
 //             />
 //             <div className="self-stretch my-auto">
-//               {tarnslation?.Endirimli_məhsullar || 'Товары со скидкой'}
 //             </div>
 //           </div>
 //         </div>

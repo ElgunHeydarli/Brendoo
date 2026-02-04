@@ -7,9 +7,7 @@ import type { TranslationsKeys } from "../../../setting/Types";
 // Multi-language pagination labels
 const paginationLabels: Record<string, { previous: string; next: string }> = {
   az: { previous: "Əvvəlki", next: "Növbəti" },
-  ru: { previous: "Предыдущая", next: "Следующая" },
   en: { previous: "Previous", next: "Next" },
-  tr: { previous: "Önceki", next: "Sonraki" },
 };
 
 interface PaginationProps {

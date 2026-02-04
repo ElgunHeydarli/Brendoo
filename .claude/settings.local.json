@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rebase:*)",
+      "Bash(if exist \"node_modules\\\\.vite\" rmdir /s /q \"node_modules\\\\.vite\")",
+      "Bash(if exist \"node_modules\\\\.tmp\" rmdir /s /q \"node_modules\\\\.tmp\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\eheydarli\\\\Desktop\\\\br\\\\node_modules\\\\.vite\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\eheydarli\\\\Desktop\\\\br\\\\node_modules\\\\.tmp\" -ErrorAction SilentlyContinue)",
+      "Bash(Write-Host \"Caches cleared\")",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill /F /PID 5672)",
+      "Bash(taskkill /F /PID 30808)",
+      "Bash(taskkill //F //PID 5672)",
+      "Bash(taskkill //F //PID 30808)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(npx vite:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(code:*)",
+      "Bash(dir:*)",
+      "Bash(curl -s \"https://admin.brendoo.com/api/search?q=Aluminum%20alloy%20pen&limit=5\" -H \"Accept-Language: en\")",
+      "Bash(curl:*)",
+      "Bash(git push:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(ping:*)",
+      "Bash(python:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

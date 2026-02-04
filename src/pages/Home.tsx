@@ -151,7 +151,7 @@ const HeroSection = memo(
 export default function Home() {
   const [, setIsSpecialOpen] = useState(false);
   const navigate = useNavigate();
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: hero, isLoading: heroLoading } = GETRequest<HomeHero>(`/hero`, 'HOMEhero', [
     lang,

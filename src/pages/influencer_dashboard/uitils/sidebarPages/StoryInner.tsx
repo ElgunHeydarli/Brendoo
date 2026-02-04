@@ -43,7 +43,7 @@ const StoryInner: React.FC<Props> = ({ storyId }) => {
   const [loading, setLoading] = React.useState<boolean>(true);
   // const [zipping, setZipping] = React.useState(false);
   const lang = React.useMemo(
-    () => location.pathname.split('/')[1] || 'ru',
+    () => location.pathname.split('/')[1] || 'az',
     [location.pathname],
   );
 

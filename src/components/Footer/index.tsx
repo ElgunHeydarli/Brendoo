@@ -8,30 +8,34 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useQuickTranslations } from "../Loading";
 
-// Simple cache for footer data
-let footerCache: {
-  categories?: Category[];
-  socials?: SocialMediaLink[];
-  pages?: any[];
-  timestamp?: number;
-} = {};
+// Simple cache for footer data (per language)
+let footerCache: Record<
+  string,
+  {
+    categories?: Category[];
+    socials?: SocialMediaLink[];
+    pages?: any[];
+    timestamp?: number;
+  }
+> = {};
 
 // Cache validity - 5 minutes
 const CACHE_DURATION = 5 * 60 * 1000;
 
 // Fast data hook
 const useFooterData = (lang: string) => {
-  const [data, setData] = useState(() => footerCache);
+  const [data, setData] = useState(() => footerCache[lang] || {});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Check cache validity
     const now = Date.now();
+    const cacheForLang = footerCache[lang];
     const isValid =
-      footerCache.timestamp && now - footerCache.timestamp < CACHE_DURATION;
+      cacheForLang?.timestamp && now - cacheForLang.timestamp < CACHE_DURATION;
 
-    if (isValid && footerCache.categories?.length) {
-      setData(footerCache);
+    if (isValid && cacheForLang?.categories?.length) {
+      setData(cacheForLang);
       return;
     }
 
@@ -68,7 +72,7 @@ const useFooterData = (lang: string) => {
           timestamp: Date.now(),
         };
 
-        footerCache = newData;
+        footerCache = { ...footerCache, [lang]: newData };
         setData(newData);
       } catch (error) {
         console.warn("Footer data load failed:", error);
@@ -107,82 +111,8 @@ const useFooterData = (lang: string) => {
 //   const handleChange = useCallback(
 //     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 //       const { name, value } = e.target;
-//       setFormData((prev) => ({ ...prev, [name]: value }));
-//       // Clear error when user starts typing
-//       if (errors[name as keyof FormData]) {
-//         setErrors((prev) => ({ ...prev, [name]: undefined }));
-//       }
-//     },
-//     [errors]
-//   );
-
-//   const handleSubmit = useCallback(
-//     async (e: React.FormEvent<HTMLFormElement>) => {
-//       e.preventDefault();
-//       if (isSubmitting) return;
-
-//       setErrors({});
-//       setIsSubmitting(true);
-
-//       const userStr = localStorage.getItem("user-info");
-//       const token = userStr ? JSON.parse(userStr).token : null;
-
-//       if (!token) {
-//         toast.error(
-//           translations?.login_required || "Пожалуйста, зайдите в свой аккаунт"
-//         );
-//         setIsSubmitting(false);
-//         return;
-//       }
-
-//       try {
-//         await axiosInstance.post("/contact", formData, {
-//           headers: {
-//             "Content-Type": "application/json",
-//             Authorization: `Bearer ${token}`,
-//           },
-//           timeout: 10000,
-//         });
-
-//         toast.success(translations?.success_sent || "Успешно отправлено");
-//         setFormData({
-//           email: "",
-//           message: "",
-//           name: "",
-//           phone: "+7",
-//         });
-//       } catch (err) {
-//         const error = err as AxiosError;
-
-//         if (error.response?.status === 422) {
-//           const validationErrors = (
-//             error.response?.data as {
-//               errors: Partial<Record<keyof FormData, string>>;
-//             }
-//           ).errors;
-//           setErrors(validationErrors);
-//         } else {
-//           toast.error(translations?.error_occurred || "Произошла ошибка");
-//           console.error("Contact form error:", error.message);
-//         }
-//       } finally {
-//         setIsSubmitting(false);
-//       }
-//     },
-//     [formData, isSubmitting, translations]
-//   );
-
-//   return {
-//     formData,
-//     errors,
-//     isSubmitting,
-//     handleChange,
-//     handleSubmit,
-//   };
-// };
-
 // Newsletter subscription hook
-const useNewsletter = (translations: Record<string, string>) => {
+const useNewsletter = (translations: Record<string, string>, lang: string) => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,8 +121,12 @@ const useNewsletter = (translations: Record<string, string>) => {
     if (isSubmitting) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isEn = lang === "en";
     if (!emailRegex.test(email)) {
-      setError(translations?.invalid_email || "Некорректный email");
+      setError(
+        translations?.invalid_email ||
+          (isEn ? "Invalid email" : "Düzgün email deyil")
+      );
       return;
     }
 
@@ -206,15 +140,21 @@ const useNewsletter = (translations: Record<string, string>) => {
         { timeout: 5000 }
       );
 
-      toast.success(translations?.subscribed || "Подписка оформлена");
+      toast.success(
+        translations?.subscribed ||
+          (isEn ? "Subscribed" : "Abunəlik təsdiqləndi")
+      );
       setEmail("");
     } catch (error) {
       console.error("Newsletter subscription error:", error);
-      toast.error(translations?.subscription_error || "Ошибка подписки");
+      toast.error(
+        translations?.subscription_error ||
+          (isEn ? "Subscription error" : "Abunəlik xətası")
+      );
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, isSubmitting, translations]);
+  }, [email, isSubmitting, lang, translations]);
 
   return {
     email,
@@ -272,7 +212,7 @@ const CompanyLinks = React.memo(
   }) => (
     <div className="flex flex-col md:max-w-[300px] w-[100%] gap-2">
       <div className="text-lg font-medium text-white">
-        {translations?.Şirkət || "Компания"}
+        {translations?.Şirkət || (lang === 'en' ? 'Company' : 'Şirkət')}
       </div>
       <div className="flex flex-col mt-5 text-base text-white text-opacity-80 space-y-2 w-full">
         <div
@@ -283,14 +223,14 @@ const CompanyLinks = React.memo(
             }`)
           }
         >
-          {translations?.Şirkət_haqqında || "О компании"}
+          {translations?.Şirkət_haqqında || (lang === 'en' ? 'About company' : 'Şirkət haqqında')}
         </div>
         <HashLink
           to={`/${lang}/${ROUTES.about[lang as keyof typeof ROUTES.about]}#faq`}
           className="cursor-pointer hover:text-white transition-colors w-full"
           smooth
         >
-          {translations?.Tez_tez_verilən_suallar || "Частые вопросы"}
+          {translations?.Tez_tez_verilən_suallar || (lang === 'en' ? 'FAQ' : 'Tez-tez verilən suallar')}
         </HashLink>
       </div>
     </div>
@@ -312,7 +252,7 @@ const OtherLinks = React.memo(
   }) => (
     <div className="flex flex-col md:max-w-[300px] w-[100%]">
       <div className="text-lg font-medium text-white">
-        {translations?.Digər_keçidlər || "Другие ссылки"}
+        {translations?.Digər_keçidlər || "Digər keçidlər"}
       </div>
       <div className="flex flex-col gap-2 mt-5 max-w-full text-base text-white text-opacity-80 w-full">
         <div
@@ -323,11 +263,11 @@ const OtherLinks = React.memo(
             }`)
           }
         >
-          {translations?.Əlaqə || "Контакты"}
+          {translations?.Əlaqə || "Əlaqə"}
         </div>
         {pages?.map((item: any) => {
           const slug =
-            item?.slug?.[lang] || item?.slug?.["ru"] || item?.slug?.["en"];
+            item?.slug?.[lang] || item?.slug?.["az"] || item?.slug?.["en"];
           return (
             <div
               key={item?.id}
@@ -370,7 +310,7 @@ const SocialLinks = React.memo(
 
 export function Footer() {
   const navigate = useNavigate();
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
 
   // Fast translations
   const translations = useQuickTranslations(lang);
@@ -393,7 +333,7 @@ export function Footer() {
     error: emailError,
     isSubmitting: isSubscribing,
     handleSubscribe,
-  } = useNewsletter(translations);
+  } = useNewsletter(translations, lang);
 
   // Memoized navigation handler
   const handleNavigation = useCallback(
@@ -478,7 +418,7 @@ export function Footer() {
                   <div className="flex flex-col mt-7 w-full text-sm">
                     <div className="leading-5 text-white">
                       {translations?.Ən_son_teklifler ||
-                        "Последние предложения"}
+                        (lang === "en" ? "Latest offers" : "Ən son təkliflər")}
                     </div>
                     <div className="flex overflow-hidden gap-5 justify-between py-1.5 pr-1.5 pl-4 mt-5 w-full border border-solid bg-white bg-opacity-0 border-white border-opacity-10 rounded-[100px] lg:min-w-[360px]">
                       <div className="flex items-center gap-2 text-white text-opacity-60 w-full">
@@ -505,7 +445,8 @@ export function Footer() {
                       >
                         {isSubscribing
                           ? "..."
-                          : translations?.Abunə_ol || "Подписаться"}
+                          : translations?.Abunə_ol ||
+                            (lang === "en" ? "Subscribe" : "Abunə ol")}
                       </button>
                     </div>
                     {emailError && (
@@ -529,7 +470,8 @@ export function Footer() {
           <div className="flex overflow-hidden flex-col grow px-10 pt-12 pb-28 w-full bg-zinc-900 max-md:px-5 max-md:pb-24 max-md:mt-2.5 max-md:max-w-full">
             <div className="col-span-1 lg:col-span-2">
               <h3 className="mb-6 text-lg font-semibold text-white">
-                {translations?.have_question || 'Есть вопросы?'}
+                {translations?.have_question ||
+                  (lang === "en" ? "Any questions?" : "Sualınız var?")}
               </h3>
 
               <form className="space-y-4" onSubmit={handleSubmit}>
@@ -538,7 +480,10 @@ export function Footer() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder={translations?.name_surname || 'Имя и фамилия'}
+                  placeholder={
+                    translations?.name_surname ||
+                    (lang === "en" ? "Name and surname" : "Ad və soyad")
+                  }
                   disabled={isSubmitting}
                   className="w-full px-4 py-2 bg-white bg-opacity-10 text-white rounded-[20px] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-all"
                 />
@@ -570,7 +515,10 @@ export function Footer() {
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder={translations?.Qeyd || 'Сообщение'}
+                  placeholder={
+                    translations?.Qeyd ||
+                    (lang === "en" ? "Message" : "Mesaj")
+                  }
                   rows={4}
                   disabled={isSubmitting}
                   className="w-full px-4 py-2 bg-white bg-opacity-10 text-white rounded-[20px] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 resize-none transition-all"
@@ -585,8 +533,10 @@ export function Footer() {
                   className="w-full px-6 py-3 bg-[#3873C3] text-white rounded-[100px] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting
-                    ? translations?.sending || 'Отправка...'
-                    : translations?.göndər || 'Отправить'}
+                    ? translations?.sending ||
+                      (lang === "en" ? "Sending..." : "Göndərilir...")
+                    : translations?.göndər ||
+                      (lang === "en" ? "Send" : "Göndər")}
                 </button>
               </form>
             </div>

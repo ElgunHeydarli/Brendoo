@@ -73,20 +73,6 @@ const texts: Record<string, Record<string, string>> = {
     popularNow: 'İndi populyar',
     clearAll: 'Hamısını sil',
   },
-  ru: {
-    products: 'Продукты',
-    categories: 'Категории',
-    subcategories: 'Подкатегории',
-    brands: 'Бренды',
-    noResults: 'Ничего не найдено',
-    viewAll: 'Смотреть все результаты',
-    searching: 'Поиск...',
-    inCategory: 'в категории',
-    productCount: 'товаров',
-    recentSearches: 'Недавние запросы',
-    popularNow: 'Популярно сейчас',
-    clearAll: 'Очистить все',
-  },
   en: {
     products: 'Products',
     categories: 'Categories',
@@ -100,20 +86,6 @@ const texts: Record<string, Record<string, string>> = {
     recentSearches: 'Recent searches',
     popularNow: 'Popular now',
     clearAll: 'Clear all',
-  },
-  tr: {
-    products: 'Ürünler',
-    categories: 'Kategoriler',
-    subcategories: 'Alt kategoriler',
-    brands: 'Markalar',
-    noResults: 'Sonuç bulunamadı',
-    viewAll: 'Tüm sonuçları gör',
-    searching: 'Aranıyor...',
-    inCategory: 'kategorisinde',
-    productCount: 'ürün',
-    recentSearches: 'Son aramalar',
-    popularNow: 'Şu an popüler',
-    clearAll: 'Tümünü temizle',
   },
 };
 
@@ -463,7 +435,7 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
     setRecentSearches(getRecentSearches());
   };
 
-  const formatPrice = (price: number) => price.toLocaleString('ru-RU');
+  const formatPrice = (price: number) => price.toLocaleString('az-AZ');
 
   if (!isOpen) return null;
 

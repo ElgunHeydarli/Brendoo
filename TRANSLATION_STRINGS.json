@@ -1,0 +1,1821 @@
+{
+  "translations": [
+    {
+      "key": "auth_welcome_title",
+      "en": "Welcome",
+      "az": "Xoş gəldiniz",
+      "type": "title",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_welcome_desc",
+      "en": "Please login to your account",
+      "az": "Hesabınıza daxil olun",
+      "type": "description",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_or",
+      "en": "OR",
+      "az": "VƏ YA",
+      "type": "label",
+      "component": "Login/Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_user_type",
+      "en": "User",
+      "az": "İstifadəçi",
+      "type": "label",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_influencer_type",
+      "en": "Influencer",
+      "az": "Influencer",
+      "type": "label",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_email_label",
+      "en": "Email",
+      "az": "Email",
+      "type": "label",
+      "component": "Login/Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_password_label",
+      "en": "Password",
+      "az": "Şifrə",
+      "type": "label",
+      "component": "Login/Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_forgot_password",
+      "en": "Forgot password?",
+      "az": "Şifrəni unutdunuz?",
+      "type": "link",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_login_button",
+      "en": "Login",
+      "az": "Daxil Ol",
+      "type": "button",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_no_account",
+      "en": "Don't have an account?",
+      "az": "Hesabınız yoxdur?",
+      "type": "text",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_register_button",
+      "en": "Register",
+      "az": "Qeydiyyat Ol",
+      "type": "button",
+      "component": "Login/Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_register_title",
+      "en": "Create Your Account",
+      "az": "Hesab Yaradın",
+      "type": "title",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_register_desc",
+      "en": "Join us today",
+      "az": "Bizə bu gün qoşulun",
+      "type": "description",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_email_invalid",
+      "en": "Please enter a valid email",
+      "az": "Düzgün email daxil edin",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_email_required",
+      "en": "Email is required",
+      "az": "Email tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_password_required",
+      "en": "Password is required",
+      "az": "Şifrə tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_password_min",
+      "en": "Password must be at least 6 characters",
+      "az": "Şifrə minimum 6 simvol olmalıdır",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_name_required",
+      "en": "Name is required",
+      "az": "Ad tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_phone_required",
+      "en": "Phone number is required",
+      "az": "Telefon nömrəsi tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_phone_invalid",
+      "en": "Phone must be 9 digits",
+      "az": "Telefon nömrəsi 9 rəqəm olmalıdır",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_fin_code_required",
+      "en": "FIN code is required",
+      "az": "FIN kod tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_fin_code_invalid",
+      "en": "FIN code must be 7 characters",
+      "az": "FIN kod 7 simvol olmalıdır",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_gender_required",
+      "en": "Gender is required",
+      "az": "Cins tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_birthday_required",
+      "en": "Date of birth is required",
+      "az": "Doğum tarixi tələb olunur",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_terms_required",
+      "en": "You must accept the terms",
+      "az": "Şərtləri qəbul etməlisiniz",
+      "type": "error",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_gender_male",
+      "en": "Male",
+      "az": "Erkək",
+      "type": "label",
+      "component": "Register",
+      "priority": "high"
+    },
+    {
+      "key": "auth_gender_female",
+      "en": "Female",
+      "az": "Qadın",
+      "type": "label",
+      "component": "Register",
+      "priority": "high"
+    },
+    {
+      "key": "auth_login_success",
+      "en": "Login successful",
+      "az": "Giriş uğurlu oldu",
+      "type": "message",
+      "component": "Login",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_register_success",
+      "en": "Registration completed successfully",
+      "az": "Qeydiyyat uğurla tamamlandı",
+      "type": "message",
+      "component": "Register",
+      "priority": "critical"
+    },
+    {
+      "key": "auth_loading",
+      "en": "Loading...",
+      "az": "Yüklənir...",
+      "type": "label",
+      "component": "Login",
+      "priority": "high"
+    },
+    {
+      "key": "footer_latest_offers",
+      "en": "Latest offers",
+      "az": "Ən son təkliflər",
+      "type": "title",
+      "component": "Footer",
+      "priority": "critical"
+    },
+    {
+      "key": "footer_subscribe_button",
+      "en": "Subscribe",
+      "az": "Abunə ol",
+      "type": "button",
+      "component": "Footer",
+      "priority": "critical"
+    },
+    {
+      "key": "footer_subscribing",
+      "en": "Subscribing...",
+      "az": "Abunə olunur...",
+      "type": "label",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_copyright",
+      "en": "2025 | Brendoo",
+      "az": "2025 | Brendoo",
+      "type": "text",
+      "component": "Footer",
+      "priority": "medium"
+    },
+    {
+      "key": "footer_have_question",
+      "en": "Any questions?",
+      "az": "Sualınız var?",
+      "type": "title",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_name_label",
+      "en": "Name and surname",
+      "az": "Ad və soyad",
+      "type": "label",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_phone_label",
+      "en": "Phone number",
+      "az": "Telefon nömrəsi",
+      "type": "placeholder",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_email_label",
+      "en": "Email",
+      "az": "Email",
+      "type": "label",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_message_label",
+      "en": "Message",
+      "az": "Mesaj",
+      "type": "placeholder",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_send_button",
+      "en": "Send",
+      "az": "Göndər",
+      "type": "button",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_sending",
+      "en": "Sending...",
+      "az": "Göndərilir...",
+      "type": "label",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_contact_success",
+      "en": "Message sent successfully",
+      "az": "Mesaj uğurla göndərildi",
+      "type": "message",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "footer_contact_error",
+      "en": "Error sending message",
+      "az": "Mesaj göndərilərkən xəta",
+      "type": "error",
+      "component": "Footer",
+      "priority": "high"
+    },
+    {
+      "key": "cart_title",
+      "en": "Shopping Cart",
+      "az": "Alış-veriş Səbəti",
+      "type": "title",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_empty",
+      "en": "Your cart is empty",
+      "az": "Səbətiniz boşdur",
+      "type": "message",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_continue_shopping",
+      "en": "Continue Shopping",
+      "az": "Alış-verişi Dəvam Et",
+      "type": "button",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_quantity_label",
+      "en": "Quantity",
+      "az": "Miqdar",
+      "type": "label",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_remove",
+      "en": "Remove",
+      "az": "Sil",
+      "type": "button",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_subtotal",
+      "en": "Subtotal",
+      "az": "Ara Cəmi",
+      "type": "label",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_shipping",
+      "en": "Shipping",
+      "az": "Çatdırılma",
+      "type": "label",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_tax",
+      "en": "Tax",
+      "az": "Vergi",
+      "type": "label",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_total",
+      "en": "Total",
+      "az": "Cəmi",
+      "type": "label",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_checkout_button",
+      "en": "Proceed to Checkout",
+      "az": "Ödənişə Keç",
+      "type": "button",
+      "component": "Basket",
+      "priority": "critical"
+    },
+    {
+      "key": "cart_update_quantity",
+      "en": "Update Quantity",
+      "az": "Miqdarı Güncəllə",
+      "type": "button",
+      "component": "Basket",
+      "priority": "high"
+    },
+    {
+      "key": "checkout_title",
+      "en": "Checkout",
+      "az": "Ödəniş",
+      "type": "title",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_delivery_title",
+      "en": "Delivery Address",
+      "az": "Çatdırılma Ünvanı",
+      "type": "title",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_billing_title",
+      "en": "Billing Information",
+      "az": "Ödəniş Məlumatları",
+      "type": "title",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_payment_title",
+      "en": "Payment Method",
+      "az": "Ödəniş Metodu",
+      "type": "title",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_order_summary",
+      "en": "Order Summary",
+      "az": "Sifariş Xülasəsi",
+      "type": "title",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_place_order",
+      "en": "Place Order",
+      "az": "Sifariş Et",
+      "type": "button",
+      "component": "BasketConfirm",
+      "priority": "critical"
+    },
+    {
+      "key": "checkout_continue_button",
+      "en": "Continue",
+      "az": "Dəvam Et",
+      "type": "button",
+      "component": "BasketConfirm",
+      "priority": "high"
+    },
+    {
+      "key": "product_price",
+      "en": "Price",
+      "az": "Qiymət",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "critical"
+    },
+    {
+      "key": "product_original_price",
+      "en": "Original Price",
+      "az": "Orijinal Qiymət",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_discount",
+      "en": "Discount",
+      "az": "Endirim",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_add_to_cart",
+      "en": "Add to Cart",
+      "az": "Səbətə Əlavə Et",
+      "type": "button",
+      "component": "ProductCard",
+      "priority": "critical"
+    },
+    {
+      "key": "product_in_stock",
+      "en": "In Stock",
+      "az": "Stokda Var",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_out_of_stock",
+      "en": "Out of Stock",
+      "az": "Stok Yoxdur",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_color",
+      "en": "Color",
+      "az": "Rəng",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_size",
+      "en": "Size",
+      "az": "Ölçü",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_select_color",
+      "en": "Please select a color",
+      "az": "Xahiş olaraq rəng seçin",
+      "type": "message",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_select_size",
+      "en": "Please select a size",
+      "az": "Xahiş olaraq ölçü seçin",
+      "type": "message",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_description",
+      "en": "Description",
+      "az": "Təsvir",
+      "type": "title",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_specifications",
+      "en": "Specifications",
+      "az": "Texniki Xüsusiyyətlər",
+      "type": "title",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_reviews",
+      "en": "Reviews",
+      "az": "Rəylər",
+      "type": "title",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_add_review",
+      "en": "Add Review",
+      "az": "Rəy Əlavə Et",
+      "type": "button",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_rating",
+      "en": "Rating",
+      "az": "Reytinq",
+      "type": "label",
+      "component": "ProductCard",
+      "priority": "high"
+    },
+    {
+      "key": "product_best_sellers",
+      "en": "Best Sellers",
+      "az": "Ən Çox Satılan",
+      "type": "title",
+      "component": "ProductCard",
+      "priority": "medium"
+    },
+    {
+      "key": "dashboard_title",
+      "en": "Dashboard",
+      "az": "Paneli",
+      "type": "title",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_welcome",
+      "en": "Welcome",
+      "az": "Xoş gəldiniz",
+      "type": "greeting",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_collections",
+      "en": "Collections",
+      "az": "Kolleksiyalar",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_products",
+      "en": "Products",
+      "az": "Məhsullar",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_orders",
+      "en": "Orders",
+      "az": "Sifarişlər",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_payments",
+      "en": "Payments",
+      "az": "Ödənişlər",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_promocodes",
+      "en": "Promo Codes",
+      "az": "Promo Kodları",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_analytics",
+      "en": "Analytics",
+      "az": "Analitika",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "medium"
+    },
+    {
+      "key": "dashboard_settings",
+      "en": "Settings",
+      "az": "Ayarlar",
+      "type": "link",
+      "component": "Dashboard",
+      "priority": "medium"
+    },
+    {
+      "key": "dashboard_logout",
+      "en": "Logout",
+      "az": "Çıxış",
+      "type": "button",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_edit_profile",
+      "en": "Edit Profile",
+      "az": "Profili Redaktə Et",
+      "type": "button",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_pending",
+      "en": "Pending",
+      "az": "Gözləmədə",
+      "type": "label",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_approved",
+      "en": "Approved",
+      "az": "Təsdiq Edildi",
+      "type": "label",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_rejected",
+      "en": "Rejected",
+      "az": "Rədd Edildi",
+      "type": "label",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_active",
+      "en": "Active",
+      "az": "Aktiv",
+      "type": "label",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "dashboard_inactive",
+      "en": "Inactive",
+      "az": "Fasiləsi",
+      "type": "label",
+      "component": "Dashboard",
+      "priority": "high"
+    },
+    {
+      "key": "search_placeholder",
+      "en": "Search...",
+      "az": "Axtar...",
+      "type": "placeholder",
+      "component": "Search",
+      "priority": "critical"
+    },
+    {
+      "key": "search_searching",
+      "en": "Searching...",
+      "az": "Axtarış edilir...",
+      "type": "label",
+      "component": "Search",
+      "priority": "high"
+    },
+    {
+      "key": "search_no_results",
+      "en": "No results found",
+      "az": "Nəticə tapılmadı",
+      "type": "message",
+      "component": "Search",
+      "priority": "high"
+    },
+    {
+      "key": "search_popular",
+      "en": "Popular",
+      "az": "Məşhur",
+      "type": "title",
+      "component": "Search",
+      "priority": "high"
+    },
+    {
+      "key": "search_recent",
+      "en": "Recent",
+      "az": "Yenilər",
+      "type": "title",
+      "component": "Search",
+      "priority": "high"
+    },
+    {
+      "key": "search_categories",
+      "en": "Categories",
+      "az": "Kateqoriyalar",
+      "type": "title",
+      "component": "Search",
+      "priority": "high"
+    },
+    {
+      "key": "filter_by_price",
+      "en": "Filter by Price",
+      "az": "Qiymətə Görə Sıxla",
+      "type": "title",
+      "component": "Filter",
+      "priority": "high"
+    },
+    {
+      "key": "filter_by_category",
+      "en": "Filter by Category",
+      "az": "Kateqoriyaya Görə Sıxla",
+      "type": "title",
+      "component": "Filter",
+      "priority": "high"
+    },
+    {
+      "key": "filter_by_brand",
+      "en": "Filter by Brand",
+      "az": "Brenda Görə Sıxla",
+      "type": "title",
+      "component": "Filter",
+      "priority": "high"
+    },
+    {
+      "key": "filter_sort_relevance",
+      "en": "Sort by Relevance",
+      "az": "Uyğunluğa Görə",
+      "type": "option",
+      "component": "Sort",
+      "priority": "high"
+    },
+    {
+      "key": "filter_sort_price_low",
+      "en": "Price: Low to High",
+      "az": "Qiymət: Aşağıdan Yuxarıya",
+      "type": "option",
+      "component": "Sort",
+      "priority": "high"
+    },
+    {
+      "key": "filter_sort_price_high",
+      "en": "Price: High to Low",
+      "az": "Qiymət: Yuxarıdan Aşağıya",
+      "type": "option",
+      "component": "Sort",
+      "priority": "high"
+    },
+    {
+      "key": "filter_sort_newest",
+      "en": "Newest",
+      "az": "Ən Yeni",
+      "type": "option",
+      "component": "Sort",
+      "priority": "high"
+    },
+    {
+      "key": "filter_reset",
+      "en": "Reset Filters",
+      "az": "Filtrləri Sıfırla",
+      "type": "button",
+      "component": "Filter",
+      "priority": "high"
+    },
+    {
+      "key": "notification_success",
+      "en": "Success",
+      "az": "Uğurlu",
+      "type": "title",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_error",
+      "en": "Error",
+      "az": "Xəta",
+      "type": "title",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_warning",
+      "en": "Warning",
+      "az": "Xəbərdarlıq",
+      "type": "title",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_info",
+      "en": "Information",
+      "az": "Məlumat",
+      "type": "title",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_item_added",
+      "en": "Item added to cart",
+      "az": "Element səbətə əlavə edildi",
+      "type": "message",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_item_removed",
+      "en": "Item removed from cart",
+      "az": "Element səbətdən silindi",
+      "type": "message",
+      "component": "Toast",
+      "priority": "high"
+    },
+    {
+      "key": "notification_loading",
+      "en": "Loading...",
+      "az": "Yüklənir...",
+      "type": "label",
+      "component": "Loader",
+      "priority": "high"
+    },
+    {
+      "key": "notification_please_wait",
+      "en": "Please wait...",
+      "az": "Lütfən gözləyin...",
+      "type": "label",
+      "component": "Loader",
+      "priority": "high"
+    },
+    {
+      "key": "button_yes",
+      "en": "Yes",
+      "az": "Bəli",
+      "type": "button",
+      "component": "Modal",
+      "priority": "medium"
+    },
+    {
+      "key": "button_no",
+      "en": "No",
+      "az": "Xeyr",
+      "type": "button",
+      "component": "Modal",
+      "priority": "medium"
+    },
+    {
+      "key": "button_ok",
+      "en": "OK",
+      "az": "Tamam",
+      "type": "button",
+      "component": "Modal",
+      "priority": "medium"
+    },
+    {
+      "key": "button_cancel",
+      "en": "Cancel",
+      "az": "Ləğv Et",
+      "type": "button",
+      "component": "Modal",
+      "priority": "medium"
+    },
+    {
+      "key": "button_save",
+      "en": "Save",
+      "az": "Yadda Saxla",
+      "type": "button",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "button_delete",
+      "en": "Delete",
+      "az": "Sil",
+      "type": "button",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "button_edit",
+      "en": "Edit",
+      "az": "Redaktə Et",
+      "type": "button",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "button_next",
+      "en": "Next",
+      "az": "Sonrakı",
+      "type": "button",
+      "component": "Navigation",
+      "priority": "high"
+    },
+    {
+      "key": "button_previous",
+      "en": "Previous",
+      "az": "Əvvəlki",
+      "type": "button",
+      "component": "Navigation",
+      "priority": "high"
+    },
+    {
+      "key": "label_required",
+      "en": "Required",
+      "az": "Tələb olunur",
+      "type": "label",
+      "component": "Form",
+      "priority": "medium"
+    },
+    {
+      "key": "label_optional",
+      "en": "Optional",
+      "az": "Seçimli",
+      "type": "label",
+      "component": "Form",
+      "priority": "medium"
+    },
+    {
+      "key": "error_network",
+      "en": "Network error",
+      "az": "Şəbəkə xətası",
+      "type": "error",
+      "component": "General",
+      "priority": "high"
+    },
+    {
+      "key": "error_server",
+      "en": "Server error",
+      "az": "Server xətası",
+      "type": "error",
+      "component": "General",
+      "priority": "high"
+    },
+    {
+      "key": "error_unknown",
+      "en": "An unknown error occurred",
+      "az": "Bilinməyən xəta baş verdi",
+      "type": "error",
+      "component": "General",
+      "priority": "high"
+    },
+    {
+      "key": "pickup_select_point",
+      "en": "Select Pickup Point",
+      "az": "Seçilmə Nöqtəsi Seçin",
+      "type": "label",
+      "component": "PickupPointSelector",
+      "priority": "high"
+    },
+    {
+      "key": "pickup_search",
+      "en": "Search...",
+      "az": "Axtar...",
+      "type": "placeholder",
+      "component": "PickupPointSelector",
+      "priority": "high"
+    },
+    {
+      "key": "pickup_no_location",
+      "en": "No location selected",
+      "az": "Ünvan seçilməyib",
+      "type": "message",
+      "component": "PickupPointSelector",
+      "priority": "high"
+    },
+    {
+      "key": "pickup_loading",
+      "en": "Loading...",
+      "az": "Yüklənir...",
+      "type": "label",
+      "component": "PickupPointSelector",
+      "priority": "high"
+    },
+    {
+      "key": "pickup_error_required",
+      "en": "Please select a pickup point",
+      "az": "Xahiş olaraq bir seçilmə nöqtəsi seçin",
+      "type": "error",
+      "component": "PickupPointSelector",
+      "priority": "high"
+    },
+    {
+      "key": "otp_title",
+      "en": "Verify Your Email",
+      "az": "E-mailinizi Doğrulayın",
+      "type": "title",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_description",
+      "en": "We sent a code to your email",
+      "az": "Kod e-mailə göndərildi",
+      "type": "description",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_enter_code",
+      "en": "Enter the 6-digit code",
+      "az": "6 rəqəmli kodu daxil edin",
+      "type": "label",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_verify_button",
+      "en": "Verify",
+      "az": "Doğrula",
+      "type": "button",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_resend",
+      "en": "Resend Code",
+      "az": "Kodu Yenidən Göndər",
+      "type": "button",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_expires_in",
+      "en": "Code expires in",
+      "az": "Kod bittiyə",
+      "type": "label",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_invalid",
+      "en": "Invalid code",
+      "az": "Yanlış kod",
+      "type": "error",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "otp_too_many_attempts",
+      "en": "Too many attempts",
+      "az": "Çox sayda cəhd",
+      "type": "error",
+      "component": "OTPDialog",
+      "priority": "high"
+    },
+    {
+      "key": "address_title",
+      "en": "Address",
+      "az": "Ünvan",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_street",
+      "en": "Street Address",
+      "az": "Küçə Ünvanı",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_city",
+      "en": "City",
+      "az": "Şəhər",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_region",
+      "en": "Region",
+      "az": "Rayon",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_postal_code",
+      "en": "Postal Code",
+      "az": "Poçt Kodu",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_country",
+      "en": "Country",
+      "az": "Ölkə",
+      "type": "label",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_add",
+      "en": "Add Address",
+      "az": "Ünvan Əlavə Et",
+      "type": "button",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_edit",
+      "en": "Edit Address",
+      "az": "Ünvanı Redaktə Et",
+      "type": "button",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_delete",
+      "en": "Delete Address",
+      "az": "Ünvanı Sil",
+      "type": "button",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_default",
+      "en": "Set as Default",
+      "az": "Standart kimi təyin et",
+      "type": "button",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "address_required",
+      "en": "Address is required",
+      "az": "Ünvan tələb olunur",
+      "type": "error",
+      "component": "AddressForm",
+      "priority": "high"
+    },
+    {
+      "key": "password_reset_title",
+      "en": "Reset Password",
+      "az": "Şifrəni Sıfırla",
+      "type": "title",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_reset_desc",
+      "en": "Enter your email to reset your password",
+      "az": "Şifrənizi sıfırlamaq üçün e-mailə daxil olun",
+      "type": "description",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_new",
+      "en": "New Password",
+      "az": "Yeni Şifrə",
+      "type": "label",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_confirm",
+      "en": "Confirm Password",
+      "az": "Şifrəni Təsdiq Et",
+      "type": "label",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_mismatch",
+      "en": "Passwords do not match",
+      "az": "Şifrələr uyğun gəlmir",
+      "type": "error",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_reset_sent",
+      "en": "Reset link sent to your email",
+      "az": "Sıfırlama keçidi e-mailə göndərildi",
+      "type": "message",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "password_reset_success",
+      "en": "Password reset successfully",
+      "az": "Şifrə uğurla sıfırlandı",
+      "type": "message",
+      "component": "PasswordReset",
+      "priority": "high"
+    },
+    {
+      "key": "pagination_previous",
+      "en": "Previous",
+      "az": "Əvvəlki",
+      "type": "button",
+      "component": "Pagination",
+      "priority": "high"
+    },
+    {
+      "key": "pagination_next",
+      "en": "Next",
+      "az": "Sonrakı",
+      "type": "button",
+      "component": "Pagination",
+      "priority": "high"
+    },
+    {
+      "key": "pagination_page",
+      "en": "Page",
+      "az": "Səhifə",
+      "type": "label",
+      "component": "Pagination",
+      "priority": "medium"
+    },
+    {
+      "key": "pagination_of",
+      "en": "of",
+      "az": "arasında",
+      "type": "label",
+      "component": "Pagination",
+      "priority": "medium"
+    },
+    {
+      "key": "breadcrumb_home",
+      "en": "Home",
+      "az": "Əsas Səhifə",
+      "type": "link",
+      "component": "Breadcrumb",
+      "priority": "medium"
+    },
+    {
+      "key": "breadcrumb_back",
+      "en": "Back",
+      "az": "Geri",
+      "type": "button",
+      "component": "Navigation",
+      "priority": "medium"
+    },
+    {
+      "key": "form_required",
+      "en": "This field is required",
+      "az": "Bu sahə tələb olunur",
+      "type": "error",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "form_invalid",
+      "en": "This field is invalid",
+      "az": "Bu sahə etibarsızdır",
+      "type": "error",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "form_submit",
+      "en": "Submit",
+      "az": "Göndər",
+      "type": "button",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "form_reset",
+      "en": "Reset",
+      "az": "Sıfırla",
+      "type": "button",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "form_success",
+      "en": "Form submitted successfully",
+      "az": "Form uğurla göndərildi",
+      "type": "message",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "form_error",
+      "en": "Error submitting form",
+      "az": "Form göndərilərkən xəta",
+      "type": "error",
+      "component": "Form",
+      "priority": "high"
+    },
+    {
+      "key": "return_title",
+      "en": "Return Request",
+      "az": "Geri Qaytarma Tələbi",
+      "type": "title",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_reason",
+      "en": "Reason for Return",
+      "az": "Geri Qaytarma Səbəbi",
+      "type": "label",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_description",
+      "en": "Return Details",
+      "az": "Geri Qaytarma Detalları",
+      "type": "label",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_submit",
+      "en": "Submit Return Request",
+      "az": "Geri Qaytarma Tələbini Göndər",
+      "type": "button",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_approved",
+      "en": "Approved",
+      "az": "Təsdiq Edildi",
+      "type": "label",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_pending",
+      "en": "Pending",
+      "az": "Gözləmədə",
+      "type": "label",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "return_rejected",
+      "en": "Rejected",
+      "az": "Rədd Edildi",
+      "type": "label",
+      "component": "Returns",
+      "priority": "high"
+    },
+    {
+      "key": "rating_title",
+      "en": "Rate This Product",
+      "az": "Bu Məhsulu Qiymətləndirin",
+      "type": "title",
+      "component": "Rating",
+      "priority": "high"
+    },
+    {
+      "key": "rating_please_rate",
+      "en": "Please rate this product",
+      "az": "Xahiş olaraq bu məhsulu qiymətləndirin",
+      "type": "label",
+      "component": "Rating",
+      "priority": "high"
+    },
+    {
+      "key": "rating_comment",
+      "en": "Your Comment",
+      "az": "Sizin Şərhiniz",
+      "type": "placeholder",
+      "component": "Rating",
+      "priority": "high"
+    },
+    {
+      "key": "rating_submit",
+      "en": "Submit Rating",
+      "az": "Qiymətləndirməni Göndər",
+      "type": "button",
+      "component": "Rating",
+      "priority": "high"
+    },
+    {
+      "key": "rating_success",
+      "en": "Rating submitted successfully",
+      "az": "Qiymətləndirmə uğurla göndərildi",
+      "type": "message",
+      "component": "Rating",
+      "priority": "high"
+    },
+    {
+      "key": "rating_1_star",
+      "en": "1 Star",
+      "az": "1 Ulduz",
+      "type": "label",
+      "component": "Rating",
+      "priority": "medium"
+    },
+    {
+      "key": "rating_5_stars",
+      "en": "5 Stars",
+      "az": "5 Ulduz",
+      "type": "label",
+      "component": "Rating",
+      "priority": "medium"
+    },
+    {
+      "key": "sort_by",
+      "en": "Sort by",
+      "az": "Sırala",
+      "type": "label",
+      "component": "Sort",
+      "priority": "high"
+    },
+    {
+      "key": "results_per_page",
+      "en": "Results per page",
+      "az": "Səhifə üzrə nəticələr",
+      "type": "label",
+      "component": "Pagination",
+      "priority": "high"
+    },
+    {
+      "key": "total_results",
+      "en": "Total Results",
+      "az": "Cəmi Nəticələr",
+      "type": "label",
+      "component": "Results",
+      "priority": "high"
+    },
+    {
+      "key": "home_featured_title",
+      "en": "500,000+ Products — Affordable Prices, High Quality",
+      "az": "500.000+ məhsul — Sərfəli qiymət, yüksək keyfiyyət",
+      "type": "title",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_featured_subtitle",
+      "en": "Everything You're Looking For — All in One Platform",
+      "az": "Axtardığın hər şey — bir platformada",
+      "type": "description",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_customer_promise",
+      "en": "Customer Satisfaction is Our Main Principle",
+      "az": "Müştəri məmnuniyyəti əsas prinsipimizdir",
+      "type": "tagline",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_new_products",
+      "en": "New Products",
+      "az": "Yeni məhsullar",
+      "type": "title",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_recently_viewed",
+      "en": "Recently Viewed Products",
+      "az": "Son baxılan məhsullar",
+      "type": "title",
+      "component": "Home",
+      "priority": "high"
+    },
+    {
+      "key": "home_mobile_app",
+      "en": "📲 Mobile App iOS & Android Coming Soon",
+      "az": "📲Mobil tətbiq ios & android tezliklə xidmətinizdə",
+      "type": "message",
+      "component": "Home",
+      "priority": "high"
+    },
+    {
+      "key": "home_catalog",
+      "en": "Catalog",
+      "az": "Katalog",
+      "type": "label",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_direct_from_china",
+      "en": "Products Directly from China to Azerbaijan",
+      "az": "Çindən bir başa Azərbaycana məhsullar",
+      "type": "description",
+      "component": "Home",
+      "priority": "high"
+    },
+    {
+      "key": "home_categories",
+      "en": "Categories",
+      "az": "Kateqoriyalar",
+      "type": "title",
+      "component": "Home",
+      "priority": "critical"
+    },
+    {
+      "key": "home_products_view",
+      "en": "View Products",
+      "az": "Məhsullara bax",
+      "type": "button",
+      "component": "Home",
+      "priority": "critical"
+    },
+    { "key": "mehsulu_deyerlendir", "en": "Rate This Product", "az": "Məhsulu Qiymətləndirin", "type": "title", "component": "DelayedModal", "priority": "high" },
+    { "key": "reyiniz_key", "en": "Your Review", "az": "Sizin Rəyiniz", "type": "placeholder", "component": "DelayedModal", "priority": "high" },
+    { "key": "gonder_key", "en": "Send", "az": "Göndər", "type": "button", "component": "DelayedModal", "priority": "high" },
+    { "key": "Məhsullara_bax_new", "en": "View Products", "az": "Məhsullara Bax", "type": "button", "component": "Home", "priority": "high" },
+    { "key": "Tez_tez_verilən_suallar", "en": "Frequently Asked Questions", "az": "Tez-tez Verilən Suallar", "type": "title", "component": "FAQ", "priority": "high" },
+    { "key": "redakte_et_key", "en": "Edit", "az": "Redaktə Et", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "legv_et", "en": "Cancel", "az": "Ləğv Et", "type": "button", "component": "Modal", "priority": "high" },
+    { "key": "tesdiqle_key", "en": "Confirm", "az": "Təsdiq Et", "type": "button", "component": "Modal", "priority": "high" },
+    { "key": "kolleksiya_yaradildi", "en": "Collection Created", "az": "Kolleksiya Yaradıldı", "type": "message", "component": "Collections", "priority": "high" },
+    { "key": "kolleksiya_yarat", "en": "Create Collection", "az": "Kolleksiya Yarat", "type": "button", "component": "Collections", "priority": "high" },
+    { "key": "kolleksiya_adi", "en": "Collection Name", "az": "Kolleksiya Adı", "type": "label", "component": "Collections", "priority": "high" },
+    { "key": "mehsulu_elave_et", "en": "Add Product", "az": "Məhsul Əlavə Et", "type": "button", "component": "Collections", "priority": "high" },
+    { "key": "mehsulu_elave_et_text", "en": "Add Product to Collection", "az": "Kolleksiyaya Məhsul Əlavə Et", "type": "message", "component": "Collections", "priority": "high" },
+    { "key": "mehsul_is_added", "en": "Product Added", "az": "Məhsul Əlavə Edildi", "type": "message", "component": "Collections", "priority": "high" },
+    { "key": "axtar", "en": "Search", "az": "Axtar", "type": "placeholder", "component": "Search", "priority": "high" },
+    { "key": "no_col", "en": "No Collections", "az": "Kolleksiya Yoxdur", "type": "message", "component": "Collections", "priority": "high" },
+    { "key": "hamisi_keyy", "en": "All", "az": "Hamısı", "type": "button", "component": "Filter", "priority": "high" },
+    { "key": "aktif_key", "en": "Active", "az": "Aktiv", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "bitmis_key", "en": "Completed", "az": "Bitmiş", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "inf_promokodlar", "en": "Promo Codes", "az": "Promo Kodları", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "promokodun_adi", "en": "Promo Code Name", "az": "Promo Kodunun Adı", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "promokod_statusu", "en": "Promo Code Status", "az": "Promo Kodu Statusu", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "istifade_sayi", "en": "Usage Count", "az": "İstifadə Sayı", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "umumi_qazanc", "en": "Total Earnings", "az": "Ümumi Qazanc", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "yaranma_tarixi", "en": "Created Date", "az": "Yaranma Tarixi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "bitme_tarixi", "en": "End Date", "az": "Bitməsi Tarixi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "storiler_key_key", "en": "Stories", "az": "Storylar", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "storiler_text_text", "en": "Your Stories", "az": "Sizin Storylarınız", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "hamisini_sil_key", "en": "Delete All", "az": "Hamısını Sil", "type": "button", "component": "Modal", "priority": "high" },
+    { "key": "stori_teklifleri", "en": "Story Suggestions", "az": "Story Təklifləri", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "show_key", "en": "Show", "az": "Göstər", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "yukle_title", "en": "Upload", "az": "Yüklə", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "kolleksiyaya_bax_key", "en": "View Collection", "az": "Kolleksiyaya Bax", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "sill_key", "en": "Delete", "az": "Sil", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "geri_key", "en": "Back", "az": "Geri", "type": "button", "component": "Navigation", "priority": "high" },
+    { "key": "hazirlanir", "en": "Loading...", "az": "Hazırlanır...", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "hamisini_yukle_key", "en": "Load All", "az": "Hamısını Yüklə", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "sekiller_title", "en": "Images", "az": "Şəkillər", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "videolar_title_title", "en": "Videos", "az": "Videolar", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "Tənzimləmələr", "en": "Settings", "az": "Tənzimləmələr", "type": "link", "component": "Dashboard", "priority": "high" },
+    { "key": "ad_soyad", "en": "Full Name", "az": "Ad Soyadı", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "phone_pl", "en": "Phone", "az": "Telefon", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "shifre", "en": "Password", "az": "Şifrə", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "sifre_tekrari", "en": "Confirm Password", "az": "Şifrəni Təsdiq Et", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "loading_main_key", "en": "Loading...", "az": "Yüklənir...", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "yadda_saxla_key", "en": "Save", "az": "Yadda Saxla", "type": "button", "component": "Settings", "priority": "high" },
+    { "key": "odenis_teleb_et", "en": "Request Payment", "az": "Ödəniş Tələb Et", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "descript_p", "en": "Description", "az": "Təsvir", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "hamisini_secc", "en": "Select All", "az": "Hamısını Seç", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "sorgunu_gonder", "en": "Send Request", "az": "Sorğunu Göndər", "type": "button", "component": "Form", "priority": "high" },
+    { "key": "inf_qazancveodenisler", "en": "Earnings & Payments", "az": "Qazanc və Ödənişlər", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "odenilecek_mebleg", "en": "Amount to Pay", "az": "Ödəniləcək Məbləğ", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "inf_kolleksiyalar", "en": "Collections", "az": "Kolleksiyalar", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "qazanc_meblegi", "en": "Earnings Amount", "az": "Qazanc Məbləği", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "qazanc_sebebi", "en": "Earnings Reason", "az": "Qazanc Səbəbi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "odenis_statusu_t", "en": "Payment Status", "az": "Ödəniş Statusu", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "odenis_qebzi", "en": "Payment Receipt", "az": "Ödəniş Qəbzi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "odenis_tarixi", "en": "Payment Date", "az": "Ödəniş Tarixi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "fakturani_yukle", "en": "Upload Invoice", "az": "Fakturanı Yüklə", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "show_title", "en": "Show", "az": "Göstər", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "inf_dashboard", "en": "Dashboard Info", "az": "Paneli Məlumatı", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "mehsul_kolleksiyadan_silindi_t", "en": "Product Removed from Collection", "az": "Məhsul Kolleksiyadan Silindi", "type": "message", "component": "Collections", "priority": "high" },
+    { "key": "is_loading", "en": "Loading", "az": "Yüklənir", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "removed_c_p", "en": "Removed", "az": "Silindi", "type": "message", "component": "General", "priority": "high" },
+    { "key": "mehsul_sayi", "en": "Product Count", "az": "Məhsul Sayı", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "kolleksiya_statusu", "en": "Collection Status", "az": "Kolleksiya Statusu", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "link_tit", "en": "Link", "az": "Keçid", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "emeliyyatlar", "en": "Operations", "az": "Əməliyyatlar", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "aktiv_st", "en": "Active", "az": "Aktiv", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "deaktiv_st", "en": "Inactive", "az": "Deaktiv", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "copyalandi", "en": "Copied", "az": "Kopyalandı", "type": "message", "component": "General", "priority": "high" },
+    { "key": "copyala", "en": "Copy", "az": "Kopyala", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "daha_cox_title", "en": "Show More", "az": "Daha Çox", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "kolleksiya_sil", "en": "Delete Collection", "az": "Kolleksiyani Sil", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "odenilib", "en": "Paid", "az": "Ödənildi", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "satish_text", "en": "Sales", "az": "Satış", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "gozlemede", "en": "Pending", "az": "Gözləmədə", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "sorgugonderilmeyib", "en": "Request Not Sent", "az": "Sorğu Göndərilməyib", "type": "message", "component": "Dashboard", "priority": "high" },
+    { "key": "umumi_odenilen", "en": "Total Paid", "az": "Ümumi Ödənilən", "type": "label", "component": "Dashboard", "priority": "high" },
+    { "key": "satis_statistikasi", "en": "Sales Statistics", "az": "Satış Statistikası", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "tarixleregoresiralar", "en": "Sort by Date", "az": "Tarixə Görə Sırala", "type": "button", "component": "Dashboard", "priority": "high" },
+    { "key": "son1hefte", "en": "Last Week", "az": "Son 1 Həftə", "type": "option", "component": "Filter", "priority": "high" },
+    { "key": "son1ay", "en": "Last Month", "az": "Son 1 Ay", "type": "option", "component": "Filter", "priority": "high" },
+    { "key": "son3ay", "en": "Last 3 Months", "az": "Son 3 Ay", "type": "option", "component": "Filter", "priority": "high" },
+    { "key": "son4hefte", "en": "Last 4 Weeks", "az": "Son 4 Həftə", "type": "option", "component": "Filter", "priority": "high" },
+    { "key": "gelir_grafiki", "en": "Income Graph", "az": "Gəlir Qrafiki", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "gelir_menbeyi", "en": "Income Source", "az": "Gəlir Mənbəyi", "type": "title", "component": "Dashboard", "priority": "high" },
+    { "key": "data_yox", "en": "No Data", "az": "Məlumat Yoxdur", "type": "message", "component": "Dashboard", "priority": "high" },
+    { "key": "basked", "en": "Cart", "az": "Səbət", "type": "title", "component": "Basket", "priority": "high" },
+    { "key": "sucses", "en": "Success", "az": "Uğur", "type": "message", "component": "General", "priority": "high" },
+    { "key": "uğurlu_sifariş", "en": "Successful Order", "az": "Uğurlu Sifariş", "type": "title", "component": "OrderSuccess", "priority": "critical" },
+    { "key": "uğurlu_sifariş_desc", "en": "Your order has been placed successfully", "az": "Sifarişiniz uğurla yerləşdirildi", "type": "description", "component": "OrderSuccess", "priority": "critical" },
+    { "key": "sifaris_nomresi", "en": "Order Number", "az": "Sifariş Nömrəsi", "type": "label", "component": "OrderSuccess", "priority": "high" },
+    { "key": "pickup_noqtesi", "en": "Pickup Point", "az": "Seçilmə Nöqtəsi", "type": "label", "component": "OrderSuccess", "priority": "high" },
+    { "key": "catdirilma_muddeti", "en": "Delivery Time", "az": "Çatdırılma Müddəti", "type": "label", "component": "OrderSuccess", "priority": "high" },
+    { "key": "uğurlu_sifariş_btn", "en": "Continue Shopping", "az": "Alış-verişi Dəvam Et", "type": "button", "component": "OrderSuccess", "priority": "high" },
+    { "key": "sifarislerim", "en": "My Orders", "az": "Sifarişlərim", "type": "title", "component": "Orders", "priority": "critical" },
+    { "key": "mehsul_ugurla_yenilendi", "en": "Product Updated Successfully", "az": "Məhsul Uğurla Yeniləndi", "type": "message", "component": "Dashboard", "priority": "high" },
+    { "key": "mehsul_silindi", "en": "Product Deleted", "az": "Məhsul Silindi", "type": "message", "component": "Dashboard", "priority": "high" },
+    { "key": "xeta_bas_verdi", "en": "Error Occurred", "az": "Xəta Baş Verdi", "type": "error", "component": "General", "priority": "high" },
+    { "key": "Məbləğ", "en": "Amount", "az": "Məbləğ", "type": "label", "component": "Order", "priority": "high" },
+    { "key": "Endirim", "en": "Discount", "az": "Endirim", "type": "label", "component": "Order", "priority": "high" },
+    { "key": "Cəmi_məbləğ", "en": "Total Amount", "az": "Cəmi Məbləğ", "type": "label", "component": "Order", "priority": "high" },
+    { "key": "sifarish_et", "en": "Place Order", "az": "Sifariş Et", "type": "button", "component": "Order", "priority": "critical" },
+    { "key": "settings", "en": "Settings", "az": "Ayarlar", "type": "link", "component": "Navigation", "priority": "high" },
+    { "key": "changeEmail", "en": "Change Email", "az": "Email-i Dəyişdir", "type": "button", "component": "Settings", "priority": "high" },
+    { "key": "Adınız", "en": "Your Name", "az": "Adınız", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "Mövcud_şifrə", "en": "Current Password", "az": "Mövcud Şifrə", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "fin_code", "en": "FIN Code", "az": "FIN Kodu", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "id_serial", "en": "ID Serial", "az": "ID Seriyası", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "Yeni_şifrə", "en": "New Password", "az": "Yeni Şifrə", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "gender", "en": "Gender", "az": "Cins", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "Yadda_saxla", "en": "Save", "az": "Yadda Saxla", "type": "button", "component": "Settings", "priority": "high" },
+    { "key": "verificationCcode", "en": "Verification Code", "az": "Təsdiqləmə Kodu", "type": "label", "component": "OTP", "priority": "high" },
+    { "key": "change_email_address", "en": "Change Email Address", "az": "Email Ünvanını Dəyişdir", "type": "title", "component": "Settings", "priority": "high" },
+    { "key": "enter_newmail", "en": "Enter New Email", "az": "Yeni Email Daxil Edin", "type": "label", "component": "Settings", "priority": "high" },
+    { "key": "notification", "en": "Notification", "az": "Bildiriş", "type": "title", "component": "Notification", "priority": "high" },
+    { "key": "Geri", "en": "Back", "az": "Geri", "type": "button", "component": "Navigation", "priority": "high" },
+    { "key": "Sifarişim", "en": "My Order", "az": "Sifarişim", "type": "title", "component": "Orders", "priority": "critical" },
+    { "key": "Sifariş_verildi", "en": "Order Placed", "az": "Sifariş Verildi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Sifariş_hazırlanır", "en": "Order Preparing", "az": "Sifariş Hazırlanır", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Kuryerə_verildi", "en": "Handed to Courier", "az": "Kuryerə Verildi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Məhsulu_dəyərləndir", "en": "Rate Product", "az": "Məhsulu Dəyərləndir", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "Sifariş_nömrəsi", "en": "Order Number", "az": "Sifariş Nömrəsi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Sifariş_tarixi", "en": "Order Date", "az": "Sifariş Tarixi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Məhsul_sayı", "en": "Product Count", "az": "Məhsul Sayı", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Change_address", "en": "Change Address", "az": "Ünvanı Dəyişdir", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "SETÜnvan", "en": "Set Address", "az": "Ünvan Təyin Et", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "Məhsul_məbləği", "en": "Product Amount", "az": "Məhsul Məbləği", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "Sifarişin_ləğvi", "en": "Cancel Order", "az": "Sifarişi Ləğv Et", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "Sifariş_hazırlanma", "en": "Order Preparation", "az": "Sifariş Hazırlanması", "type": "title", "component": "Orders", "priority": "high" },
+    { "key": "email_ünvanına_link_göndərildi", "en": "Link Sent to Email", "az": "Email Ünvanına Keçid Göndərildi", "type": "message", "component": "General", "priority": "high" },
+    { "key": "is_r_12", "en": "Status", "az": "Status", "type": "label", "component": "General", "priority": "high" },
+    { "key": "is_r_7", "en": "Date", "az": "Tarix", "type": "label", "component": "General", "priority": "high" },
+    { "key": "cc", "en": "CC", "az": "CC", "type": "label", "component": "General", "priority": "high" },
+    { "key": "ss", "en": "Status", "az": "Status", "type": "label", "component": "General", "priority": "high" },
+    { "key": "Email", "en": "Email", "az": "Email", "type": "label", "component": "Form", "priority": "high" },
+    { "key": "send", "en": "Send", "az": "Göndər", "type": "button", "component": "Form", "priority": "high" },
+    { "key": "legvetmesebebiniqeydedin", "en": "Note Cancel Reason", "az": "Ləğv Edilmə Səbəbini Qeyd Edin", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "sifarisinizlegvedilir", "en": "Your Order is Being Cancelled", "az": "Sifarişiniz Ləğv Edilir", "type": "message", "component": "Orders", "priority": "high" },
+    { "key": "sifaris_date", "en": "Order Date", "az": "Sifariş Tarixi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "sifaris_detail", "en": "Order Details", "az": "Sifariş Detalları", "type": "title", "component": "Orders", "priority": "critical" },
+    { "key": "mehsul_title", "en": "Product", "az": "Məhsul", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "priced", "en": "Price", "az": "Qiymət", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "given_key", "en": "Delivered", "az": "Çatdırıldı", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "order_detail_title_key", "en": "Order Details", "az": "Sifariş Detalları", "type": "title", "component": "Orders", "priority": "critical" },
+    { "key": "cancel_order", "en": "Cancel Order", "az": "Sifarişi Ləğv Et", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "texmini_catdirilma", "en": "Estimated Delivery", "az": "Təxmini Çatdırılma", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "gonderilme_tarixi", "en": "Sent Date", "az": "Göndərilmə Tarixi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "tehvil_tarixi", "en": "Delivery Date", "az": "Təhvil Tarixi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "oders", "en": "Orders", "az": "Sifarişlər", "type": "title", "component": "Orders", "priority": "critical" },
+    { "key": "return_text", "en": "Return", "az": "Geri Qaytarma", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "Hamısı", "en": "All", "az": "Hamısı", "type": "button", "component": "Filter", "priority": "high" },
+    { "key": "iade_ve_geri_qaytarilma", "en": "Return & Refund", "az": "İadə və Geri Qaytarma", "type": "title", "component": "Returns", "priority": "critical" },
+    { "key": "mehsulu_iade_et", "en": "Return Product", "az": "Məhsulu İadə Et", "type": "button", "component": "Returns", "priority": "high" },
+    { "key": "sebeb_sec", "en": "Select Reason", "az": "Səbəb Seç", "type": "label", "component": "Returns", "priority": "high" },
+    { "key": "göndər", "en": "Send", "az": "Göndər", "type": "button", "component": "Form", "priority": "high" },
+    { "key": "processing", "en": "Processing", "az": "İşlənir", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "approved", "en": "Approved", "az": "Təsdiq Edildi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "rejected", "en": "Rejected", "az": "Rədd Edildi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "pending", "en": "Pending", "az": "Gözləmədə", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "return", "en": "Return", "az": "Geri Qaytarma", "type": "title", "component": "Returns", "priority": "critical" },
+    { "key": "currency", "en": "₼", "az": "₼", "type": "symbol", "component": "General", "priority": "high" },
+    { "key": "no_returns", "en": "No Returns", "az": "Geri Qaytarma Yoxdur", "type": "message", "component": "Returns", "priority": "high" },
+    { "key": "is_r_13", "en": "Reference", "az": "Istinad", "type": "label", "component": "General", "priority": "high" },
+    { "key": "is_r_14", "en": "Action", "az": "Əməliyyat", "type": "label", "component": "General", "priority": "high" },
+    { "key": "dd_1", "en": "Delete", "az": "Sil", "type": "button", "component": "General", "priority": "high" },
+    { "key": "bb", "en": "Back", "az": "Geri", "type": "button", "component": "Navigation", "priority": "high" },
+    { "key": "password", "en": "Password", "az": "Şifrə", "type": "label", "component": "Form", "priority": "high" },
+    { "key": "passwordReset", "en": "Password Reset", "az": "Şifrə Sıfırlama", "type": "title", "component": "Auth", "priority": "high" },
+    { "key": "sertler_yuklenmedi", "en": "Certificates Not Loaded", "az": "Sertifikatlar Yüklənmədi", "type": "error", "component": "General", "priority": "high" },
+    { "key": "register", "en": "Register", "az": "Qeydiyyat Ol", "type": "button", "component": "Auth", "priority": "critical" },
+    { "key": "sertler_ve_qaydalar", "en": "Terms and Conditions", "az": "Sertlər və Qaydalar", "type": "link", "component": "Auth", "priority": "high" },
+    { "key": "yuklenir", "en": "Loading...", "az": "Yüklənir...", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "bagla", "en": "Close", "az": "Bağla", "type": "button", "component": "Modal", "priority": "high" },
+    { "key": "success_login", "en": "Login Successful", "az": "Giriş Uğurlu", "type": "message", "component": "Auth", "priority": "high" },
+    { "key": "error_to_log", "en": "Login Error", "az": "Giriş Xətası", "type": "error", "component": "Auth", "priority": "high" },
+    { "key": "Xoş_gəldiniz", "en": "Welcome", "az": "Xoş Gəldiniz", "type": "greeting", "component": "Auth", "priority": "critical" },
+    { "key": "logindesc", "en": "Please log in to your account", "az": "Lütfən hesabınıza daxil olun", "type": "description", "component": "Auth", "priority": "critical" },
+    { "key": "or", "en": "OR", "az": "VƏ YA", "type": "label", "component": "Auth", "priority": "critical" },
+    { "key": "istifadeci_key", "en": "User", "az": "İstifadəçi", "type": "option", "component": "Auth", "priority": "critical" },
+    { "key": "influencer_key", "en": "Influencer", "az": "Influencer", "type": "option", "component": "Auth", "priority": "critical" },
+    { "key": "forgotpassword", "en": "Forgot Password?", "az": "Şifrəni Unutdunuz?", "type": "link", "component": "Auth", "priority": "critical" },
+    { "key": "login", "en": "Login", "az": "Daxil Ol", "type": "button", "component": "Auth", "priority": "critical" },
+    { "key": "Hesabın_yoxdur", "en": "Don't have an account?", "az": "Hesabınız Yoxdur?", "type": "text", "component": "Auth", "priority": "critical" },
+    { "key": "izmen_ad", "en": "Changed Name", "az": "Dəyişilmiş Ad", "type": "message", "component": "Settings", "priority": "high" },
+    { "key": "noviy_adress", "en": "New Address", "az": "Yeni Ünvan", "type": "title", "component": "Address", "priority": "high" },
+    { "key": "coxranenie", "en": "Saving...", "az": "Yadda Saxlanılır...", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "iade_et", "en": "Refund", "az": "İadə Et", "type": "button", "component": "Returns", "priority": "high" },
+    { "key": "add_com", "en": "Add Comment", "az": "Şərh Əlavə Et", "type": "button", "component": "Comments", "priority": "high" },
+    { "key": "qaytarilmir_text", "en": "Cannot Return", "az": "Qaytarıla Bilməz", "type": "message", "component": "Returns", "priority": "high" },
+    { "key": "catdirilma_izle", "en": "Track Delivery", "az": "Çatdırılmanı İzlə", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "legv_edildi", "en": "Cancelled", "az": "Ləğv Edildi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "tracking_nomresi", "en": "Tracking Number", "az": "Axtarış Nömrəsi", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "d_d", "en": "Date", "az": "Tarix", "type": "label", "component": "General", "priority": "high" },
+    { "key": "adres_key", "en": "Address", "az": "Ünvan", "type": "label", "component": "Address", "priority": "high" },
+    { "key": "ism_", "en": "Name", "az": "Ad", "type": "label", "component": "Address", "priority": "high" },
+    { "key": "p_p", "en": "Postal Code", "az": "Poçt Kodu", "type": "label", "component": "Address", "priority": "high" },
+    { "key": "kol_", "en": "Quantity", "az": "Miqdar", "type": "label", "component": "Orders", "priority": "high" },
+    { "key": "nagd_odenis", "en": "Cash Payment", "az": "Nağd Ödəniş", "type": "option", "component": "Payment", "priority": "high" },
+    { "key": "select_pickup_point", "en": "Select Pickup Point", "az": "Seçilmə Nöqtəsi Seçin", "type": "label", "component": "PickupPoint", "priority": "high" },
+    { "key": "pickup_saved", "en": "Pickup Point Saved", "az": "Seçilmə Nöqtəsi Yadda Saxlandı", "type": "message", "component": "PickupPoint", "priority": "high" },
+    { "key": "error_occurred", "en": "Error Occurred", "az": "Xəta Baş Verdi", "type": "error", "component": "General", "priority": "high" },
+    { "key": "tehvil_noqtesi", "en": "Delivery Point", "az": "Təhvil Nöqtəsi", "type": "label", "component": "PickupPoint", "priority": "high" },
+    { "key": "select_pickup_desc", "en": "Select a pickup point for delivery", "az": "Çatdırılma üçün seçilmə nöqtəsini seçin", "type": "description", "component": "PickupPoint", "priority": "high" },
+    { "key": "selected_pickup", "en": "Selected Pickup Point", "az": "Seçilmiş Seçilmə Nöqtəsi", "type": "label", "component": "PickupPoint", "priority": "high" },
+    { "key": "search_pickup", "en": "Search Pickup Point", "az": "Seçilmə Nöqtəsini Axtar", "type": "placeholder", "component": "PickupPoint", "priority": "high" },
+    { "key": "no_pickup_points", "en": "No Pickup Points", "az": "Seçilmə Nöqtələri Yoxdur", "type": "message", "component": "PickupPoint", "priority": "high" },
+    { "key": "try_different_search", "en": "Try a Different Search", "az": "Fərqli Axtarış Cəhd Edin", "type": "button", "component": "PickupPoint", "priority": "high" },
+    { "key": "tehvil_noqtesi_count", "en": "Delivery Points Found", "az": "Tapılan Təhvil Nöqtələri", "type": "label", "component": "PickupPoint", "priority": "high" },
+    { "key": "please_wait", "en": "Please Wait", "az": "Lütfən Gözləyin", "type": "label", "component": "Loader", "priority": "high" },
+    { "key": "save_pickup", "en": "Save Pickup Point", "az": "Seçilmə Nöqtəsini Yadda Saxla", "type": "button", "component": "PickupPoint", "priority": "high" },
+    { "key": "Bəyəndiklərim", "en": "Favorites", "az": "Bəyəndiklərim", "type": "link", "component": "Navigation", "priority": "high" },
+    { "key": "pickup_secilmeyib", "en": "Pickup Point Not Selected", "az": "Seçilmə Nöqtəsi Seçilməyib", "type": "error", "component": "PickupPoint", "priority": "high" },
+    { "key": "fin_kod_yoxdur", "en": "FIN Code Missing", "az": "FIN Kodu Yoxdur", "type": "error", "component": "Settings", "priority": "high" },
+    { "key": "vesiqe_seriya_yoxdur", "en": "Document Serial Missing", "az": "Vəsiqə Seriyası Yoxdur", "type": "error", "component": "Settings", "priority": "high" },
+    { "key": "sebet_bosdur", "en": "Cart is Empty", "az": "Səbət Boşdur", "type": "message", "component": "Basket", "priority": "critical" },
+    { "key": "odenis_yaradila_bilmedi", "en": "Payment Could Not Be Created", "az": "Ödəniş Yaradıla Bilmədi", "type": "error", "component": "Payment", "priority": "high" },
+    { "key": "hediyye_secin", "en": "Select Gift", "az": "Hədiyyə Seçin", "type": "label", "component": "Gifts", "priority": "high" },
+    { "key": "sec", "en": "Select", "az": "Seç", "type": "button", "component": "General", "priority": "high" },
+    { "key": "secildi", "en": "Selected", "az": "Seçildi", "type": "message", "component": "General", "priority": "high" },
+    { "key": "close", "en": "Close", "az": "Bağla", "type": "button", "component": "Modal", "priority": "high" },
+    { "key": "hediyye_xeberdarliq", "en": "Gift Warning", "az": "Hədiyyə Xəbərdarlığı", "type": "message", "component": "Gifts", "priority": "high" },
+    { "key": "sifaris_legvi", "en": "Cancel Order", "az": "Sifarişi Ləğv Et", "type": "button", "component": "Orders", "priority": "high" },
+    { "key": "fin_kod_izah", "en": "FIN Code Explanation", "az": "FIN Kodu İzahı", "type": "description", "component": "Settings", "priority": "high" }
+  ]
+}

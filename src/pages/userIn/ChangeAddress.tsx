@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { Clock, Phone, Check, Search, Navigation, Package } from "lucide-react";
 
 const ChangeAddress: React.FC = () => {
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
 
   const { data: translation } = GETRequest<TranslationsKeys>(
     "/translates",

@@ -21,41 +21,12 @@ const getImageUrl = (src: string | null | undefined): string => {
 };
 
 const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, cancellationReasons: any[] }) => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const [user, setUser] = useState<null | User>(null);
 
   const { data: translation } =
     GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
-
-  // const statusIndicator = (status: string) => {
-  //   switch (status) {
-  //     case 'ordered':
-  //       return translation?.ordered || 'Заказано'; // sifariş alındı
-  //     case 'prepared':
-  //       return translation?.prepared || 'Подготовлено'; // hazırlanır
-  //     case 'boxed':
-  //       return translation?.boxed || 'Пакетировано'; // paketləndi
-  //     case 'cargo_depot':
-  //       return translation?.cargo_depot || 'Карго депо'; // karqo deposu
-  //     case 'delivered':
-  //       return translation?.delivered || 'Доставлено'; // təslim edildi
-  //     case 'returned':
-  //       return translation?.returned || 'Возвращено'; // iadə verildi
-  //     case 'courier':
-  //       return translation?.courier || 'Курьеру'; // kuryerə verildi
-  //     case 'refund_checking':
-  //       return translation?.refund_checking || 'Проверка возврата'; // iadə yoxlanılır
-  //     case 'return_accepted':
-  //       return translation?.return_accepted || 'Возврат принят'; // iadə qəbul edildi
-  //     case 'cancelled':
-  //       return translation?.cancelled || 'Отменено'; // ləğv edildi
-  //     case 'out_of_stock':
-  //       return translation?.out_of_stock || 'Распродана'; // stokda yoxdur
-  //     default:
-  //       return translation?.unknown || 'Неизвестно';
-  //   }
-  // };
 
   useEffect(() => {
     const userStr = localStorage.getItem('user-info');
@@ -63,7 +34,7 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
       const user = JSON.parse(userStr);
       setUser(user.data);
     } else {
-      navigate(`/en/login`);
+      navigate(`/${lang === 'en' ? 'en' : 'az'}/login`);
     }
   }, []);
 

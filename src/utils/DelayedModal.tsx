@@ -24,7 +24,7 @@ const DelayedModal: React.FC<Props> = ({ setOpenRateModal }) => {
         { id: 5, icon: "/starempty.svg", iconFill: "/starfill.svg", rate: 5 },
     ];
 
-    const { lang = 'ru' } = useParams<{ lang: string }>();
+    const { lang = 'az' } = useParams<{ lang: string }>();
     const { data: translation } =
         GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
     const [showDelayedModal] = React.useState<boolean>(true);

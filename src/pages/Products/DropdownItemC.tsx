@@ -21,7 +21,7 @@ interface Category {
 }
 
 const DropdownItemC = memo(({ data }: { data: Category }) => {
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 

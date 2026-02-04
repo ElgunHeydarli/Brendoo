@@ -6,7 +6,7 @@ import {
 import { NavLink, useParams } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
-  const { lang = 'ru' } = useParams();
+  const { lang = 'az' } = useParams();
   const { DashboardElements } = useDashboard();
 
   return (

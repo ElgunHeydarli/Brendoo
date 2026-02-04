@@ -14,18 +14,12 @@ export default function CookieConsent() {
   // Tərcümələr
   const texts = {
     az: {
-      message: 'Bu sayt təcrübənizi yaxşılaşdırmaq üçün cookie fayllarından istifadə edir.',
+      message:
+        'Bu sayt təcrübənizi yaxşılaşdırmaq üçün cookie fayllarından istifadə edir.',
       accept: 'Qəbul edirəm',
       decline: 'Rədd et',
       terms: 'Şərtlər və Qaydalar',
       close: 'Bağla',
-    },
-    ru: {
-      message: 'Этот сайт использует файлы cookie для улучшения вашего опыта.',
-      accept: 'Принять',
-      decline: 'Отклонить',
-      terms: 'Условия и Правила',
-      close: 'Закрыть',
     },
     en: {
       message: 'This site uses cookies to improve your experience.',
@@ -68,7 +62,9 @@ export default function CookieConsent() {
       setTermsContent(response.data?.description || '');
     } catch (error) {
       console.error('Terms fetch error:', error);
-      setTermsContent('Şərtlər yüklənə bilmədi');
+      setTermsContent(
+        lang === 'en' ? 'Failed to load terms' : 'Şərtlər yüklənə bilmədi'
+      );
     } finally {
       setTermsLoading(false);
     }

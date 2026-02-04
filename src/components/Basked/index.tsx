@@ -14,7 +14,7 @@ export default function BaskedForum({
   Number: string;
   onSubmit: (values: any) => void;
 }) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
 
   const { data: translation } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [
     lang,

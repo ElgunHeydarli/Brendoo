@@ -9,9 +9,7 @@ import { Filter } from 'lucide-react'; // Assuming you're using lucide-react for
 // Multi-language labels
 const filterLabels: Record<string, { filter: string; apply: string }> = {
   az: { filter: "Filtr", apply: "Tətbiq et" },
-  ru: { filter: "Фильтр", apply: "Применить" },
   en: { filter: "Filter", apply: "Apply" },
-  tr: { filter: "Filtre", apply: "Uygula" },
 };
 
 interface MobileFilterProps {

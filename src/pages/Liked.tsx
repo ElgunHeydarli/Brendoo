@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export default function Liked() {
-    const { lang = 'ru' } = useParams<{
+    const { lang = 'az' } = useParams<{
         lang: string;
     }>();
 

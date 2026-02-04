@@ -43,7 +43,12 @@ export interface CollectionsInterfaceApi {
 }
 
 const Collections: React.FC = () => {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
+  const labels = {
+    az: { copied: 'Kopyalandı!', copy: 'Kopyala' },
+    en: { copied: 'Copied!', copy: 'Copy' },
+  } as const;
+  const t = labels[lang === 'en' ? 'en' : 'az'];
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
     'translates',
@@ -204,12 +209,12 @@ const Collections: React.FC = () => {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <p className="text-green-600 font-medium">Скопировано!</p>
+                  <p className="text-green-600 font-medium">{t.copied}</p>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 transition-all duration-200">
                   <img src="/copy.svg" alt="Copy" className="w-5 h-5" />
-                  <p>Copy</p>
+                  <p>{t.copy}</p>
                 </div>
               )}
             </button>
@@ -355,14 +360,14 @@ const Collections: React.FC = () => {
                                       onClick={() => {
                                         setActions(null);
                                         if (item.id === 99991) {
-                                          getInnerCollection(data?.id); // Посмотреть коллекцию
+                                          getInnerCollection(data?.id);
                                         } else if (item.id === 229379278278) {
-                                          handleEditCollectionModal(data?.id); // Редактировать
+                                          handleEditCollectionModal(data?.id);
                                         } else if (item.id === 39292928328928) {
                                           removeCollection(
                                             data?.id,
                                             translation?.kolleksiya_sil ?? '',
-                                          ); // Удалить
+                                          );
                                         }
                                       }}
                                     >

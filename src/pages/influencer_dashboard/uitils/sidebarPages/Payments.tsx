@@ -19,12 +19,39 @@ export interface PaymentDataType {
 }
 
 const Payments: React.FC = () => {
-  const { lang = "ru" } = useParams<{ lang: string }>();
+  const { lang = "az" } = useParams<{ lang: string }>();
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,
     "translates",
     [lang]
   );
+  const detailLabels = {
+    az: {
+      back: 'Geri qayıt',
+      title: 'Ödəniş detalları',
+      influencer: 'İnfluenser',
+      amount: 'Ödəniləcək məbləğ',
+      type: 'Ödəniş tipi',
+      customer: 'Müştəri',
+      collection: 'Kolleksiya',
+      date: 'Ödəniş tarixi',
+      coupon: 'Kupon',
+      requestSent: 'Ödəniş sorğusu göndərildi',
+    },
+    en: {
+      back: 'Go back',
+      title: 'Payment details',
+      influencer: 'Influencer',
+      amount: 'Amount',
+      type: 'Payment type',
+      customer: 'Customer',
+      collection: 'Collection',
+      date: 'Payment date',
+      coupon: 'Coupon',
+      requestSent: 'Payment request sent',
+    },
+  } as const;
+  const t = detailLabels[lang === 'en' ? 'en' : 'az'];
 
   const user = localStorage.getItem("user-info");
   const parse = user ? JSON.parse(user) : null;
@@ -108,7 +135,7 @@ const Payments: React.FC = () => {
       });
 
       if (res.data) {
-        toast.success("Запрос на оплату отправлен!");
+        toast.success(t.requestSent);
         setPaymentModal(false);
         setSendedAmount([]);
         setTimeout(() => {
@@ -219,9 +246,9 @@ const Payments: React.FC = () => {
                 }}
               >
                 <img src={getback} alt="get back" />
-                <p>Возвращаться</p>
+                <p>{t.back}</p>
               </button>
-              <h2>Детали оплаты</h2>
+              <h2>{t.title}</h2>
             </div>
           </div>
           <div className="container-in">
@@ -230,13 +257,13 @@ const Payments: React.FC = () => {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Влиятельный человек</th>
-                    <th>Сумма к оплате</th>
-                    <th>Тип платежа</th>
-                    <th>Клиент</th>
-                    <th>Коллекция</th>
-                    <th>Дата платежа</th>
-                    <th>Купон</th>
+                    <th>{t.influencer}</th>
+                    <th>{t.amount}</th>
+                    <th>{t.type}</th>
+                    <th>{t.customer}</th>
+                    <th>{t.collection}</th>
+                    <th>{t.date}</th>
+                    <th>{t.coupon}</th>
                   </tr>
                 </thead>
                 <tbody>

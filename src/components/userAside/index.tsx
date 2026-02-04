@@ -7,7 +7,7 @@ import userMan from '../../assets/dashboardUserMan.svg';
 import userWoman from '../../assets/dashboardUserWoman.svg';
 import { useEffect, useState } from 'react';
 function UserAside({ active }: { active: number }) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
+  const { lang = 'az' } = useParams<{ lang: string }>();
   const navigate = useNavigate();
   const { data: translation } = GETRequest<TranslationsKeys>(
     `/translates`,

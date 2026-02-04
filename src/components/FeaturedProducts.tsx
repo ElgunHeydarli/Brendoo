@@ -30,14 +30,6 @@ const sectionTexts = {
     all_products: 'Bütün məhsullar',
     viewAll: 'Hamısına bax',
   },
-  ru: {
-    bestsellers: 'Хиты продаж',
-    on_sale: 'Со скидкой',
-    low_stock: 'Заканчивается',
-    top_rated: 'Лучший рейтинг',
-    all_products: 'Все товары',
-    viewAll: 'Смотреть все',
-  },
   en: {
     bestsellers: 'Bestsellers',
     on_sale: 'On Sale',
@@ -46,19 +38,11 @@ const sectionTexts = {
     all_products: 'All Products',
     viewAll: 'View All',
   },
-  tr: {
-    bestsellers: 'En çok satanlar',
-    on_sale: 'İndirimde',
-    low_stock: 'Tükenmek üzere',
-    top_rated: 'En yüksek puanlı',
-    all_products: 'Tüm ürünler',
-    viewAll: 'Tümünü gör',
-  },
 };
 
 export default function FeaturedProducts({ translation }: Props) {
-  const { lang = 'ru' } = useParams<{ lang: string }>();
-  const t = sectionTexts[lang as keyof typeof sectionTexts] || sectionTexts.ru;
+  const { lang = 'az' } = useParams<{ lang: string }>();
+  const t = sectionTexts[lang as keyof typeof sectionTexts] || sectionTexts.az;
   const navigate = useNavigate();
 
   const [data, setData] = useState<FeaturedData | null>(null);
