@@ -10,6 +10,12 @@ export default defineConfig({
         target: 'https://admin.brendoo.com',
         changeOrigin: true,
         secure: false,
+      },
+      '/sitemap.xml': {
+        target: 'https://admin.brendoo.com/api',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace('/sitemap.xml', '/seo/sitemap')
       }
     }
   },

@@ -10,10 +10,14 @@ export default function SeoHead() {
     'seo-robots'
   );
 
-  const { data: sitemapIndex } = GETRequest<{ url: string }>(
+  // Sitemap URL dinamik backend'dən
+  const { data: sitemapData } = GETRequest<{ url: string; data?: { url: string } }>(
     '/seo/sitemap-index',
     'seo-sitemap-index'
   );
+
+  // Backend'den gelen sitemap URL'sini al
+  const sitemapUrl = sitemapData?.url || sitemapData?.data?.url;
 
   return (
     <Helmet>
@@ -25,10 +29,8 @@ export default function SeoHead() {
         />
       )}
 
-      {/* Sitemap Index */}
-      {sitemapIndex?.url && (
-        <link rel="sitemap" type="application/xml" href={sitemapIndex.url} />
-      )}
+      {/* Sitemap Index - Dinamik backend URL'si */}
+      <link rel="sitemap" type="application/xml" href={sitemapUrl || '/sitemap.xml'} />
 
       {/* Google Site Verification (optional) */}
       <meta name="google-site-verification" content="your-verification-code" />

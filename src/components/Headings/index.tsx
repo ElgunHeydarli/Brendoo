@@ -3,12 +3,12 @@
  * Hər səhifənin özünəməxsus H1 başlığı olmalıdır
  */
 interface H1Props {
-  children: string;
+  children: string | React.ReactNode;
   className?: string;
   id?: string;
 }
 
-export default function H1({ children, className = '', id = 'page-h1' }: H1Props) {
+function H1({ children, className = '', id = 'page-h1' }: H1Props) {
   return (
     <h1
       id={id}
@@ -23,12 +23,12 @@ export default function H1({ children, className = '', id = 'page-h1' }: H1Props
  * H2 Başlıq Komponenti - Əsas məzmun başlıqları
  */
 interface H2Props {
-  children: string;
+  children: string | React.ReactNode;
   className?: string;
   id?: string;
 }
 
-export default function H2({ children, className = '', id = '' }: H2Props) {
+function H2({ children, className = '', id = '' }: H2Props) {
   return (
     <h2
       id={id}
@@ -38,3 +38,6 @@ export default function H2({ children, className = '', id = '' }: H2Props) {
     </h2>
   );
 }
+
+export default H1;
+export { H2 };
