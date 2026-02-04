@@ -1,6 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useEffect, useState } from 'react';
-import GETRequest from '../setting/Request';
+import GETRequest from '../../setting/Request';
 
 /**
  * Robots.txt və Sitemap dinamik HTML head-ə əlavə et

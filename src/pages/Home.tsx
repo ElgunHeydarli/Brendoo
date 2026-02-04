@@ -9,6 +9,7 @@ import ROUTES from '../setting/routes.tsx';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
 import SEO from '../components/SEO';
+import H1 from '../components/Headings';
 
 // Lazy load edilən komponentlər
 const Story = lazy(() => import('../components/Header/story.tsx'));
@@ -125,9 +126,9 @@ const HeroSection = memo(
       <div className="flex overflow-hidden flex-col justify-center items-center px-20 py-52 max-sm:rounded-none rounded-3xl bg-opacity-20 max-md:px-5 max-md:py-24 max-sm:aspect-square relative z-10">
         <div className="flex flex-col max-w-full w-[497px]">
           <div className="flex flex-col w-full text-center text-neutral-100 max-md:max-w-full">
-            <h1 className="self-center text-5xl font-bold max-md:max-w-full max-md:text-4xl max-sm:text-[24px]">
+            <H1 className="self-center text-5xl font-bold max-md:max-w-full max-md:text-4xl max-sm:text-[24px] text-neutral-100">
               {hero?.title || <div className="h-10 bg-gray-300 rounded animate-pulse w-3/4" />}
-            </h1>
+            </H1>
             <div className="mt-5 text-lg font-medium max-md:max-w-full max-sm:text-[14px] max-sm:mt-10">
               {hero?.description || (
                 <div className="h-10 bg-gray-300 rounded animate-pulse w-full" />

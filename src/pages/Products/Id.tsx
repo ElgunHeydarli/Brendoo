@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import SelectSizeSidebar from './SelectSizeSidebar';
 import SEO from '../../components/SEO';
+import H1 from '../../components/Headings';
 
 const GUEST_CART_KEY = 'guest_cart';
 const API_URL = 'https://admin.brendoo.com';
@@ -1205,7 +1206,7 @@ export default function ProductId() {
           </div>
 
           <div className="lg:w-1/2">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">{Productslingle.title || 'Product'}</h1>
+            <H1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">{Productslingle.title || 'Product'}</H1>
             <p className="text-sm text-gray-500 mb-4">SKU: {Productslingle.product_code || Productslingle.code || `PRD-${Productslingle.id}`}</p>
 
             <div className="flex items-baseline gap-3 mb-6 notranslate" translate="no" key={`price-${displayPrice}-${cjVariantPrice}-${selectedSize?.name}-${selectedColor?.name}`}>

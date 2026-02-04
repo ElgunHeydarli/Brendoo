@@ -25,6 +25,7 @@ import axios from "axios";
 import DropdownItemC from "./DropdownItemC";
 import SEO from "../../components/SEO";
 import DynamicFilters from "../../components/DynamicFilters";
+import H1 from "../../components/Headings";
 
 import type { NewFiltersInterface } from "./types";
 
@@ -499,9 +500,9 @@ export default function Products({
               <img loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/a06e1c6285cb46f6524f6d6023531f25dabadfc0b9b5097943e091c33f26f94a?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099" className="object-contain shrink-0 self-stretch my-auto w-6 aspect-square" alt="" aria-hidden="true" />
               <span className="self-stretch my-auto text-white text-opacity-80">{translation?.Məhsullar || 'Products'}</span>
             </nav>
-            <h1 className="relative self-center mt-20 mb-0 text-4xl font-semibold text-white max-md:mt-10 max-md:mb-2.5 max-md:max-w-full">
+            <H1 className="relative self-center mt-20 mb-0 text-4xl font-semibold text-white max-md:mt-10 max-md:mb-2.5 max-md:max-w-full">
               {slug && slug.length > 0 ? slug : heroTitle}
-            </h1>
+            </H1>
           </div>
         </section>
         <section className="flex flex-col w-full max-md:px-5 max-sm:px-0">

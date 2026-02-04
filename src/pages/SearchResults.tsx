@@ -17,6 +17,7 @@ import type {
 } from "../setting/Types";
 import SEO from "../components/SEO";
 import DynamicFilters from "../components/DynamicFilters";
+import H1 from "../components/Headings";
 
 // Components from Products
 import {
@@ -619,9 +620,9 @@ export default function SearchResults() {
               </span>
             </nav>
 
-            <h1 className="relative self-center mt-20 mb-0 text-4xl font-semibold text-white max-md:mt-10 max-md:mb-2.5 max-md:max-w-full text-center">
+            <H1 className="relative self-center mt-20 mb-0 text-4xl font-semibold text-white max-md:mt-10 max-md:mb-2.5 max-md:max-w-full text-center">
               {getSearchTitle()}
-            </h1>
+            </H1>
 
             {/* Vision/Image Search Labels */}
             {(searchType === "image" || searchType === "vision") && imageAnalysis?.labels && (
