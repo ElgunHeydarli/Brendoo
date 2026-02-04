@@ -15,6 +15,7 @@ import type {
   Filter,
   Product,
   ProductResponse,
+  SeoApiResponse,
   TranslationsKeys,
 } from "../../setting/Types";
 import GETRequest from "../../setting/Request";
@@ -86,6 +87,12 @@ export default function Products({
   const is_discount = queryParams.get("discount");
   const third_category_id = queryParams.get("third_category_id");
   const type = queryParams.get("type");
+
+  const seoEndpoint = useMemo(() => {
+    if (subCategory) return `/seo/subcategory/${subCategory}`;
+    if (category) return `/seo/category/${category}`;
+    return null;
+  }, [category, subCategory]);
 
   const brandQuery = useMemo(
     () =>
@@ -181,6 +188,14 @@ export default function Products({
        selectedBrandIds, isBestseller, isLowStock, isTopRated],
       { "option_ids[]": options }
     );
+
+  const { data: seoCategory } = GETRequest<SeoApiResponse>(
+    seoEndpoint || "",
+    "seo-category",
+    [lang, seoEndpoint],
+    undefined,
+    Boolean(seoEndpoint)
+  );
 
   // Kateqoriya filtrlərində rəng dublikatlarını birləşdir
   const groupedCategoryFilters = useMemo(() => {
@@ -465,7 +480,14 @@ export default function Products({
 
   return (
     <div className="relative">
-      <SEO title={getSeoTitle} description={getSeoDescription} keywords="brendoo, məhsullar, geyim, moda, online alış-veriş, premium brend" url={`https://brendoo.com/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}${location.search}`} type="website" />
+      <SEO
+        seoData={seoCategory?.data}
+        title={getSeoTitle}
+        description={getSeoDescription}
+        keywords="brendoo, məhsullar, geyim, moda, online alış-veriş, premium brend"
+        url={`https://brendoo.com/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}${location.search}`}
+        type="website"
+      />
       <Suspense fallback={<div className="h-20 bg-gray-100" />}><Header /></Suspense>
       <main className="mt-0">
         <section className="flex overflow-hidden flex-col bg-black">

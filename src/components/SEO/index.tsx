@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import type { SeoMeta } from '../../setting/Types';
 
 interface SEOProps {
   title?: string;
@@ -12,6 +13,7 @@ interface SEOProps {
   availability?: 'in stock' | 'out of stock';
   brand?: string;
   noindex?: boolean;
+  seoData?: SeoMeta;
 }
 
 const SEO = ({
@@ -26,39 +28,68 @@ const SEO = ({
   availability,
   brand,
   noindex = false,
+  seoData,
 }: SEOProps) => {
-  const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  const fallbackUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  const canonicalUrl = seoData?.canonical || fallbackUrl;
+  const resolvedTitle = seoData?.title || title;
+  const resolvedDescription = seoData?.description || description;
+  const resolvedKeywords = seoData?.keywords || keywords;
+  const resolvedRobots = seoData?.robots || (noindex ? 'noindex, nofollow' : undefined);
+  const hasOg = seoData?.og && Object.keys(seoData.og).length > 0;
+  const hasTwitter = seoData?.twitter && Object.keys(seoData.twitter).length > 0;
   const siteName = 'Brendoo';
 
   return (
     <Helmet>
       {/* Əsas Meta Tag-lar */}
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <meta name="keywords" content={keywords} />
-      {noindex && <meta name="robots" content="noindex, nofollow" />}
+      <title>{resolvedTitle}</title>
+      <meta name="description" content={resolvedDescription} />
+      <meta name="keywords" content={resolvedKeywords} />
+      {resolvedRobots && <meta name="robots" content={resolvedRobots} />}
       
       {/* Canonical URL */}
-      <link rel="canonical" href={currentUrl} />
+      <link rel="canonical" href={canonicalUrl} />
 
       {/* Open Graph / Facebook */}
-      <meta property="og:type" content={type} />
-      <meta property="og:url" content={currentUrl} />
-      <meta property="og:title" content={title} />
-      <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content={siteName} />
-      <meta property="og:locale" content="az_AZ" />
-      <meta property="og:locale:alternate" content="en_US" />
+      {hasOg ? (
+        Object.entries(seoData?.og || {}).map(([key, value]) => (
+          <meta property={key} content={value} key={`og-${key}`} />
+        ))
+      ) : (
+        <>
+          <meta property="og:type" content={type} />
+          <meta property="og:url" content={canonicalUrl} />
+          <meta property="og:title" content={resolvedTitle} />
+          <meta property="og:description" content={resolvedDescription} />
+          <meta property="og:image" content={image} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:site_name" content={siteName} />
+          <meta property="og:locale" content="az_AZ" />
+          <meta property="og:locale:alternate" content="en_US" />
+        </>
+      )}
 
       {/* Twitter Card */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:url" content={currentUrl} />
-      <meta name="twitter:title" content={title} />
-      <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      {hasTwitter ? (
+        Object.entries(seoData?.twitter || {}).map(([key, value]) => (
+          <meta name={key} content={value} key={`tw-${key}`} />
+        ))
+      ) : (
+        <>
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:url" content={canonicalUrl} />
+          <meta name="twitter:title" content={resolvedTitle} />
+          <meta name="twitter:description" content={resolvedDescription} />
+          <meta name="twitter:image" content={image} />
+        </>
+      )}
+
+      {/* Alternates */}
+      {seoData?.alternates?.map((alt) => (
+        <link rel="alternate" hrefLang={alt.hreflang} href={alt.href} key={alt.hreflang} />
+      ))}
 
       {/* Product-specific (e-commerce) */}
       {type === 'product' && price && (
@@ -80,6 +111,13 @@ const SEO = ({
       <meta name="apple-mobile-web-app-capable" content="yes" />
       <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       <meta name="apple-mobile-web-app-title" content={siteName} />
+
+      {/* Schema.org JSON-LD */}
+      {seoData?.schema && (
+        <script type="application/ld+json">
+          {JSON.stringify(seoData.schema)}
+        </script>
+      )}
     </Helmet>
   );
 };

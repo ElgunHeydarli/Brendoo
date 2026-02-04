@@ -71,7 +71,8 @@ export default function GETRequest<T>(
     api: string,
     querykey: string,
     dependencies: any[] = [],
-    params?: Record<string, any>
+  params?: Record<string, any>,
+  enabled: boolean = true
 ) {
   const { lang: urlLang } = useParams<{ lang: string }>();
   const lang = normalizeLang(urlLang) || getSelectedLanguage();
@@ -83,10 +84,13 @@ export default function GETRequest<T>(
       [isProtected, userInfo.token]
   );
 
+  const shouldEnableQuery = enabled && !shouldSkipQuery && Boolean(api);
+
   const { data, isLoading, isError, refetch, isFetching } = useQuery<T>({
     queryKey: [querykey, ...dependencies, params, lang], // ✅ lang əlavə edildi
+    enabled: shouldEnableQuery,
     queryFn: async () => {
-      if (shouldSkipQuery) {
+      if (!shouldEnableQuery) {
         return null as unknown as T;
       }
 
@@ -134,7 +138,6 @@ export default function GETRequest<T>(
       return failureCount < 2;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-    enabled: !shouldSkipQuery,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });

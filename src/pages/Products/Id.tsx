@@ -5,7 +5,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import GETRequest, { axiosInstance } from '../../setting/Request';
 import { GiHanger } from 'react-icons/gi';
 import { FiHeart, FiCheck, FiX, FiChevronLeft, FiChevronRight, FiPlay } from 'react-icons/fi';
-import { Basket, Favorite, Product, ProductDetail, TranslationsKeys } from '../../setting/Types';
+import { Basket, Favorite, Product, ProductDetail, SeoApiResponse, TranslationsKeys } from '../../setting/Types';
 import Loading from '../../components/Loading';
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import ROUTES from '../../setting/routes';
@@ -126,6 +126,11 @@ export default function ProductId() {
   const { data: Productslingle, isLoading: ProductslingleLoading } = GETRequest<ProductDetail>(
     `/productSingle/${productParam}`, 
     'productSingle', 
+    [lang, productParam]
+  );
+  const { data: seoProduct } = GETRequest<SeoApiResponse>(
+    `/seo/product/${productParam}`,
+    'seo-product',
     [lang, productParam]
   );
   const { data: tarnslation, isLoading: tarnslationLoading } = GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
@@ -1038,7 +1043,17 @@ export default function ProductId() {
 
   return (
     <div className="bg-white min-h-screen">
-      <SEO title={`${Productslingle.meta_title || Productslingle.title || 'Product'} | Brendoo`} description={Productslingle.meta_description || Productslingle.short_title || ''} image={getImageUrl(currentImage)} url={`https://brendoo.com/${lang}/product/${productParam}`} type="product" price={String(displayPrice)} currency="AZN" availability={isInStock ? 'in stock' : 'out of stock'} />
+      <SEO
+        seoData={seoProduct?.data}
+        title={`${Productslingle.meta_title || Productslingle.title || 'Product'} | Brendoo`}
+        description={Productslingle.meta_description || Productslingle.short_title || ''}
+        image={getImageUrl(currentImage)}
+        url={`https://brendoo.com/${lang}/product/${productParam}`}
+        type="product"
+        price={String(displayPrice)}
+        currency="AZN"
+        availability={isInStock ? 'in stock' : 'out of stock'}
+      />
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

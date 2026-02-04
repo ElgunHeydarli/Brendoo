@@ -3,11 +3,12 @@ import Header from '../components/Header';
 import { Footer } from '../components/Footer/index.tsx';
 import { useEffect, useState, useMemo, memo } from 'react';
 import GETRequest from '../setting/Request.ts';
-import { HomeHero, ItemList, Seo, TranslationsKeys } from '../setting/Types.ts';
+import { HomeHero, ItemList, Seo, SeoApiResponse, TranslationsKeys } from '../setting/Types.ts';
 import Loading from '../components/Loading/index.tsx';
 import ROUTES from '../setting/routes.tsx';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useParams } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 // Lazy load edilən komponentlər
 const Story = lazy(() => import('../components/Header/story.tsx'));
@@ -165,6 +166,12 @@ export default function Home() {
 
   const { data: metas } = GETRequest<Seo[]>(`/seo_pages`, 'seo_pages', [lang]);
 
+  const { data: seoHome } = GETRequest<SeoApiResponse>(
+    `/seo/home`,
+    'seo-home',
+    [lang]
+  );
+
   const { data: banners, isLoading: bannersLoading } = GETRequest<ItemList>(
     `/banners`,
     'banners',
@@ -205,10 +212,13 @@ export default function Home() {
 
   return (
     <div className="relative">
+      <SEO
+        seoData={seoHome?.data}
+        title={homePageMeta?.meta_title}
+        description={homePageMeta?.meta_description}
+        keywords={homePageMeta?.meta_keywords}
+      />
       <Helmet>
-        <title>{homePageMeta?.meta_title}</title>
-        <meta name="description" content={homePageMeta?.meta_description} />
-        <meta name="keywords" content={homePageMeta?.meta_keywords} />
         {favicon?.image && <link rel="icon" href={favicon.image} type="image/svg+xml" />}
         <link rel="preload" as="video" href={hero?.video || hero?.image} />
       </Helmet>

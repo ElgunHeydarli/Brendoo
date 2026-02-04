@@ -8,6 +8,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import axios from 'axios';
 import { Toaster } from 'react-hot-toast';
 
+import SeoHead from './components/SeoHead';
 import Loading from './components/Loading';
 import Header from './components/Header';
 import CookieConsent from './components/CookieConsent'; // ✅ YENİ: Cookie Consent
@@ -159,6 +160,7 @@ const App = () => {
 
               {/* Routing */}
               <Suspense fallback={<Loading />}>
+                <SeoHead />
                 <Routes>
                   {/* ✅ "/" URL-ə girsə "/az/home"-a redirect et */}
                   <Route path="/" element={<Navigate to="/az/home" replace />} />

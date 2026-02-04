@@ -11,6 +11,7 @@ import ROUTES from "../setting/routes";
 import type {
   Category,
   Filter,
+  SeoApiResponse,
   TranslationsKeys,
   Product,
 } from "../setting/Types";
@@ -123,6 +124,14 @@ export default function SearchResults() {
     `/product_hero`,
     "product_hero",
     [lang]
+  );
+
+  const { data: seoSearch } = GETRequest<SeoApiResponse>(
+    "/seo/search",
+    "seo-search",
+    [lang, query, totalProducts],
+    { q: query, count: totalProducts },
+    Boolean(query)
   );
 
   // Image/Vision Search - localStorage-dən oxu
@@ -538,6 +547,7 @@ export default function SearchResults() {
     return (
       <div className="min-h-screen">
         <SEO
+          seoData={seoSearch?.data}
           title={`${translation?.axtaris || 'Axtarış'} | Brendoo`}
           description="Brendoo mağazasında axtarış edin. Premium brendlərdən orijinal məhsullar."
           noindex={true}
@@ -563,6 +573,7 @@ export default function SearchResults() {
   return (
     <div className="relative">
       <SEO
+        seoData={seoSearch?.data}
         title={getSeoTitle()}
         description={getSeoDescription()}
         keywords={`${query}, brendoo, axtarış, məhsullar`}

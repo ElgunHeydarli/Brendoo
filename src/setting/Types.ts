@@ -566,6 +566,28 @@ export type Seo = {
   meta_keywords: string;
 };
 
+export type SeoAlternate = {
+  hreflang: string;
+  href: string;
+};
+
+export type SeoMeta = {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  canonical?: string;
+  robots?: string;
+  og?: Record<string, string>;
+  twitter?: Record<string, string>;
+  alternates?: SeoAlternate[];
+  schema?: Record<string, any>;
+};
+
+export type SeoApiResponse = {
+  success: boolean;
+  data: SeoMeta;
+};
+
 export type Notification = {
   id: number;
   title: string;
