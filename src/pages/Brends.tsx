@@ -3,9 +3,10 @@ import { Footer } from '../components/Footer';
 import AlphabeticalList from '../components/AlphabeticalList';
 import { Link, useParams } from 'react-router-dom';
 import GETRequest from '../setting/Request';
-import { Brand, TranslationsKeys } from '../setting/Types';
+import { Brand, TranslationsKeys, SeoApiResponse } from '../setting/Types';
 import Loading from '../components/Loading';
 import ROUTES from '../setting/routes';
+import SEO from '../components/SEO';
 
 export default function Brends() {
     const { lang = 'az' } = useParams<{ lang: string }>();
@@ -16,6 +17,14 @@ export default function Brends() {
     );
     const { data: tarnslation, isLoading: tarnslationLoading } =
         GETRequest<TranslationsKeys>(`/translates`, 'translates', [lang]);
+    
+    // Brends siyahısı üçün SEO
+    const { data: seoBrands } = GETRequest<SeoApiResponse>(
+        `/seo/brands`,
+        'seo-brands',
+        [lang]
+    );
+    
     if (BrendsLoading || tarnslationLoading) {
         return <Loading />;
     }
@@ -49,6 +58,14 @@ export default function Brends() {
     ];
     return (
         <div className="">
+            <SEO
+                seoData={seoBrands?.data}
+                title="Brendlər | Brendoo"
+                description="Brendoo-da yüzlərlə premium brend taparın. Orijinal məhsullar, ən əla qiymətlər."
+                keywords="brendlər, moda, geyim, brendoo"
+                url={`https://brendoo.com/${lang}/brends`}
+                type="website"
+            />
             <Header />
             <main className=" lg:mt-[40px] mt-0 max-sm:mb-10 mb-[100px]">
                 <div className="px-[40px] max-sm:px-4">

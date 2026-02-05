@@ -198,6 +198,25 @@ export default function Products({
     Boolean(seoEndpoint)
   );
 
+  // Type parametrinə əsaslanan SEO data (bestsellers, new, sale)
+  const seoTypeEndpoint = useMemo(() => {
+    if (type) {
+      const typeParam = `type=${type}`;
+      const categoryParam = category ? `&category=${category}` : "";
+      const brandParam = selectedBrandIds.length > 0 ? `&brand=${selectedBrandIds[0]}` : "";
+      return `/seo/products?${typeParam}${categoryParam}${brandParam}`;
+    }
+    return null;
+  }, [type, category, selectedBrandIds]);
+
+  const { data: seoProducts } = GETRequest<SeoApiResponse>(
+    seoTypeEndpoint || "",
+    "seo-products",
+    [lang, seoTypeEndpoint],
+    undefined,
+    Boolean(seoTypeEndpoint)
+  );
+
   // Kateqoriya filtrlərində rəng dublikatlarını birləşdir
   const groupedCategoryFilters = useMemo(() => {
     if (!newFiltersData?.filters) return [];
@@ -482,7 +501,7 @@ export default function Products({
   return (
     <div className="relative">
       <SEO
-        seoData={seoCategory?.data}
+        seoData={seoProducts?.data || seoCategory?.data}
         title={getSeoTitle}
         description={getSeoDescription}
         keywords="brendoo, məhsullar, geyim, moda, online alış-veriş, premium brend"
