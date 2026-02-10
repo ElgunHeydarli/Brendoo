@@ -36,7 +36,6 @@ import {
   PriceRange,
   Pagination,
   DropdownItem,
-  DropdownItemFilter,
   ProductCard,
 } from "./components";
 

@@ -6,7 +6,7 @@ import {
   Link,
 } from "react-router-dom";
 import axios from "axios";
-import GETRequest, { getFilters } from "../setting/Request";
+import GETRequest from "../setting/Request";
 import ROUTES from "../setting/routes";
 import type {
   Category,
@@ -27,7 +27,6 @@ import {
   PriceRange,
   Pagination,
   DropdownItem,
-  DropdownItemFilter,
   ProductCard,
 } from "./Products/components";
 
@@ -74,8 +73,6 @@ export default function SearchResults() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [lastPage, setLastPage] = useState(1);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
-  const [categoryFilters, setCategoryFilters] = useState<Filter[]>([]);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
 
   // API requests
   const { data: categories, isLoading: categoriesLoading } = GETRequest<Category[]>(
@@ -662,7 +659,7 @@ export default function SearchResults() {
                       category: null,
                       subCategory: null,
                       thirdCategory: null,
-                      options: options,
+                      options: [],
                     }}
                     onClose={closeFilter}
                   >
