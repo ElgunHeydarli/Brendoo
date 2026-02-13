@@ -36,6 +36,40 @@ const StoryPage: React.FC = () => {
   const [stories, setStories] = React.useState<StoryItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
 
+  const normalizeStory = (raw: any): StoryItem => {
+    let mediaItems: MediaStoryItem[] = [];
+    if (Array.isArray(raw?.media) && raw.media.length > 0) {
+      mediaItems = raw.media;
+    } else {
+      if (Array.isArray(raw?.images)) {
+        raw.images.forEach((img: any) => {
+          mediaItems.push({
+            id: img.id,
+            type: 'image',
+            file_url: img.url,
+            mime_type: img.mime_type,
+          });
+        });
+      }
+      if (Array.isArray(raw?.videos)) {
+        raw.videos.forEach((vid: any) => {
+          mediaItems.push({
+            id: vid.id,
+            type: 'video',
+            file_url: vid.url,
+            mime_type: vid.mime_type,
+          });
+        });
+      }
+    }
+    return {
+      id: raw.id,
+      title: raw.title ?? '',
+      description: raw.description ?? null,
+      media: mediaItems,
+    };
+  };
+
   const fetchStories = async () => {
     setLoading(true);
     try {
@@ -45,7 +79,10 @@ const StoryPage: React.FC = () => {
           'Accept-Language': lang,
         },
       });
-      if (res.data) setStories(res.data?.data ?? []);
+      if (res.data) {
+        const rawList = res.data?.data ?? [];
+        setStories(rawList.map(normalizeStory));
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -83,33 +120,65 @@ const goDetail = (s: StoryItem) => {
           {loading ? (
             <Loading />
           ) : stories && stories.length > 0 ? (
-            stories.map(s => (
-              <div key={s.id} className="item-grid">
-                <div className="left-item">
-                  <h2>{s.title}</h2>
-                  <p>{s.description}</p>
-                </div>
-                <div className="right-buttons">
-                  <button
-                    onClick={() => goDetail(s)}
-                    type="button"
-                    className="main-button"
-                  >
-                    <img src="/eyee.svg" alt="eye icon" />
-                    <p>{translation?.show_key ?? ''}</p>
-                  </button>
+            stories.map(s => {
+              const firstImage = s.media.find(m => m.type === 'image');
+              const firstVideo = s.media.find(m => m.type === 'video');
+              const thumbnail = firstImage?.file_url || firstVideo?.file_url;
+              return (
+                <div key={s.id} className="item-grid" style={{ gap: '16px' }}>
+                  <div className="left-item">
+                    <h2>{s.title}</h2>
+                    <p>{s.description}</p>
+                  </div>
+                  {thumbnail && (
+                    <div
+                      onClick={() => goDetail(s)}
+                      style={{
+                        width: '120px',
+                        minWidth: '120px',
+                        height: '80px',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {firstVideo && !firstImage ? (
+                        <video
+                          src={thumbnail}
+                          muted
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <img
+                          src={thumbnail}
+                          alt={s.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      )}
+                    </div>
+                  )}
+                  <div className="right-buttons">
+                    <button
+                      onClick={() => goDetail(s)}
+                      type="button"
+                      className="main-button"
+                    >
+                      <img src="/eyee.svg" alt="eye icon" />
+                      <p>{translation?.show_key ?? ''}</p>
+                    </button>
 
-                  <button
-                    type="button"
-                    className="main-button"
-                    onClick={() => goDetail(s)}
-                  >
-                    <img src="/mmn.svg" alt="download icon" />
-                    <p>{translation?.yukle_title ?? ''}</p>
-                  </button>
+                    <button
+                      type="button"
+                      className="main-button"
+                      onClick={() => goDetail(s)}
+                    >
+                      <img src="/mmn.svg" alt="download icon" />
+                      <p>{translation?.yukle_title ?? ''}</p>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : null}
         </div>
       </div>

@@ -66,11 +66,41 @@ const StoryInner: React.FC<Props> = ({ storyId }) => {
         },
       );
       const payload = res.data?.data ?? res.data?.story ?? res.data;
+
+      // Normalize media: support both old format (media[]) and new format (images[] + videos[])
+      let mediaItems: MediaStoryItem[] = [];
+      if (Array.isArray(payload?.media) && payload.media.length > 0) {
+        // Old format: media array with {id, type, file_url, mime_type}
+        mediaItems = payload.media;
+      } else {
+        // New format: separate images[] and videos[] with {id, url, mime_type}
+        if (Array.isArray(payload?.images)) {
+          payload.images.forEach((img: any) => {
+            mediaItems.push({
+              id: img.id,
+              type: 'image',
+              file_url: img.url,
+              mime_type: img.mime_type,
+            });
+          });
+        }
+        if (Array.isArray(payload?.videos)) {
+          payload.videos.forEach((vid: any) => {
+            mediaItems.push({
+              id: vid.id,
+              type: 'video',
+              file_url: vid.url,
+              mime_type: vid.mime_type,
+            });
+          });
+        }
+      }
+
       const normalized: StoryItem = {
         id: payload?.id,
         title: payload?.title ?? '',
         description: payload?.description ?? null,
-        media: Array.isArray(payload?.media) ? payload.media : [],
+        media: mediaItems,
       };
       setStory(normalized);
     } catch (e) {
