@@ -41,13 +41,7 @@ interface SearchResponse {
   query: string;
 }
 
-interface PopularSearch {
-  id: number;
-  query: string;
-  icon: string;
-  category_id: number | null;
-  search_count: number;
-}
+
 
 interface Props {
   SearchValue: string;
@@ -236,31 +230,11 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [popularSearches, setPopularSearches] = useState<PopularSearch[]>([]);
-  const [popularLoading, setPopularLoading] = useState(false);
 
   // Load recent searches
   useEffect(() => {
     setRecentSearches(getRecentSearches());
   }, []);
-
-  // Load popular searches
-  useEffect(() => {
-    const fetchPopular = async () => {
-      setPopularLoading(true);
-      try {
-        const { data } = await axios.get(`${API_URL}/api/search/popular`, {
-          headers: { 'Accept-Language': lang }
-        });
-        setPopularSearches(data.popular || []);
-      } catch (error) {
-        console.error('Popular searches error:', error);
-      } finally {
-        setPopularLoading(false);
-      }
-    };
-    fetchPopular();
-  }, [lang]);
 
   // Open dropdown when input is focused
   useEffect(() => {
@@ -491,32 +465,6 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
             </div>
           )}
 
-          {/* Popular Searches */}
-          <div className="p-4">
-            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
-              <span>🔥</span> {t.popularNow}
-            </h3>
-            {popularLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {popularSearches.map((item) => (
-                  <button
-                    key={`popular-${item.id}`}
-                    onClick={() => handleSearchQuery(item.query)}
-                    className="flex items-center gap-3 px-4 py-3 bg-gray-50 hover:bg-orange-50 hover:border-orange-200 border border-transparent rounded-xl text-left transition-all group"
-                  >
-                    <span className="text-xl">{item.icon || '🔍'}</span>
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-orange-600">
-                      {item.query}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
 

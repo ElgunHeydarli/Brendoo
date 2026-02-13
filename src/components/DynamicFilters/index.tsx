@@ -106,81 +106,122 @@ const translateStyleOption = (title: string): string => {
 const simplifySizeOptions = (options: any[]): any[] => {
   if (!options || options.length === 0) return options;
 
-  // Standart ölçü kateqoriyaları
-  const sizeGroups: Record<string, { ids: Set<number>, keywords: string[] }> = {
-    'XS': { ids: new Set(), keywords: ['xs', 'extra small', 'xəsməz kiçik'] },
-    'S': { ids: new Set(), keywords: ['\\bs\\b', 'small', 'kiçik', '\\s+s\\s+', '^s$'] },
-    'M': { ids: new Set(), keywords: ['\\bm\\b', 'medium', 'orta', '\\s+m\\s+', '^m$'] },
-    'L': { ids: new Set(), keywords: ['\\bl\\b', 'large', 'böyük', '\\s+l\\s+', '^l$'] },
-    'XL': { ids: new Set(), keywords: ['xl', 'extra large', 'xəsməz böyük'] },
-    'XXL': { ids: new Set(), keywords: ['xxl', '2xl', '2 xl', 'double extra'] },
-    'XXXL': { ids: new Set(), keywords: ['xxxl', '3xl', '3 xl', 'triple extra'] },
-    'One Size': { ids: new Set(), keywords: ['one size', 'free size', 'tek ölçü', 'azad ölçü', 'universal'] },
+  // Geyim ölçüləri (text-based)
+  const clothingGroups: Record<string, { ids: Set<number> }> = {
+    'XXS': { ids: new Set() },
+    'XS': { ids: new Set() },
+    'S': { ids: new Set() },
+    'M': { ids: new Set() },
+    'L': { ids: new Set() },
+    'XL': { ids: new Set() },
+    '2XL': { ids: new Set() },
+    '3XL': { ids: new Set() },
+    '4XL': { ids: new Set() },
+    '5XL': { ids: new Set() },
+    'One Size': { ids: new Set() },
   };
 
-  // Hər option-u uyğun ölçü qrupuna əlavə et
+  // Ayaqqabı ölçüləri (EU rəqəmsal - 35-50)
+  const shoeGroups: Record<string, { ids: Set<number> }> = {};
+
+  // Uşaq ölçüləri (CM-based)
+  const childGroups: Record<string, { ids: Set<number> }> = {};
+
   options.forEach(option => {
-    const title = option.title.toLowerCase().trim();
-    let matched = false;
+    const title = option.title.trim();
+    const titleLower = title.toLowerCase();
 
-    // Sırayla təklik ölçüləri yoxla (XS, S, M, L, XL əvvəl)
-    if (/^xs$/i.test(title) || title === 'xs') {
-      sizeGroups['XS'].ids.add(option.id);
-      matched = true;
-    } else if (/^s$/i.test(title) || title === 's') {
-      sizeGroups['S'].ids.add(option.id);
-      matched = true;
-    } else if (/^m$/i.test(title) || title === 'm') {
-      sizeGroups['M'].ids.add(option.id);
-      matched = true;
-    } else if (/^l$/i.test(title) || title === 'l') {
-      sizeGroups['L'].ids.add(option.id);
-      matched = true;
-    } else if (/^xl$|x-l/i.test(title)) {
-      sizeGroups['XL'].ids.add(option.id);
-      matched = true;
-    } else if (/^xxl|2xl|2\s*xl|xx-l/i.test(title)) {
-      sizeGroups['XXL'].ids.add(option.id);
-      matched = true;
-    } else if (/^xxxl|3xl|3\s*xl|xxx-l/i.test(title)) {
-      sizeGroups['XXXL'].ids.add(option.id);
-      matched = true;
-    } else if (/one\s*size|free\s*size|tek\s*ölçü|azad\s*ölçü|universal/i.test(title)) {
-      sizeGroups['One Size'].ids.add(option.id);
-      matched = true;
+    // Dimension/ölçü qaydaları - skip (20X14X18CM, 30X15X46, etc.)
+    if (/\d+\s*x\s*\d+/i.test(title) || /\d+\s*×\s*\d+/i.test(title)) return;
+    // Random əşya adları - skip
+    if (/inch|liters?|pcs|layers?|lines?|pouch|bag|pendant|buckle|flower|single|with |no |upgraded|first layer|half discount|customiz|no refund|no return|elevator|cowhide/i.test(titleLower)) return;
+
+    // 1) Geyim text ölçüləri
+    if (/^xxs$/i.test(titleLower)) { clothingGroups['XXS'].ids.add(option.id); return; }
+    if (/^xs$/i.test(titleLower)) { clothingGroups['XS'].ids.add(option.id); return; }
+    if (/^s$/i.test(titleLower)) { clothingGroups['S'].ids.add(option.id); return; }
+    if (/^m$/i.test(titleLower)) { clothingGroups['M'].ids.add(option.id); return; }
+    if (/^l$/i.test(titleLower)) { clothingGroups['L'].ids.add(option.id); return; }
+    if (/^xl$/i.test(titleLower)) { clothingGroups['XL'].ids.add(option.id); return; }
+    if (/^(xxl|2xl)$/i.test(titleLower)) { clothingGroups['2XL'].ids.add(option.id); return; }
+    if (/^(xxxl|3xl)$/i.test(titleLower)) { clothingGroups['3XL'].ids.add(option.id); return; }
+    if (/^4xl$/i.test(titleLower)) { clothingGroups['4XL'].ids.add(option.id); return; }
+    if (/^5xl$/i.test(titleLower)) { clothingGroups['5XL'].ids.add(option.id); return; }
+    if (/one\s*size|free\s*size|average\s*size|universal/i.test(titleLower)) { clothingGroups['One Size'].ids.add(option.id); return; }
+
+    // 2) Uşaq ölçüləri (MM/months/years patterns)
+    const childMatch = titleLower.match(/^(\d+)\s*mm/);
+    if (childMatch) {
+      const mm = childMatch[1] + 'mm';
+      if (!childGroups[mm]) childGroups[mm] = { ids: new Set() };
+      childGroups[mm].ids.add(option.id);
+      return;
     }
 
-    // Rəqəm əsasında ölçü sınıflandırması (məsələn: "42", "43" → ölçü kodu)
-    if (!matched && /^\d+$/.test(title)) {
-      const num = parseInt(title);
-      if (num <= 32) sizeGroups['XS'].ids.add(option.id);
-      else if (num <= 34) sizeGroups['S'].ids.add(option.id);
-      else if (num <= 36) sizeGroups['M'].ids.add(option.id);
-      else if (num <= 38) sizeGroups['L'].ids.add(option.id);
-      else if (num <= 40) sizeGroups['XL'].ids.add(option.id);
-      else if (num <= 42) sizeGroups['XXL'].ids.add(option.id);
-      else sizeGroups['XXXL'].ids.add(option.id);
-      matched = true;
+    // 3) Ayaqqabı ölçüləri - saf rəqəm (35-50 arası)
+    if (/^\d+(\.\d+)?$/.test(title)) {
+      const num = parseFloat(title);
+      if (num >= 35 && num <= 50) {
+        const key = title;
+        if (!shoeGroups[key]) shoeGroups[key] = { ids: new Set() };
+        shoeGroups[key].ids.add(option.id);
+        return;
+      }
+    }
+
+    // 4) EU/SIZE prefix ilə ayaqqabı ölçüləri
+    const euMatch = titleLower.match(/^(?:eu|size)\s*(\d+)/);
+    if (euMatch) {
+      const num = parseInt(euMatch[1]);
+      if (num >= 35 && num <= 50) {
+        const key = String(num);
+        if (!shoeGroups[key]) shoeGroups[key] = { ids: new Set() };
+        shoeGroups[key].ids.add(option.id);
+        return;
+      }
+    }
+
+    // 5) YARDS suffix ilə ölçülər
+    const yardsMatch = titleLower.match(/^(\d+)\s*yards?$/);
+    if (yardsMatch) {
+      const key = yardsMatch[1];
+      if (!shoeGroups[key]) shoeGroups[key] = { ids: new Set() };
+      shoeGroups[key].ids.add(option.id);
+      return;
     }
   });
 
-  // Sadələşdirilmiş option-ları yarat
-  const simplifiedOptions: any[] = [];
-  const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'One Size'];
-  
-  sizeOrder.forEach(sizeName => {
-    const group = sizeGroups[sizeName];
-    if (group.ids.size > 0) {
-      const firstId = Array.from(group.ids)[0];
-      simplifiedOptions.push({
-        id: firstId,
-        title: sizeName,
-        _originalIds: Array.from(group.ids),
-      });
+  // Nəticəni yarat
+  const result: any[] = [];
+
+  // Geyim ölçüləri
+  const clothingOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', 'One Size'];
+  clothingOrder.forEach(name => {
+    const g = clothingGroups[name];
+    if (g.ids.size > 0) {
+      result.push({ id: Array.from(g.ids)[0], title: name, _originalIds: Array.from(g.ids) });
     }
   });
 
-  return simplifiedOptions;
+  // Ayaqqabı ölçüləri (rəqəmsal sıralama)
+  const shoeKeys = Object.keys(shoeGroups).sort((a, b) => parseFloat(a) - parseFloat(b));
+  shoeKeys.forEach(key => {
+    const g = shoeGroups[key];
+    if (g.ids.size > 0) {
+      result.push({ id: Array.from(g.ids)[0], title: key, _originalIds: Array.from(g.ids) });
+    }
+  });
+
+  // Uşaq ölçüləri (rəqəmsal sıralama)
+  const childKeys = Object.keys(childGroups).sort((a, b) => parseInt(a) - parseInt(b));
+  childKeys.forEach(key => {
+    const g = childGroups[key];
+    if (g.ids.size > 0) {
+      result.push({ id: Array.from(g.ids)[0], title: key, _originalIds: Array.from(g.ids) });
+    }
+  });
+
+  return result;
 };
 
 // Rəng option-larını sadələşdir və qruplaşdır

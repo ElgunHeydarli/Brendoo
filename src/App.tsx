@@ -69,6 +69,15 @@ const queryClient = new QueryClient({
 const GOOGLE_CLIENT_ID =
   '676362303569-egd9urrld33gs13hbpo2mks4i73jr19n.apps.googleusercontent.com';
 
+// Influencer-i kabinetinə redirect edən komponent
+const InfluencerRedirect = () => {
+  const loc = useLocation();
+  // URL-dən dili çıxar (məs: /az/home -> az)
+  const langMatch = loc.pathname.match(/^\/([a-z]{2})\//);
+  const lang = langMatch ? langMatch[1] : 'az';
+  return <Navigate to={`/${lang}/influencer/kolleksiyalar`} replace />;
+};
+
 const App = () => {
   const location = useLocation();
   const {
@@ -162,67 +171,78 @@ const App = () => {
               <Suspense fallback={<Loading />}>
                 <SeoHead />
                 <Routes>
-                  {/* ✅ "/" URL-ə girsə "/az/home"-a redirect et */}
-                  <Route path="/" element={<Navigate to="/az/home" replace />} />
-                  
-                  {/* ✅ Search Results Page */}
-                  <Route path="/:lang/search" element={<SearchResults />} />
+                  {type === 'influencer' ? (
+                    <>
+                      {/* Influencer: yalnız kabinet və lazımi route-lar */}
+                      <Route
+                        path="/:lang/influencer/*"
+                        element={
+                          <div style={{ paddingTop: '40px' }}>
+                            <Header />
+                            <MainDashboard />
+                          </div>
+                        }
+                      />
+                      <Route
+                        path="/:lang/influencers/password-reset/:slug"
+                        element={<ResetPasswordConfrim />}
+                      />
+                      {/* Qalan bütün route-ları influencer kabinetinə redirect et */}
+                      <Route path="/" element={<Navigate to="/az/influencer/kolleksiyalar" replace />} />
+                      <Route path="*" element={<InfluencerRedirect />} />
+                    </>
+                  ) : (
+                    <>
+                      {/* ✅ "/" URL-ə girsə "/az/home"-a redirect et */}
+                      <Route path="/" element={<Navigate to="/az/home" replace />} />
 
-                  {/* ✅ Product Detail Page - must be before /:lang/:page/:slug */}
-                  <Route path="/:lang/product/:slug" element={<ProductId />} />
+                      {/* ✅ Search Results Page */}
+                      <Route path="/:lang/search" element={<SearchResults />} />
 
-                  {!location.pathname?.includes('influencer') && (
-                    <Route path="/:lang/:page" element={<PageByLang />} />
+                      {/* ✅ Product Detail Page - must be before /:lang/:page/:slug */}
+                      <Route path="/:lang/product/:slug" element={<ProductId />} />
+
+                      {!location.pathname?.includes('influencer') && (
+                        <Route path="/:lang/:page" element={<PageByLang />} />
+                      )}
+                      <Route path="/:lang/:page/:slug" element={<InnerPageByLang />} />
+                      <Route path="/poducts" element={<Products />} />
+                      <Route path="/products/:id" element={<ProductId />} />
+                      <Route path="/aboutus" element={<Aboutus />} />
+                      <Route path="/liked" element={<Liked />} />
+                      <Route path="/brends" element={<Brends />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/userrules" element={<UserRules />} />
+                      <Route path="/deliveryrules" element={<DeliveryRules />} />
+                      <Route path="/refund" element={<RefundRules />} />
+
+                      {/* User */}
+                      <Route path="/user/login" element={<Login />} />
+                      <Route path="/user/register" element={<Register />} />
+                      <Route path="/user/newPassword" element={<Password />} />
+                      <Route path="/user" element={<UserSettings />} />
+                      <Route path="/user/liked" element={<UserLiked />} />
+                      <Route path="/user/notifications" element={<Notification />} />
+                      <Route path="/user/return" element={<ReturnPage />} />
+                      <Route path="/user/address" element={<ChangeAddress />} />
+                      <Route path="/user/orders" element={<Order />} />
+                      <Route path="/user/orders/:id" element={<OrderItemsDetail />} />
+                      <Route path="/user/basked/confirm" element={<BaskedConfirm />} />
+                      <Route path="/basked/sifarislerim" element={<Basked />} />
+
+                      {/* General */}
+                      <Route path="/success" element={<Sucses />} />
+                      <Route path="/fail" element={<FailPage />} />
+                      <Route path="/i/:lang/:slug" element={<DynamicPage />} />
+                      <Route path="/:lang/collections/:slug" element={<CollectionPage />} />
+                      <Route path="/terms/:lang/:slug" element={<RulesPage />} />
+
+                      <Route
+                        path="/:lang/influencers/password-reset/:slug"
+                        element={<ResetPasswordConfrim />}
+                      />
+                    </>
                   )}
-                  <Route path="/:lang/:page/:slug" element={<InnerPageByLang />} />
-                  <Route path="/poducts" element={<Products />} />
-                  <Route path="/products/:id" element={<ProductId />} />
-                  <Route path="/aboutus" element={<Aboutus />} />
-                  <Route path="/liked" element={<Liked />} />
-                  <Route path="/brends" element={<Brends />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/userrules" element={<UserRules />} />
-                  <Route path="/deliveryrules" element={<DeliveryRules />} />
-                  <Route path="/refund" element={<RefundRules />} />
-
-                  {/* User */}
-                  <Route path="/user/login" element={<Login />} />
-                  <Route path="/user/register" element={<Register />} />
-                  <Route path="/user/newPassword" element={<Password />} />
-                  <Route path="/user" element={<UserSettings />} />
-                  <Route path="/user/liked" element={<UserLiked />} />
-                  <Route path="/user/notifications" element={<Notification />} />
-                  <Route path="/user/return" element={<ReturnPage />} />
-                  <Route path="/user/address" element={<ChangeAddress />} />
-                  <Route path="/user/orders" element={<Order />} />
-                  <Route path="/user/orders/:id" element={<OrderItemsDetail />} />
-                  <Route path="/user/basked/confirm" element={<BaskedConfirm />} />
-                  <Route path="/basked/sifarislerim" element={<Basked />} />
-
-                  {/* General */}
-                  <Route path="/success" element={<Sucses />} />
-                  <Route path="/fail" element={<FailPage />} />
-                  <Route path="/i/:lang/:slug" element={<DynamicPage />} />
-                  <Route path="/:lang/collections/:slug" element={<CollectionPage />} />
-                  <Route path="/terms/:lang/:slug" element={<RulesPage />} />
-
-                  {/* Influencer */}
-                  {type === 'influencer' && (
-                    <Route
-                      path="/:lang/influencer/*"
-                      element={
-                        <div style={{ paddingTop: '40px' }}>
-                          <Header />
-                          <MainDashboard />
-                        </div>
-                      }
-                    />
-                  )}
-
-                  <Route
-                    path="/:lang/influencers/password-reset/:slug"
-                    element={<ResetPasswordConfrim />}
-                  />
                 </Routes>
               </Suspense>
 

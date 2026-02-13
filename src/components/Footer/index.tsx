@@ -182,7 +182,7 @@ const CategoryList = React.memo(
         {translations?.Kateqoriyalar || "Kateqoriyalar"}
       </div>
       <div className="flex flex-col gap-2 mt-5 w-full text-base text-white text-opacity-80">
-        {categories?.slice(0, 6).map((item: Category) => (
+        {categories?.map((item: Category) => (
           <div
             key={item.id}
             className="cursor-pointer hover:text-white transition-colors"
