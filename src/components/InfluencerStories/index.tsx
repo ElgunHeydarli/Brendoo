@@ -100,7 +100,7 @@ const InfluencerStories = () => {
           >
             {stories.map((story) => {
               const coverUrl = getCoverUrl(story);
-              const hasVideo = story.videos?.length > 0;
+              const hasOnlyVideo = story.videos?.length > 0 && !story.images?.length;
               return (
                 <SwiperSlide
                   key={story.id}
@@ -110,9 +110,10 @@ const InfluencerStories = () => {
                   <div className="rounded-[20px] aspect-[10/16] md:aspect-[9/16] border border-blue-200 bg-white p-1">
                     <div className="relative rounded-[20px] w-full h-full overflow-hidden">
                       {coverUrl ? (
-                        hasVideo ? (
+                        hasOnlyVideo ? (
                           <video
                             muted
+                            preload="metadata"
                             className="absolute top-0 left-0 w-full h-full object-cover rounded-[20px]"
                             src={coverUrl}
                           />
