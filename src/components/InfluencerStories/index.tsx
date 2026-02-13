@@ -4,10 +4,16 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import GETRequest from '../../setting/Request';
 import type { TranslationsKeys } from '../../setting/Types';
 
+interface MediaItem {
+  id: number;
+  url: string;
+  mime_type: string;
+}
+
 interface InfluencerInfo {
   id: number;
   name: string;
-  image: string;
+  image: string | null;
 }
 
 interface InfluencerStory {
@@ -15,8 +21,8 @@ interface InfluencerStory {
   title: string;
   description: string | null;
   influencer: InfluencerInfo;
-  images: string[];
-  videos: string[];
+  images: MediaItem[];
+  videos: MediaItem[];
   created_at: string;
 }
 
@@ -25,20 +31,9 @@ interface InfluencerStoriesResponse {
   meta?: {
     current_page: number;
     last_page: number;
-    per_page: number;
     total: number;
   };
 }
-
-const API_URL = 'https://admin.brendoo.com';
-
-const getImageUrl = (src: string | null | undefined): string => {
-  if (!src) return '';
-  if (src.startsWith('http')) return src;
-  if (src.startsWith('/storage/')) return API_URL + src;
-  if (src.startsWith('storage/')) return API_URL + '/' + src;
-  return API_URL + '/storage/' + src;
-};
 
 const InfluencerStories = () => {
   const { lang = 'az' } = useParams<{ lang: string }>();
@@ -63,9 +58,16 @@ const InfluencerStories = () => {
 
   const getStoryMedia = (story: InfluencerStory) => {
     const media: { type: 'image' | 'video'; url: string }[] = [];
-    story.images?.forEach((img) => media.push({ type: 'image', url: getImageUrl(img) }));
-    story.videos?.forEach((vid) => media.push({ type: 'video', url: getImageUrl(vid) }));
+    story.images?.forEach((img) => media.push({ type: 'image', url: img.url }));
+    story.videos?.forEach((vid) => media.push({ type: 'video', url: vid.url }));
     return media;
+  };
+
+  const getCoverUrl = (story: InfluencerStory): string | null => {
+    if (story.images?.[0]?.url) return story.images[0].url;
+    if (story.videos?.[0]?.url) return story.videos[0].url;
+    if (story.influencer?.image) return story.influencer.image;
+    return null;
   };
 
   const openStory = (story: InfluencerStory) => {
@@ -97,8 +99,8 @@ const InfluencerStories = () => {
             className="w-full !h-fit flex"
           >
             {stories.map((story) => {
-              const coverImage =
-                story.images?.[0] || story.videos?.[0] || story.influencer?.image;
+              const coverUrl = getCoverUrl(story);
+              const hasVideo = story.videos?.length > 0;
               return (
                 <SwiperSlide
                   key={story.id}
@@ -107,16 +109,16 @@ const InfluencerStories = () => {
                 >
                   <div className="rounded-[20px] aspect-[10/16] md:aspect-[9/16] border border-blue-200 bg-white p-1">
                     <div className="relative rounded-[20px] w-full h-full overflow-hidden">
-                      {coverImage ? (
-                        story.videos?.[0] ? (
+                      {coverUrl ? (
+                        hasVideo ? (
                           <video
                             muted
                             className="absolute top-0 left-0 w-full h-full object-cover rounded-[20px]"
-                            src={getImageUrl(coverImage)}
+                            src={coverUrl}
                           />
                         ) : (
                           <img
-                            src={getImageUrl(coverImage)}
+                            src={coverUrl}
                             alt={story.title}
                             className="absolute top-0 left-0 w-full h-full object-cover rounded-[20px]"
                             loading="lazy"
@@ -134,7 +136,7 @@ const InfluencerStories = () => {
                         <div className="flex items-center gap-2">
                           {story.influencer?.image && (
                             <img
-                              src={getImageUrl(story.influencer.image)}
+                              src={story.influencer.image}
                               alt={story.influencer.name}
                               className="w-6 h-6 rounded-full object-cover border border-white"
                               loading="lazy"
@@ -178,7 +180,7 @@ const InfluencerStories = () => {
             <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
               {activeStory.influencer?.image && (
                 <img
-                  src={getImageUrl(activeStory.influencer.image)}
+                  src={activeStory.influencer.image}
                   alt={activeStory.influencer.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-white"
                 />
