@@ -553,9 +553,22 @@ export default function ProductId() {
     const selectedValues = Object.values(selectedVariantOptions).filter(Boolean);
     if (selectedValues.length === 0) return null;
 
-    // 1. Əvvəlcə direct property match cəhd et (case-insensitive)
+    // Filter ölçüsünü yalnız variant_options-da sizes OLMAYANDA nəzərə al
+    // (hybrid məhsullar: CJ colors + filter sizes)
+    const filterSizeName = (!Productslingle.variant_options?.sizes && selectedSize?.name) || null;
+    const allMatchValues = filterSizeName ? [...selectedValues, filterSizeName] : selectedValues;
+
+    // variantKey hissələrini müqayisə edən helper
+    const nameMatchesParts = (name: string, parts: string[]): boolean => {
+      const n = name.toLowerCase();
+      if (parts.includes(n)) return true;
+      if (n.length >= 3) return parts.some(p => p.includes(n) || n.includes(p));
+      return false;
+    };
+
+    // 1. Əvvəlcə direct property match cəhd et (case-insensitive) + filter ölçüsü
     let matched = Productslingle.variants.find(v => {
-      return Object.entries(selectedVariantOptions).every(([key, value]) => {
+      const optionMatch = Object.entries(selectedVariantOptions).every(([key, value]) => {
         if (!value) return true;
         const variantValue = v[key as keyof typeof v];
         if (typeof variantValue === 'string' && typeof value === 'string') {
@@ -563,38 +576,33 @@ export default function ProductId() {
         }
         return variantValue === value;
       });
+      if (!optionMatch) return false;
+      // Filter ölçüsü varsa, variantKey-də yoxla
+      if (filterSizeName && v.variantKey) {
+        const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
+        return nameMatchesParts(filterSizeName, parts);
+      }
+      return true;
     });
 
-    // 2. Tapılmadısa, variantKey ilə match cəhd et (dəqiq hissə müqayisəsi)
+    // 2. Tapılmadısa, variantKey ilə match cəhd et (bütün dəyərlər + filter ölçüsü)
     if (!matched) {
       matched = Productslingle.variants.find(v => {
         if (!v?.variantKey) return false;
         const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
-        return selectedValues.every(val => {
-          const lval = val.toLowerCase();
-          // Dəqiq uyğunluq: hissə tam uyğun olmalıdır
-          if (parts.includes(lval)) return true;
-          // Uzun adlar üçün (3+ hərf): hissənin daxilində axtara bilərik
-          if (lval.length >= 3) return parts.some(p => p.includes(lval) || lval.includes(p));
-          return false;
-        });
+        return allMatchValues.every(val => nameMatchesParts(val, parts));
       });
     }
 
     // 3. Hələ də tapılmadısa, partial match cəhd et (ən çox uyğun gələni tap)
-    if (!matched && selectedValues.length > 0) {
+    if (!matched && allMatchValues.length > 0) {
       let bestMatch: typeof Productslingle.variants[0] | null = null;
       let bestMatchCount = 0;
 
       Productslingle.variants.forEach(v => {
         if (!v?.variantKey) return;
         const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
-        const matchCount = selectedValues.filter(val => {
-          const lval = val.toLowerCase();
-          if (parts.includes(lval)) return true;
-          if (lval.length >= 3) return parts.some(p => p.includes(lval) || lval.includes(p));
-          return false;
-        }).length;
+        const matchCount = allMatchValues.filter(val => nameMatchesParts(val, parts)).length;
         if (matchCount > bestMatchCount) {
           bestMatchCount = matchCount;
           bestMatch = v;
@@ -607,7 +615,7 @@ export default function ProductId() {
     }
 
     return matched || null;
-  }, [Productslingle?.variant_options, Productslingle?.variants, selectedVariantOptions]);
+  }, [Productslingle?.variant_options, Productslingle?.variants, selectedVariantOptions, selectedSize?.name]);
 
   const handleAddToBasket = useCallback(async () => {
     if (!Productslingle) { toast.error('Məhsul tapılmadı'); return; }
@@ -1034,11 +1042,30 @@ export default function ProductId() {
   // CJ variant qiymətini prioritet ver
   const cjVariantPrice = selectedCJVariant?.price ? Number(selectedCJVariant.price) : null;
 
-  // CJ variant sistemi aktivdirsə cjVariantPrice prioritet, yoxsa filter-əsaslı qiymət
+  // CJ variant sistemi aktivdirsə, discounted_price əsaslı qiymət göstər (kart ilə eyni olsun)
+  // Ölçü/rəng dəyişəndə variant qiymət fərqi əlavə olunur
   const hasCJVariants = !!Productslingle.variant_options && Object.keys(selectedVariantOptions).length > 0;
-  const displayPrice = hasCJVariants
-    ? (cjVariantPrice || getVariantPrice || sizeVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0)
-    : (getVariantPrice || sizeVariantPrice || selectedSize?.price || cjVariantPrice || selectedColor?.price || Productslingle.discounted_price || Productslingle.price || 0);
+  const displayPrice = (() => {
+    if (hasCJVariants && Productslingle.variants?.length && Productslingle.discounted_price) {
+      const baseDiscounted = Number(Productslingle.discounted_price);
+      // Ən ucuz variant qiymətini tap (baza/default variant)
+      const variantPrices = Productslingle.variants
+        .filter(v => v?.price != null && v?.in_stock !== false)
+        .map(v => Number(v.price));
+      const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
+      const currentVariantPrice = cjVariantPrice || getVariantPrice || sizeVariantPrice || null;
+
+      if (minVariantPrice && currentVariantPrice) {
+        // discounted_price + (seçilmiş variant qiyməti - ən ucuz variant qiyməti)
+        return baseDiscounted + (currentVariantPrice - minVariantPrice);
+      }
+      return baseDiscounted;
+    }
+    if (hasCJVariants) {
+      return cjVariantPrice || getVariantPrice || sizeVariantPrice || selectedColor?.price || Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+    }
+    return getVariantPrice || sizeVariantPrice || selectedSize?.price || cjVariantPrice || selectedColor?.price || Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+  })();
   const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
   const cjVariantInStock = selectedCJVariant ? selectedCJVariant.in_stock !== false : true;
 
@@ -1211,38 +1238,17 @@ export default function ProductId() {
 
             <div className="flex items-baseline gap-3 mb-6 notranslate" translate="no" key={`price-${displayPrice}-${cjVariantPrice}-${selectedSize?.name}-${selectedColor?.name}`}>
               {(() => {
-                // CJ variant sistemi aktivdirsə cjVariantPrice prioritet
-                const variantPrice = hasCJVariants
-                  ? (cjVariantPrice || getVariantPrice || sizeVariantPrice || selectedColor?.price)
-                  : (getVariantPrice || sizeVariantPrice || selectedSize?.price || cjVariantPrice || selectedColor?.price);
                 const baseOriginalPrice = Number(Productslingle.price) || 0;
-                const baseDiscountedPrice = Number(Productslingle.discounted_price) || baseOriginalPrice;
 
-                // Variant seçilibsə, onun qiymətini göstər
-                if (variantPrice) {
-                  if (hasDiscount && baseOriginalPrice > variantPrice) {
-                    return (
-                      <>
-                        <span className="text-3xl font-bold text-blue-600">{variantPrice.toFixed(2)}₼</span>
-                        <span className="text-lg text-gray-400 line-through">{baseOriginalPrice.toFixed(2)}₼</span>
-                      </>
-                    );
-                  } else {
-                    return <span className="text-3xl font-bold text-gray-900">{variantPrice.toFixed(2)}₼</span>;
-                  }
-                }
-
-                // Variant seçilməyib - default qiymət
-                if (hasDiscount && baseDiscountedPrice < baseOriginalPrice) {
+                if (hasDiscount && baseOriginalPrice > displayPrice) {
                   return (
                     <>
-                      <span className="text-3xl font-bold text-blue-600">{baseDiscountedPrice.toFixed(2)}₼</span>
+                      <span className="text-3xl font-bold text-blue-600">{Number(displayPrice).toFixed(2)}₼</span>
                       <span className="text-lg text-gray-400 line-through">{baseOriginalPrice.toFixed(2)}₼</span>
                     </>
                   );
-                } else {
-                  return <span className="text-3xl font-bold text-gray-900">{Number(displayPrice).toFixed(2)}₼</span>;
                 }
+                return <span className="text-3xl font-bold text-gray-900">{Number(displayPrice).toFixed(2)}₼</span>;
               })()}
             </div>
 
