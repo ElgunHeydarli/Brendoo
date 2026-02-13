@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from "react";
 import {
   useSearchParams,
   useNavigate,
@@ -132,6 +132,9 @@ export default function SearchResults() {
     Boolean(query)
   );
 
+  // AbortController ref - cancel stale requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // Image/Vision Search - localStorage-dən oxu
   useEffect(() => {
     if (searchType === "image" || searchType === "vision") {
@@ -191,6 +194,13 @@ export default function SearchResults() {
       return;
     }
 
+    // Cancel any in-flight request to prevent race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     try {
       // API parametrləri
@@ -239,21 +249,16 @@ export default function SearchResults() {
         }
       }
 
-      console.log("=== SEARCH DEBUG ===");
-      console.log("Search URL:", `https://admin.brendoo.com/api/search?${params.toString()}`);
-
       const res = await axios.get(
         `https://admin.brendoo.com/api/search?${params.toString()}`,
-        { headers: { "Accept-Language": lang } }
+        {
+          headers: { "Accept-Language": lang },
+          signal: controller.signal,
+        }
       );
 
-      console.log("API Response:", res.data);
-      console.log("Response structure:", {
-        hasData: !!res.data?.data,
-        hasMeta: !!res.data?.meta,
-        hasProducts: !!res.data?.products,
-        dataLength: res.data?.data?.length || res.data?.products?.length || 0
-      });
+      // If this request was aborted (a newer search started), ignore the response
+      if (controller.signal.aborted) return;
 
       // Backend pagination dəstəkləyirsə
       if (res.data?.data && res.data?.meta) {
@@ -326,10 +331,16 @@ export default function SearchResults() {
         setLastPage(1);
       }
     } catch (error) {
+      // Aborted requests should be silently ignored
+      if (axios.isCancel(error) || (error as any)?.name === 'CanceledError') return;
       console.error("Search error:", error);
-      setProducts([]);
+      if (!controller.signal.aborted) {
+        setProducts([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, [query, lang, minPrice, maxPrice, checked, page, searchType, isBestseller, isLowStock, isTopRated, Sort, selectedOptions]);
 
@@ -337,6 +348,12 @@ export default function SearchResults() {
     if (searchType === "text") {
       performSearch();
     }
+    // Cleanup: cancel request when a new search starts or component unmounts
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, [performSearch, searchType]);
 
   // URL-dən page parametrini oxu
@@ -358,11 +375,16 @@ export default function SearchResults() {
     }
   }, [query, minPrice, maxPrice, checked, Sort, isBestseller, isLowStock, isTopRated, selectedOptions]);
 
-  // URL-dən options parametrini oxu
+  // URL-dən options parametrini oxu (stabil referans ilə)
   useEffect(() => {
-    const optionsFromUrl = searchParams.get("options") ? 
-      searchParams.get("options")!.split(",").map(Number) : [];
-    setSelectedOptions(optionsFromUrl);
+    const optionsStr = searchParams.get("options");
+    const newOptions = optionsStr ? optionsStr.split(",").map(Number) : [];
+    setSelectedOptions(prev => {
+      if (prev.length === newOptions.length && prev.every((v, i) => v === newOptions[i])) {
+        return prev; // Eyni dəyərlərdirsə, referansı dəyişmə
+      }
+      return newOptions;
+    });
   }, [searchParams]);
 
 
