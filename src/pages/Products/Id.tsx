@@ -98,6 +98,7 @@ export default function ProductId() {
 
   // CJ Variant seçimləri - yeni API strukturu üçün
   const [selectedVariantOptions, setSelectedVariantOptions] = useState<Record<string, string>>({});
+  const [selectedDerivedSize, setSelectedDerivedSize] = useState<string | null>(null);
 
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const similarScrollRef = useRef<HTMLDivElement>(null);
@@ -240,6 +241,36 @@ export default function ProductId() {
     };
   }, [Productslingle?.filters]);
 
+  // Variant key-lərdən ölçüləri çıxar (variant_options-da sizes olmayanda)
+  // Məs: "Khaki-37yards" -> "37yards", "Bright black-22mm" -> "22mm"
+  const derivedSizesFromVariants = useMemo(() => {
+    if (!Productslingle?.variant_options || !Productslingle?.variants?.length) return [];
+    // Əgər variant_options-da artıq sizes varsa, derive etmə
+    if (Productslingle.variant_options.sizes) return [];
+    // Əgər filter-based size varsa, derive etmə
+    if (sizeFilter?.options?.length) return [];
+
+    const colorValues = (Productslingle.variant_options.colors || []).map(
+      (c: { value: string }) => c.value.toLowerCase()
+    );
+    if (colorValues.length === 0) return [];
+
+    const sizeSet = new Set<string>();
+    Productslingle.variants.forEach(v => {
+      if (!v?.variantKey) return;
+      const parts = v.variantKey.split(/[-]/);
+      // Rəng hissəsini çıxar, qalan ölçüdür
+      const nonColorParts = parts.filter(
+        p => !colorValues.some(c => c === p.toLowerCase().trim())
+      );
+      if (nonColorParts.length > 0) {
+        sizeSet.add(nonColorParts.join('-').trim());
+      }
+    });
+
+    return Array.from(sizeSet);
+  }, [Productslingle?.variant_options, Productslingle?.variants, sizeFilter?.options?.length]);
+
   useEffect(() => {
     if (Productslingle?.id) {
       axios.get(`${API_URL}/api/more-products/${Productslingle.id}`, { headers: { 'Accept-Language': lang } })
@@ -319,6 +350,13 @@ export default function ProductId() {
       if (Object.keys(defaults).length > 0) {
         setSelectedVariantOptions(defaults);
       }
+    }
+
+    // Derived size default (variant key-lərdən çıxarılan ölçülər)
+    if (derivedSizesFromVariants.length > 0) {
+      setSelectedDerivedSize(derivedSizesFromVariants[0]);
+    } else {
+      setSelectedDerivedSize(null);
     }
   }, [Productslingle?.id]);
 
@@ -556,7 +594,10 @@ export default function ProductId() {
     // Filter ölçüsünü yalnız variant_options-da sizes OLMAYANDA nəzərə al
     // (hybrid məhsullar: CJ colors + filter sizes)
     const filterSizeName = (!Productslingle.variant_options?.sizes && selectedSize?.name) || null;
-    const allMatchValues = filterSizeName ? [...selectedValues, filterSizeName] : selectedValues;
+    // Derived size (variant key-lərdən çıxarılan ölçü)
+    const derivedSize = selectedDerivedSize || null;
+    const extraSize = derivedSize || filterSizeName;
+    const allMatchValues = extraSize ? [...selectedValues, extraSize] : selectedValues;
 
     // variantKey hissələrini müqayisə edən helper
     const nameMatchesParts = (name: string, parts: string[]): boolean => {
@@ -577,10 +618,10 @@ export default function ProductId() {
         return variantValue === value;
       });
       if (!optionMatch) return false;
-      // Filter ölçüsü varsa, variantKey-də yoxla
-      if (filterSizeName && v.variantKey) {
+      // Ölçü (derived və ya filter) varsa, variantKey-də yoxla
+      if (extraSize && v.variantKey) {
         const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim()).filter(Boolean);
-        return nameMatchesParts(filterSizeName, parts);
+        return nameMatchesParts(extraSize, parts);
       }
       return true;
     });
@@ -615,7 +656,7 @@ export default function ProductId() {
     }
 
     return matched || null;
-  }, [Productslingle?.variant_options, Productslingle?.variants, selectedVariantOptions, selectedSize?.name]);
+  }, [Productslingle?.variant_options, Productslingle?.variants, selectedVariantOptions, selectedSize?.name, selectedDerivedSize]);
 
   const handleAddToBasket = useCallback(async () => {
     if (!Productslingle) { toast.error('Məhsul tapılmadı'); return; }
@@ -681,6 +722,10 @@ export default function ProductId() {
     const cjSelectedOptions = Object.keys(selectedVariantOptions).length > 0
       ? JSON.parse(JSON.stringify(selectedVariantOptions))
       : null;
+    // Derived size-ı da selected options-a əlavə et (səbətdə fərqləndirmək üçün)
+    if (cjSelectedOptions && selectedDerivedSize) {
+      cjSelectedOptions._derivedSize = selectedDerivedSize;
+    }
 
     // Qiyməti müəyyən et - CJ variant qiymətinə endirimi tətbiq et
     let finalPrice = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
@@ -688,12 +733,13 @@ export default function ProductId() {
     if (selectedCJVariant?.price) {
       const variantPrice = Number(selectedCJVariant.price);
       const baseDiscountedPrice = Number(Productslingle.discounted_price) || 0;
-      const hasProductDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
+      const variants = Productslingle.variants || [];
+      const variantPrices = variants.filter(v => v?.price != null && v?.in_stock !== false).map(v => Number(v.price));
+      const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
 
-      // Variant qiyməti artıq endirimli deyilsə, endirimi tətbiq et
-      if (hasProductDiscount && variantPrice > baseDiscountedPrice * 1.1) {
-        const discountPercent = Number(Productslingle.discount) / 100;
-        finalPrice = variantPrice * (1 - discountPercent);
+      if (baseDiscountedPrice && minVariantPrice) {
+        // displayPrice ilə eyni formula: discounted_price + (variant - min)
+        finalPrice = baseDiscountedPrice + (variantPrice - minVariantPrice);
       } else {
         finalPrice = variantPrice;
       }
@@ -832,7 +878,7 @@ export default function ProductId() {
       window.dispatchEvent(new Event('basket_items_updated'));
     } catch { toast.error('Xəta'); }
     finally { setIsAddingToCart(false); }
-  }, [Productslingle, selectedSize, selectedFilters, sizeFilter, colorFilter, otherFilters, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked, selectedCJVariant, selectedVariantOptions, selectedColor]);
+  }, [Productslingle, selectedSize, selectedFilters, sizeFilter, colorFilter, otherFilters, quantity, userStr, token, lang, collectionId, tarnslation, queryClient, isAddingToCart, isinbusked, selectedCJVariant, selectedVariantOptions, selectedColor, selectedDerivedSize]);
 
   const handleNotifyMe = useCallback(async () => {
     if (!notifyOptionId || !Productslingle?.id) return;
@@ -1236,7 +1282,7 @@ export default function ProductId() {
             <H1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900 mb-2">{Productslingle.title || 'Product'}</H1>
             <p className="text-sm text-gray-500 mb-4">SKU: {Productslingle.product_code || Productslingle.code || `PRD-${Productslingle.id}`}</p>
 
-            <div className="flex items-baseline gap-3 mb-6 notranslate" translate="no" key={`price-${displayPrice}-${cjVariantPrice}-${selectedSize?.name}-${selectedColor?.name}`}>
+            <div className="flex items-baseline gap-3 mb-6 notranslate" translate="no" key={`price-${displayPrice}-${cjVariantPrice}-${selectedSize?.name}-${selectedColor?.name}-${selectedDerivedSize}`}>
               {(() => {
                 const baseOriginalPrice = Number(Productslingle.price) || 0;
 
@@ -1449,6 +1495,52 @@ export default function ProductId() {
               );
             });
             })()}
+
+            {/* Derived sizes - variant key-lərdən çıxarılan ölçülər (CJ sizes olmayanda) */}
+            {derivedSizesFromVariants.length > 0 && (
+              <div className="mb-5 notranslate" translate="no">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
+                  <span className="text-sm text-gray-500">( {selectedDerivedSize || ''} )</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {derivedSizesFromVariants.map((size) => {
+                    const isSelected = selectedDerivedSize === size;
+                    // Bu ölçü + seçilmiş rəng üçün variant var mı?
+                    const selectedColor = selectedVariantOptions.color || '';
+                    const hasVariant = Productslingle?.variants?.some(v => {
+                      if (!v?.variantKey) return false;
+                      const key = v.variantKey.toLowerCase();
+                      return key.includes(size.toLowerCase()) &&
+                             (!selectedColor || key.includes(selectedColor.toLowerCase()));
+                    });
+                    const inStock = Productslingle?.variants?.find(v => {
+                      if (!v?.variantKey) return false;
+                      const key = v.variantKey.toLowerCase();
+                      return key.includes(size.toLowerCase()) &&
+                             (!selectedColor || key.includes(selectedColor.toLowerCase()));
+                    })?.in_stock !== false;
+
+                    return (
+                      <button
+                        key={`derived-size-${size}`}
+                        onClick={() => setSelectedDerivedSize(size)}
+                        disabled={!hasVariant}
+                        className={`min-w-[48px] h-10 px-4 rounded-xl border text-sm font-medium transition ${
+                          isSelected
+                            ? 'border-blue-600 bg-blue-600 text-white'
+                            : hasVariant && inStock
+                              ? 'border-gray-300 hover:border-blue-400 text-gray-700'
+                              : 'border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-4 mb-5">
               <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
