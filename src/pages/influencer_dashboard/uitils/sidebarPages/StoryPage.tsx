@@ -94,10 +94,9 @@ const StoryPage: React.FC = () => {
     fetchStories();
   }, [lang]);
 
-const goDetail = (s: StoryItem) => {
-  navigate(`/${lang}/influencer/story/${s.id}`, { state: { story: s } });
-  window.location.reload();
-};
+  const goDetail = (s: StoryItem) => {
+    navigate(`/${lang}/influencer/story/${s.id}`, { state: { story: s } });
+  };
 
 
   return (

@@ -102,6 +102,7 @@ const StoryInner: React.FC<Props> = ({ storyId }) => {
         description: payload?.description ?? null,
         media: mediaItems,
       };
+      console.log('StoryInner normalized media:', JSON.stringify(normalized.media, null, 2));
       setStory(normalized);
     } catch (e) {
       console.error('detail fetch error:', e);
@@ -343,13 +344,13 @@ const StoryInner: React.FC<Props> = ({ storyId }) => {
             ) : (
               videos.map(item => (
                 <div key={item.id} className="item">
-                  <div className="video-container relative">
+                  <div className="video-container" style={{ position: 'relative' }}>
                     <video
                       src={item.file_url}
                       controls
                       preload="metadata"
                       playsInline
-                      className="w-full h-full"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
                   <button
