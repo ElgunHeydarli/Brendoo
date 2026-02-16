@@ -1063,8 +1063,8 @@ export default function ProductId() {
         .filter(v => v?.price != null && v?.in_stock !== false)
         .map(v => Number(v.price));
       const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
-      // Qiymət yalnız ölçüyə görə dəyişir, rəngə görə yox
-      const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || null;
+      // Qiymət ölçüyə görə dəyişir; ölçü yoxdursa (yalnız rəng/set), seçilmiş variant qiymətini istifadə et
+      const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || (selectedCJVariant?.price ? Number(selectedCJVariant.price) : null);
 
       if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
         // Nisbət əsaslı: discounted_price * (seçilmiş_variant / ən_ucuz_variant)
