@@ -17,7 +17,7 @@ const TimedSpecialNotification = lazy(
   () => import('../components/TimedNotification/index.tsx'),
 );
 const TiktokStories = lazy(() => import('../components/TiktokStories/index.tsx'));
-const InfluencerStories = lazy(() => import('../components/InfluencerStories/index.tsx'));
+
 const FeaturedProducts = lazy(() => import('../components/FeaturedProducts.tsx'));
 const TimedDiscountSlider = lazy(() => import('../components/TimedDiscountSlider/index.tsx'));
 // ✅ YENİ: RecentlyViewed lazy load
@@ -249,9 +249,6 @@ export default function Home() {
           <TiktokStories />
         </Suspense>
 
-        <Suspense fallback={<div className="h-32" />}>
-          <InfluencerStories />
-        </Suspense>
 
         <Suspense fallback={<div className="h-64 bg-gradient-to-r from-red-50 to-orange-50 animate-pulse" />}>
           <TimedDiscountSlider translation={translation} />
