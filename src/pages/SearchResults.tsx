@@ -341,6 +341,8 @@ export default function SearchResults() {
       console.error("Search error:", error);
       if (!controller.signal.aborted) {
         setProducts([]);
+        setTotalProducts(0);
+        setLastPage(1);
       }
     } finally {
       if (!controller.signal.aborted) {
@@ -832,7 +834,7 @@ export default function SearchResults() {
                   <h2 className="text-2xl font-bold text-gray-900 mt-6">
                     {(searchType === "image" || searchType === "vision")
                       ? translation?.sekilde_mehsul_tapilmadi || "Şəkildə məhsul tapılmadı"
-                      : translation?.netice_tapilmadi || "Heç nə tapılmadı"}
+                      : translation?.axtardiginiz_mehsul_tapilmadi || "Axtardığınız məhsul tapılmadı"}
                   </h2>
                   <p className="text-gray-500 mt-2">
                     {(searchType === "image" || searchType === "vision")

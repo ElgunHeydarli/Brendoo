@@ -256,8 +256,8 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
         // Azərbaycan dili üçün bütün variantları yarat
         const queryVariants = lang === 'az' ? normalizeAzerbaijaniQuery(query) : [query];
 
-        // Paralel sorğular göndər (maksimum 3 variant)
-        const searchPromises = queryVariants.slice(0, 3).map(variant =>
+        // Yalnız 1 sorğu göndər (rate limit-dən qaçmaq üçün)
+        const searchPromises = queryVariants.slice(0, 1).map(variant =>
           axios.get<SearchResponse>(
             `${API_URL}/api/search?q=${encodeURIComponent(variant)}&limit=20`,
             { headers: { 'Accept-Language': lang } }
@@ -363,7 +363,10 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
     enableScrolling();
 
     const itemType = item.type || 'product';
-    const productSlug = item.slug || item.id;
+    // slug obyekt ola bilər: { en: "...", az: "..." } - düzgün dil seçilməlidir
+    const rawSlug = item.slug;
+    const productSlug = typeof rawSlug === 'string' ? rawSlug
+      : (rawSlug as any)?.[lang] || (rawSlug as any)?.en || (rawSlug as any)?.az || item.id;
 
     switch (itemType) {
       case 'product':
