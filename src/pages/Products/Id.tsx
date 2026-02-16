@@ -1066,9 +1066,10 @@ export default function ProductId() {
       // Qiymət yalnız ölçüyə görə dəyişir, rəngə görə yox
       const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || null;
 
-      if (minVariantPrice && currentVariantPrice) {
-        // discounted_price + (seçilmiş ölçü variant qiyməti - ən ucuz variant qiyməti)
-        return baseDiscounted + (currentVariantPrice - minVariantPrice);
+      if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
+        // Nisbət əsaslı: discounted_price * (seçilmiş_variant / ən_ucuz_variant)
+        // Bu mala görə proporsional artım təmin edir (32 qəpik sabit yox)
+        return Math.round(baseDiscounted * (currentVariantPrice / minVariantPrice) * 100) / 100;
       }
       return baseDiscounted;
     }
