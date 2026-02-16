@@ -249,6 +249,10 @@ export default function ProductId() {
     if (Productslingle.variant_options.sizes) return [];
     // Əgər filter-based size varsa, derive etmə
     if (sizeFilter?.options?.length) return [];
+    // Əgər variant_options-da colors-dan başqa option type varsa, derive etmə
+    // (məs: light_source_powers, capacities, və s. - bunlar artıq variant_options UI-da göstərilir)
+    const nonColorOptionTypes = Object.keys(Productslingle.variant_options).filter(k => k !== 'colors');
+    if (nonColorOptionTypes.length > 0) return [];
 
     const colorValues = (Productslingle.variant_options.colors || []).map(
       (c: { value: string }) => c.value.toLowerCase()
@@ -286,8 +290,8 @@ export default function ProductId() {
 
     defaultsInitializedRef.current = Productslingle.id;
     
-    // Size filter varsa, default seç
-    if (sizeFilter && sizeFilter.options?.length) {
+    // Size filter varsa, default seç (variant_options-da sizes/lengths varsa, filter size lazım deyil)
+    if (sizeFilter && sizeFilter.options?.length && !Productslingle.variant_options?.sizes && !Productslingle.variant_options?.lengths) {
       const def = sizeFilter.options.find(o => o?.is_default && o?.is_stock) || sizeFilter.options.find(o => o?.is_stock) || sizeFilter.options[0];
       if (def) {
         setSelectedSize({ id: def.option_id, name: def.name || 'Unknown', price: def.price ? Number(def.price) : undefined }); 
@@ -1066,6 +1070,8 @@ export default function ProductId() {
       // Qiymət ölçüyə görə dəyişir; ölçü yoxdursa (yalnız rəng/set), seçilmiş variant qiymətini istifadə et
       const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || (selectedCJVariant?.price ? Number(selectedCJVariant.price) : null);
 
+      console.log('PRICE DEBUG:', { baseDiscounted, minVariantPrice, currentVariantPrice, sizeBasedVariantPrice, sizeVariantPrice, selectedCJVariantPrice: selectedCJVariant?.price, selectedCJVariantKey: selectedCJVariant?.variantKey, selectedVariantOptions, selectedDerivedSize, hasCJVariants });
+
       if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
         // Nisbət əsaslı: discounted_price * (seçilmiş_variant / ən_ucuz_variant)
         // Bu mala görə proporsional artım təmin edir (32 qəpik sabit yox)
@@ -1265,8 +1271,8 @@ export default function ProductId() {
               })()}
             </div>
 
-            {/* Size Filter - yalnız varsa göstər, CJ sizes varsa gizlət */}
-            {sizeFilter && sizeFilter.options && sizeFilter.options.length > 0 && !Productslingle.variant_options?.sizes && (
+            {/* Size Filter - yalnız varsa göstər, CJ sizes/lengths varsa gizlət */}
+            {sizeFilter && sizeFilter.options && sizeFilter.options.length > 0 && !Productslingle.variant_options?.sizes && !Productslingle.variant_options?.lengths && (
               <div className="mb-5 notranslate" translate="no">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-sm font-medium text-gray-700">{tarnslation?.Ölçü || 'Ölçü'}</span>
