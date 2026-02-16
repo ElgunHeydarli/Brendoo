@@ -102,7 +102,6 @@ const StoryInner: React.FC<Props> = ({ storyId }) => {
         description: payload?.description ?? null,
         media: mediaItems,
       };
-      console.log('StoryInner normalized media:', JSON.stringify(normalized.media, null, 2));
       setStory(normalized);
     } catch (e) {
       console.error('detail fetch error:', e);

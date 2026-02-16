@@ -261,9 +261,14 @@ export default function SearchResults() {
       if (controller.signal.aborted) return;
 
       // Backend pagination dəstəkləyirsə
-      if (res.data?.data && res.data?.meta) {
-        // Laravel pagination strukturu
-        const validProducts = filterValidProducts(res.data.data || []);
+      // Laravel pagination: { data: [...], total, last_page, per_page, current_page }
+      // və ya nested meta: { data: [...], meta: { total, last_page } }
+      const responseData = res.data;
+      const hasDataArray = Array.isArray(responseData?.data);
+      const meta = responseData?.meta || (hasDataArray ? { total: responseData.total, last_page: responseData.last_page } : null);
+
+      if (hasDataArray && meta) {
+        const validProducts = filterValidProducts(responseData.data);
 
         // Backend sıralama etmirsə, səhifə içində client-side sort et
         const sortedPageProducts = [...validProducts];
@@ -278,11 +283,11 @@ export default function SearchResults() {
         }
 
         setProducts(sortedPageProducts);
-        setTotalProducts(res.data.meta.total || validProducts.length);
-        setLastPage(res.data.meta.last_page || 1);
-      } else if (res.data?.products) {
+        setTotalProducts(meta.total || validProducts.length);
+        setLastPage(meta.last_page || Math.ceil((meta.total || validProducts.length) / 24));
+      } else if (responseData?.products) {
         // Köhnə struktur - client-side filtering
-        let data: Product[] = filterValidProducts(res.data?.products || []);
+        let data: Product[] = filterValidProducts(responseData.products || []);
 
         // Client-side filterləmə (əgər backend dəstəkləmirsə)
         if (minPrice > 0) {
@@ -317,7 +322,7 @@ export default function SearchResults() {
         }
 
         // Total-dan pagination hesabla
-        const total = res.data?.total || sortedData.length;
+        const total = responseData?.total || sortedData.length;
         setTotalProducts(total);
         setLastPage(Math.ceil(total / 24));
 

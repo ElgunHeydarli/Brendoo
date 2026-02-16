@@ -1070,8 +1070,6 @@ export default function ProductId() {
       // Qiymət ölçüyə görə dəyişir; ölçü yoxdursa (yalnız rəng/set), seçilmiş variant qiymətini istifadə et
       const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || (selectedCJVariant?.price ? Number(selectedCJVariant.price) : null);
 
-      console.log('PRICE DEBUG:', { baseDiscounted, minVariantPrice, currentVariantPrice, sizeBasedVariantPrice, sizeVariantPrice, selectedCJVariantPrice: selectedCJVariant?.price, selectedCJVariantKey: selectedCJVariant?.variantKey, selectedVariantOptions, selectedDerivedSize, hasCJVariants });
-
       if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
         // Nisbət əsaslı: discounted_price * (seçilmiş_variant / ən_ucuz_variant)
         // Bu mala görə proporsional artım təmin edir (32 qəpik sabit yox)
