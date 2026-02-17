@@ -249,13 +249,29 @@ export default function SearchResults() {
         }
       }
 
-      const res = await axios.get(
-        `https://admin.brendoo.com/api/search?${params.toString()}`,
-        {
-          headers: { "Accept-Language": lang },
-          signal: controller.signal,
+      // Rate limit (429) üçün retry mexanizmi
+      let res;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          res = await axios.get(
+            `https://admin.brendoo.com/api/search?${params.toString()}`,
+            {
+              headers: { "Accept-Language": lang },
+              signal: controller.signal,
+            }
+          );
+          break; // Uğurlu cavab - dövrü dayandır
+        } catch (err: any) {
+          if (controller.signal.aborted) throw err;
+          // 429 rate limit - gözlə və yenidən cəhd et
+          if (err?.response?.status === 429 && attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            continue;
+          }
+          throw err; // Başqa xəta və ya son cəhd - yuxarı ötür
         }
-      );
+      }
+      if (!res) throw new Error('Search request failed');
 
       // If this request was aborted (a newer search started), ignore the response
       if (controller.signal.aborted) return;

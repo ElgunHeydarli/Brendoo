@@ -256,15 +256,28 @@ export default function SearchDropdown({ SearchValue, setSearchValue, enableScro
         // Azərbaycan dili üçün bütün variantları yarat
         const queryVariants = lang === 'az' ? normalizeAzerbaijaniQuery(query) : [query];
 
-        // Yalnız 1 sorğu göndər (rate limit-dən qaçmaq üçün)
-        const searchPromises = queryVariants.slice(0, 1).map(variant =>
-          axios.get<SearchResponse>(
-            `${API_URL}/api/search?q=${encodeURIComponent(variant)}&limit=20`,
-            { headers: { 'Accept-Language': lang } }
-          ).catch(() => null)
-        );
+        // Yalnız 1 sorğu göndər, 429 olsa retry et
+        const fetchWithRetry = async (variant: string) => {
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              return await axios.get<SearchResponse>(
+                `${API_URL}/api/search?q=${encodeURIComponent(variant)}&limit=20`,
+                { headers: { 'Accept-Language': lang } }
+              );
+            } catch (err: any) {
+              if (err?.response?.status === 429 && attempt < 1) {
+                await new Promise(r => setTimeout(r, 1000));
+                continue;
+              }
+              return null;
+            }
+          }
+          return null;
+        };
 
-        const responses = await Promise.all(searchPromises);
+        const responses = await Promise.all(
+          queryVariants.slice(0, 1).map(variant => fetchWithRetry(variant))
+        );
 
         // Bütün nəticələri birləşdir
         const allProducts: SearchItem[] = [];
