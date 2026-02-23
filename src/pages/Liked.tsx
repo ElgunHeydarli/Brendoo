@@ -82,7 +82,7 @@ export default function Liked() {
                         {isLoggedIn ? (
                             // Logged in user
                             favorites && favorites.length > 0 ? (
-                                favorites.map((item: Favorite) => (
+                                [...favorites].reverse().map((item: Favorite) => (
                                     <ProductCard key={item.id} bg="white" data={item.product} />
                                 ))
                             ) : (

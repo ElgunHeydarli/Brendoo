@@ -65,7 +65,7 @@ export default function UserLiked() {
                         {tarnslation?.Bəyəndiklərim}
                     </h1>
                     <div className=" grid lg:grid-cols-3 md:grid-cols-2   grid-cols-1 justify-items-center w-full gap-5 ">
-                        {favorites?.map((item: Favorite) => (
+                        {[...(favorites || [])].reverse().map((item: Favorite) => (
                             <ProductCard bg="white" data={item.product} />
                         ))}
                     </div>
