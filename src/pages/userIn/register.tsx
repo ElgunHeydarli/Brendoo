@@ -110,8 +110,7 @@ const Register = () => {
       });
 
       if (response.status === 200 || response.status === 201) {
-        toast.success('Qeydiyyat uğurla tamamlandı!');
-        navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`);
+        navigate(`/${lang}/${ROUTES.login[lang as keyof typeof ROUTES.login]}`, { state: { registered: true } });
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {

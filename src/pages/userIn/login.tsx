@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import GETRequest from '../../setting/Request';
@@ -19,12 +19,19 @@ export default function Login() {
   );
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formStatus, setFormStatus] = useState<{
     message: string;
     success: boolean;
   } | null>(null);
+
+  useEffect(() => {
+    if ((location.state as any)?.registered) {
+      setFormStatus({ message: 'Qeydiyyatdan keçdiniz! Zəhmət olmasa daxil olun.', success: true });
+    }
+  }, []);
 
   const initialValues = {
     email: '',
