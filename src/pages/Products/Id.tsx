@@ -683,8 +683,8 @@ export default function ProductId() {
       }
     }
 
-    // Size filter varsa, seçilməlidir
-    if (sizeFilter && sizeFilter.options?.length && !selectedSize) {
+    // Size filter varsa, seçilməlidir (CJ variant_options olan məhsullar bu yoxlamadan keçir - onlar üçün yuxarıda yoxlandı)
+    if (!Productslingle.variant_options && sizeFilter && sizeFilter.options?.length && !selectedSize) {
       toast.error(tarnslation?.olcu_secin_title || 'Ölçü seçin');
       return;
     }
