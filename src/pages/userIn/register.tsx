@@ -28,8 +28,8 @@ const Register = () => {
   const fetchTerms = async () => {
     setTermsLoading(true);
     try {
-      // page_id=4 = "Şərtlər və Qaydalar"
-      const response = await axios.get('https://admin.brendoo.com/api/pages?page_id=4', {
+      // page_id=12 = "Şərtlər və Qaydalar"
+      const response = await axios.get('https://admin.brendoo.com/api/pages?page_id=12', {
         headers: { 'Accept-Language': lang }
       });
       

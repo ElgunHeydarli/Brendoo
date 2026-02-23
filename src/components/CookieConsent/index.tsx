@@ -56,7 +56,7 @@ export default function CookieConsent() {
   const fetchTerms = async () => {
     setTermsLoading(true);
     try {
-      const response = await axios.get('https://admin.brendoo.com/api/pages?page_id=4', {
+      const response = await axios.get('https://admin.brendoo.com/api/pages?page_id=12', {
         headers: { 'Accept-Language': lang }
       });
       setTermsContent(response.data?.description || '');
