@@ -293,16 +293,36 @@ const handleImageSearch = async (file: File) => {
 
   const toggleIdInLocalStorage = (id: number) => {
     setRefetcLocalBasked((prev) => !prev);
+    // Guest cart-dan sil (yeni sistem)
+    try {
+      const raw = localStorage.getItem(GUEST_CART_KEY);
+      if (raw) {
+        const cart = JSON.parse(raw);
+        cart.basket_items = (cart.basket_items || []).filter((item: any) => item.id !== id);
+        let total = 0, discount = 0, final = 0;
+        cart.basket_items.forEach((i: any) => {
+          const orig = Number(i?.product?.price) || 0;
+          const disc = Number(i?.price) || Number(i?.product?.discounted_price) || orig;
+          total += orig * (i?.quantity || 1);
+          discount += (orig - disc) * (i?.quantity || 1);
+          final += disc * (i?.quantity || 1);
+        });
+        cart.total_price = total; cart.discount = discount; cart.final_price = final;
+        localStorage.setItem(GUEST_CART_KEY, JSON.stringify(cart));
+        window.dispatchEvent(new Event('guest_cart_updated'));
+        setGuestCartTrigger(prev => prev + 1);
+        return;
+      }
+    } catch { /* ignore */ }
+    // Köhnə sistem fallback
     const storedIds = localStorage.getItem('ids') || '';
     const idArray = storedIds.split(',').filter(Boolean);
     const index = idArray.indexOf(`${id}`);
-
     if (index === -1) {
       idArray.push(`${id}`);
     } else {
       idArray.splice(index, 1);
     }
-
     localStorage.setItem('ids', idArray.join(','));
   };
 
