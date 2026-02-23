@@ -1,6 +1,6 @@
 import Header from '../../components/Header';
 import { Footer } from '../../components/Footer';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import GETRequest from '../../setting/Request.ts';
 import { Basket, TranslationsKeys } from '../../setting/Types.ts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,6 +51,7 @@ export default function Basked() {
   const token = parsed?.token;
 
 const { lang = 'az' } = useParams<{ lang: string }>();
+  const navigate = useNavigate();
   const [baskedLoading, setBaskedLoading] = React.useState<boolean>(false);
   const [basketItemsData, setBasketItemsData] = React.useState<Basket | GuestCart>();
 
@@ -236,7 +237,12 @@ const { lang = 'az' } = useParams<{ lang: string }>();
                               const target = e.target as HTMLImageElement;
                               target.src = '/placeholder.png';
                             }}
-                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
+                            onClick={() => {
+                              const slug = item.product?.slug;
+                              const productSlug = typeof slug === 'object' ? (slug as any)?.[lang] || (slug as any)?.az || (slug as any)?.en : slug;
+                              if (productSlug) navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`);
+                            }}
+                            className="object-contain shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px] cursor-pointer"
                           />
                           <div className="flex flex-col self-stretch my-auto w-[152px]">
                             <div className="gap-1 self-start text-base font-semibold text-center text-black flex items-center flex-wrap">

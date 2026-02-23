@@ -4,6 +4,7 @@ import UserAside from '../../components/userAside';
 import GETRequest from '../../setting/Request';
 import Loading from '../../components/Loading';
 import { useNavigate, useParams } from 'react-router-dom';
+import ROUTES from '../../setting/routes';
 import { Order, TranslationsKeys, ExpargoStatus, ExpargoStatusColors } from '../../setting/Types';
 import { CheckCircle2, Package, Download, Truck, MapPin, Clock, Phone, Circle } from 'lucide-react';
 import { IoClose } from 'react-icons/io5';
@@ -415,7 +416,17 @@ const OrderItemsDetail = () => {
                     <div className="flex gap-4">
                       <div className="w-24 h-24 bg-slate-100 rounded-md overflow-hidden">
                         {item?.product ? (
-                          <img src={getImageUrl(item.product.image || item.product.thumbnail)} alt={item.product.title} className="object-cover w-full h-full" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }} />
+                          <img
+                            src={getImageUrl(item.product.image || item.product.thumbnail)}
+                            alt={item.product.title}
+                            className="object-cover w-full h-full cursor-pointer"
+                            onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                            onClick={() => {
+                              const slug = item.product?.slug;
+                              const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
+                              if (productSlug) navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`);
+                            }}
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-slate-200">
                             <span className="text-slate-500 text-xs" />
