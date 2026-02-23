@@ -155,7 +155,7 @@ export default function MobileHeader(props: MobileHeaderProps) {
       <div className="lg:hidden items-center flex h-[68px] px-4 justify-between w-screen bg-white z-50">
         {/* Logo */}
         {!isSearchOpen && (
-          <Link reloadDocument to={"/"}>
+          <Link to={`/${lang}/${ROUTES.home[lang as keyof typeof ROUTES.home]}`}>
             <img
               loading="lazy"
               src="https://cdn.builder.io/api/v1/image/assets/TEMP/0810c4aeebbd64a3e1b72741797d34b3b9cdb99d6d6af4238830cc7f449ae1bc?placeholderIfAbsent=true&apiKey=2d5d82cf417847beb8cd2fbbc5e3c099"

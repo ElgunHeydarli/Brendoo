@@ -68,7 +68,6 @@ export default function DesktopHeader(props: DesktopHeaderProps) {
       <div className="flex gap-5 justify-between items-center py-[10px] px-10 w-full text-black border-b border-black border-opacity-10 max-md:px-5 max-md:max-w-full">
         {/* Logo */}
         <Link
-          reloadDocument
           className="w-[140px]"
           to={`/${lang}/${ROUTES.home[lang as keyof typeof ROUTES.home]}`}
         >
