@@ -45,7 +45,7 @@ export default function Notification() {
             {tarnslation?.notification}
           </h1>
           <div className="flex flex-col  gap-3">
-            {notifications?.map((item) => {
+            {[...(notifications || [])].sort((a, b) => b.id - a.id).map((item) => {
               if (!item.is_read) {
                 return (
                   <div
