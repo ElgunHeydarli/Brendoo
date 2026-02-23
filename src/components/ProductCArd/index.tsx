@@ -239,9 +239,9 @@ export default function ProductCard({
     // Slug fallback: əgər az slug yoxdursa, en slug istifadə et
     const azSlug = typeof data.slug === 'object' ? data.slug?.az : data.slug;
     const enSlug = typeof data.slug === 'object' ? data.slug?.en : data.slug;
-    
-    const targetSlug = lang === 'az' 
-      ? (azSlug || enSlug) 
+
+    const targetSlug = lang === 'az'
+      ? (azSlug || enSlug)
       : enSlug;
 
     if (!targetSlug) {
@@ -250,8 +250,9 @@ export default function ProductCard({
     }
 
     localStorage.setItem('ProductSlug', JSON.stringify(data.slug));
-    navigate(
-      `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${targetSlug}`
+    window.open(
+      `/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${targetSlug}`,
+      '_blank'
     );
   }, [data, lang, navigate, trackProductView]);
 

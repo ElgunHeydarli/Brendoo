@@ -1,7 +1,7 @@
 // pages/Products/components/ProductCard.tsx
 
 import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { Product, TranslationsKeys } from "../../../setting/Types";
 import ROUTES from "../../../setting/routes";
 import OptimizedImage from "./OptimizedImage";
@@ -17,7 +17,6 @@ interface ProductCardProps {
 
 const ProductCard = memo(({ product, translation }: ProductCardProps) => {
   const { lang = "az" } = useParams<{ lang: string }>();
-  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isDiscountExpired, setIsDiscountExpired] = useState(false);
@@ -226,7 +225,7 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
         className="relative w-full aspect-[1/1] overflow-hidden cursor-pointer"
         onClick={() => {
           if (productSlug && productSlug.trim() !== '') {
-            navigate(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`);
+            window.open(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`, '_blank');
           }
         }}
         onTouchStart={hasMultipleImages ? handleTouchStart : undefined}
@@ -328,8 +327,9 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
       </div>
 
       {/* Product Info */}
-      <Link 
+      <Link
         to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
+        target="_blank"
         className="flex flex-col p-3 flex-grow"
       >
         {/* Badges - yalnız "Yeni" badge */}
