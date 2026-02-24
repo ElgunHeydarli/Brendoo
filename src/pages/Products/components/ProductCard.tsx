@@ -1,7 +1,7 @@
 // pages/Products/components/ProductCard.tsx
 
 import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import type { Product, TranslationsKeys } from "../../../setting/Types";
 import ROUTES from "../../../setting/routes";
 import OptimizedImage from "./OptimizedImage";
@@ -71,32 +71,43 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
     return null;
   }
 
-  // Memoized values
-  const productSlug = useMemo(() => {
-    // Az slug-u al
-    const azSlug = typeof product.slug === 'object'
-      ? product.slug?.az || ''
-      : product.slug || '';
-    
-    // Əgər az slug varsa, istifadə et
-    if (azSlug && lang === 'az') {
-      return azSlug;
-    }
-    
-    // Əgər az slug yoxdursa, en slug-u fallback olaraq istifadə et
-    if (lang === 'az') {
-      const enSlug = typeof product.slug === 'object' ? product.slug?.en : '';
-      return enSlug || '';
-    }
-    
-    // En dilində en slug istifadə et
-    const enSlug = typeof product.slug === 'object'
-      ? product.slug?.en || ''
-      : product.slug || '';
-    return enSlug;
-  }, [product.slug, lang]);
+  const navigateToProduct = useCallback(async () => {
+    const rawSlug = typeof product.slug === 'object'
+      ? (lang === 'az' ? product.slug?.az || product.slug?.en : product.slug?.en || product.slug?.az)
+      : product.slug;
 
-  const hasDiscount = useMemo(() =>
+    if (!rawSlug) return;
+
+    // Slug-un sonundakı ID ilə product.id-ni yoxla (format: title-slug-{id})
+    const slugMatchesId = rawSlug.endsWith(`-${product.id}`);
+
+    if (slugMatchesId) {
+      window.open(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${rawSlug}`, '_blank');
+      return;
+    }
+
+    // Slug mismatch — color variant ola bilər, API-dən düzgün slug-u al
+    try {
+      const res = await axiosInstance.get(`/product/${product.id}`, { headers: { 'Accept-Language': lang } });
+      const productData = res.data?.data;
+      if (productData?.slug) {
+        const correctSlug = lang === 'az'
+          ? productData.slug.az || productData.slug.en
+          : productData.slug.en || productData.slug.az;
+        if (correctSlug) {
+          window.open(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${correctSlug}`, '_blank');
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get product slug:', err);
+    }
+
+    // Fallback — mövcud slug ilə davam et
+    window.open(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${rawSlug}`, '_blank');
+  }, [product.slug, product.id, lang]);
+
+const hasDiscount = useMemo(() =>
     Number(product.discount || 0) > 0 && !isDiscountExpired
   , [product.discount, isDiscountExpired]);
 
@@ -221,13 +232,9 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
   return (
     <div className="flex flex-col w-full h-full rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg bg-[#F5F5F5] group">
       {/* Image Container with Slider */}
-      <div 
+      <div
         className="relative w-full aspect-[1/1] overflow-hidden cursor-pointer"
-        onClick={() => {
-          if (productSlug && productSlug.trim() !== '') {
-            window.open(`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`, '_blank');
-          }
-        }}
+        onClick={navigateToProduct}
         onTouchStart={hasMultipleImages ? handleTouchStart : undefined}
         onTouchMove={hasMultipleImages ? handleTouchMove : undefined}
         onTouchEnd={hasMultipleImages ? handleTouchEnd : undefined}
@@ -327,10 +334,9 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
       </div>
 
       {/* Product Info */}
-      <Link
-        to={`/${lang}/${ROUTES.productSingle[lang as keyof typeof ROUTES.productSingle]}/${productSlug}`}
-        target="_blank"
-        className="flex flex-col p-3 flex-grow"
+      <div
+        onClick={navigateToProduct}
+        className="flex flex-col p-3 flex-grow cursor-pointer"
       >
         {/* Badges - yalnız "Yeni" badge */}
         {product.is_new && (
@@ -366,7 +372,7 @@ const ProductCard = memo(({ product, translation }: ProductCardProps) => {
             </span>
           )}
         </div>
-      </Link>
+      </div>
     </div>
   );
 });
