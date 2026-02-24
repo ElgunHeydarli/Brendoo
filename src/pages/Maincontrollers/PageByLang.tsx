@@ -26,6 +26,7 @@ import { Seo } from '../../setting/Types';
 import RefundRules from '../RefundRules';
 import ReturnPage from '../userIn/ReturnPage';
 import ChangeAddress from '../userIn/ChangeAddress';
+import FailPage from '../FailPage';
 
 // SEO Wrapper Component
 const PageWrapper = ({
@@ -141,6 +142,8 @@ const ROUTE_MAP = {
   [ROUTES.BaskedSucses.az]: { Component: Sucses, metaType: 'sucses' },
   [ROUTES.address.en]: { Component: ChangeAddress, metaType: '' },
   [ROUTES.address.az]: { Component: ChangeAddress, metaType: '' },
+  'success': { Component: Sucses, metaType: 'sucses' },
+  'fail': { Component: FailPage, metaType: 'fail' },
 };
 
 const PageByLang: React.FC = () => {
@@ -169,12 +172,18 @@ const PageByLang: React.FC = () => {
     return ROUTE_MAP[page || ''];
   }, [page]);
 
-  // Əgər route tapılmayıbsa
+  // Əgər route tapılmayıbsa - 404 səhifə
   if (!route) {
     return (
-      <div>
-        <h1>Language: {lang}</h1>
-        <h1>Page: {page}</h1>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
+        <h1 className="text-6xl font-bold text-gray-300 mb-4">404</h1>
+        <p className="text-lg text-gray-500 mb-6">Səhifə tapılmadı</p>
+        <a
+          href={`/${lang || 'az'}/home`}
+          className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+        >
+          Ana səhifəyə qayıt
+        </a>
       </div>
     );
   }

@@ -202,6 +202,10 @@ const App = () => {
                       {/* ✅ Product Detail Page - must be before /:lang/:page/:slug */}
                       <Route path="/:lang/product/:slug" element={<ProductId />} />
 
+                      {/* ✅ Payment success/fail - must be before /:lang/:page catch-all */}
+                      <Route path="/:lang/success" element={<Sucses />} />
+                      <Route path="/:lang/fail" element={<FailPage />} />
+
                       {!location.pathname?.includes('influencer') && (
                         <Route path="/:lang/:page" element={<PageByLang />} />
                       )}
@@ -233,6 +237,8 @@ const App = () => {
                       {/* General */}
                       <Route path="/success" element={<Sucses />} />
                       <Route path="/fail" element={<FailPage />} />
+                      <Route path="/payment/success" element={<Sucses />} />
+                      <Route path="/payment/fail" element={<FailPage />} />
                       <Route path="/i/:lang/:slug" element={<DynamicPage />} />
                       <Route path="/:lang/collections/:slug" element={<CollectionPage />} />
                       <Route path="/terms/:lang/:slug" element={<RulesPage />} />
