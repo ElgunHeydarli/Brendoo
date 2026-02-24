@@ -330,11 +330,23 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
               <img
                 src={getImageUrl(item?.product?.image || item?.product?.thumbnail)}
                 alt={item?.product?.title || 'Product'}
-                className="w-[100px] h-[90px] object-contain rounded-md"
+                className="w-[100px] h-[90px] object-contain rounded-md cursor-pointer"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                onClick={() => {
+                  const slug = item?.product?.slug;
+                  const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
+                  if (productSlug) window.open(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`, '_blank');
+                }}
               />
               <div>
-                <div className="font-medium text-black">
+                <div
+                  className="font-medium text-black cursor-pointer hover:text-blue-600"
+                  onClick={() => {
+                    const slug = item?.product?.slug;
+                    const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
+                    if (productSlug) window.open(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`, '_blank');
+                  }}
+                >
                   {item?.product?.title}
                 </div>
                 <div className="text-sm text-gray-600">
