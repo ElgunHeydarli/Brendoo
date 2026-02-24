@@ -326,56 +326,36 @@ const OrderMainItem = ({ order, cancellationReasons }: { order: Order | any, can
           <div
             key={item.id}
             className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex gap-3 items-start">
+            <div
+              className="flex gap-3 items-start cursor-pointer"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const slug = item?.product?.slug;
+                const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
+                if (productSlug) {
+                  navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`);
+                  return;
+                }
+                const productId = item?.product?.id;
+                if (!productId) return;
+                try {
+                  const res = await axios.get(`${API_URL}/api/product/${productId}`, { headers: { 'Accept-Language': lang } });
+                  const productData = res.data?.data;
+                  if (productData?.slug) {
+                    const s = typeof productData.slug === 'object' ? productData.slug[lang] || productData.slug.az || productData.slug.en : productData.slug;
+                    if (s) { navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${s}`); return; }
+                  }
+                } catch (err) { console.error('Product fetch failed:', err); }
+              }}
+            >
               <img
                 src={getImageUrl(item?.product?.image || item?.product?.thumbnail)}
                 alt={item?.product?.title || 'Product'}
-                className="w-[100px] h-[90px] object-contain rounded-md cursor-pointer"
+                className="w-[100px] h-[90px] object-contain rounded-md"
                 onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  const slug = item?.product?.slug;
-                  const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
-                  if (productSlug) {
-                    navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`);
-                    return;
-                  }
-                  // Slug yoxdursa, product ID ilə birbaşa API-dən al
-                  const productId = item?.product?.id;
-                  if (!productId) return;
-                  try {
-                    const res = await axios.get(`${API_URL}/api/product/${productId}`, { headers: { 'Accept-Language': lang } });
-                    const productData = res.data?.data;
-                    if (productData?.slug) {
-                      const s = typeof productData.slug === 'object' ? productData.slug[lang] || productData.slug.az || productData.slug.en : productData.slug;
-                      if (s) { navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${s}`); return; }
-                    }
-                  } catch (err) { console.error('Product fetch failed:', err); }
-                }}
               />
               <div>
-                <div
-                  className="font-medium text-black cursor-pointer hover:text-blue-600"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const slug = item?.product?.slug;
-                    const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
-                    if (productSlug) {
-                      navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${productSlug}`);
-                      return;
-                    }
-                    const productId = item?.product?.id;
-                    if (!productId) return;
-                    try {
-                      const res = await axios.get(`${API_URL}/api/product/${productId}`, { headers: { 'Accept-Language': lang } });
-                      const productData = res.data?.data;
-                      if (productData?.slug) {
-                        const s = typeof productData.slug === 'object' ? productData.slug[lang] || productData.slug.az || productData.slug.en : productData.slug;
-                        if (s) { navigate(`/${lang}/${ROUTES.product[lang as keyof typeof ROUTES.product]}/${s}`); return; }
-                      }
-                    } catch (err) { console.error('Product fetch failed:', err); }
-                  }}
-                >
+                <div className="font-medium text-black hover:text-blue-600">
                   {item?.product?.title}
                 </div>
                 <div className="text-sm text-gray-600">
