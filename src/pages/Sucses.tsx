@@ -94,11 +94,14 @@ export default function Sucses() {
     // URL-dən order_id al (Epoint redirect ilə gəlir)
     const orderIdFromUrl = searchParams.get('order_id');
     const orderIdFromStorage = localStorage.getItem('order_ID');
-    
+
     const finalOrderId = orderIdFromUrl || orderIdFromStorage;
-    
+
     if (finalOrderId) {
       setOrderId(finalOrderId);
+    } else {
+      // order_id yoxdursa, birbaşa success göstər
+      setPaymentStatus('success');
     }
   }, [searchParams]);
 
