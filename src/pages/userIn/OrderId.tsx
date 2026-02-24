@@ -219,8 +219,13 @@ export default function OrderId() {
                     loading="lazy"
                     src={getImageUrl(item.product.image || item.product.thumbnail)}
                     alt={item.product.title || 'Product'}
-                    className="object-cover shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px]"
+                    className="object-cover shrink-0 self-stretch my-auto rounded-3xl aspect-[1.12] w-[134px] cursor-pointer"
                     onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                    onClick={() => {
+                      const slug = item.product?.slug;
+                      const productSlug = typeof slug === 'object' ? (slug as any)?.[lang as string] || (slug as any)?.az || (slug as any)?.en : slug;
+                      if (productSlug) window.open(`/${lang}/product/${productSlug}`, '_blank');
+                    }}
                   />
                   <div className="flex flex-col justify-center self-stretch my-auto">
                     <div className="text-sm text-black text-wrap">
