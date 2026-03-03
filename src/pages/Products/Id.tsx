@@ -731,11 +731,16 @@ export default function ProductId() {
       cjSelectedOptions._derivedSize = selectedDerivedSize;
     }
 
-    // Qiyməti müəyyən et - yalnız ölçüyə görə, rəngə görə yox
-    let finalPrice = Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+    // Qiyməti müəyyən et - backend ilə uyğun hesablama
+    const discPct = Number(Productslingle.discount) || 0;
+    const origPrice = Number(Productslingle.price) || 0;
+    const calcDiscounted = discPct > 0
+      ? Math.round(origPrice * (1 - discPct / 100) * 100) / 100
+      : Number(Productslingle.discounted_price) || origPrice;
+    let finalPrice = calcDiscounted;
 
     if (Productslingle.variants?.length) {
-      const baseDiscountedPrice = Number(Productslingle.discounted_price) || 0;
+      const baseDiscountedPrice = calcDiscounted;
       const variantPrices = Productslingle.variants.filter(v => v?.price != null && v?.in_stock !== false).map(v => Number(v.price));
       const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
 
@@ -1056,12 +1061,20 @@ export default function ProductId() {
   const filteredSimilar = similarProducts.filter(p => p && p.id && p.id !== Productslingle.id).slice(0, 15);
   const currentImage = productImages[safeImageIndex] || productImages[0] || '/placeholder.png';
 
+  // Backend ilə uyğun endirimli qiymət: price * (1 - discount/100)
+  // API-nin discounted_price sahəsi bəzən backend-in səbət hesablaması ilə uyğun gəlmir
+  const originalPrice = Number(Productslingle.price) || 0;
+  const discountPercent = Number(Productslingle.discount) || 0;
+  const calculatedDiscountedPrice = discountPercent > 0
+    ? Math.round(originalPrice * (1 - discountPercent / 100) * 100) / 100
+    : Number(Productslingle.discounted_price) || originalPrice;
+
   // CJ variant sistemi aktivdirsə, discounted_price əsaslı qiymət göstər
   // Qiymət yalnız ölçüyə görə dəyişir, rəngə görə yox
   const hasCJVariants = !!Productslingle.variant_options && Object.keys(selectedVariantOptions).length > 0;
   const displayPrice = (() => {
-    if (hasCJVariants && Productslingle.variants?.length && Productslingle.discounted_price) {
-      const baseDiscounted = Number(Productslingle.discounted_price);
+    if (hasCJVariants && Productslingle.variants?.length && calculatedDiscountedPrice) {
+      const baseDiscounted = calculatedDiscountedPrice;
       // Ən ucuz variant qiymətini tap (baza/default variant)
       const variantPrices = Productslingle.variants
         .filter(v => v?.price != null && v?.in_stock !== false)
@@ -1071,17 +1084,15 @@ export default function ProductId() {
       const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || (selectedCJVariant?.price ? Number(selectedCJVariant.price) : null);
 
       if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
-        // Nisbət əsaslı: discounted_price * (seçilmiş_variant / ən_ucuz_variant)
-        // Bu mala görə proporsional artım təmin edir (32 qəpik sabit yox)
         return Math.round(baseDiscounted * (currentVariantPrice / minVariantPrice) * 100) / 100;
       }
       return baseDiscounted;
     }
     if (hasCJVariants) {
-      return sizeBasedVariantPrice || sizeVariantPrice || Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+      return sizeBasedVariantPrice || sizeVariantPrice || calculatedDiscountedPrice || 0;
     }
     // Non-CJ: qiymət yalnız ölçüyə görə
-    return sizeVariantPrice || selectedSize?.price || Number(Productslingle.discounted_price) || Number(Productslingle.price) || 0;
+    return sizeVariantPrice || selectedSize?.price || calculatedDiscountedPrice || 0;
   })();
   const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
   const cjVariantInStock = selectedCJVariant ? selectedCJVariant.in_stock !== false : true;
