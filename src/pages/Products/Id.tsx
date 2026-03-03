@@ -732,35 +732,14 @@ export default function ProductId() {
     }
 
     // Qiyməti müəyyən et - backend ilə uyğun hesablama
+    // Backend ölçü/variant fərqini nəzərə almır, sadəcə price * (1 - discount/100) hesablayır
     const discPct = Number(Productslingle.discount) || 0;
     const origPrice = Number(Productslingle.price) || 0;
-    const calcDiscounted = discPct > 0
+    let finalPrice = discPct > 0
       ? Math.round(origPrice * (1 - discPct / 100) * 100) / 100
       : Number(Productslingle.discounted_price) || origPrice;
-    let finalPrice = calcDiscounted;
 
-    if (Productslingle.variants?.length) {
-      const baseDiscountedPrice = calcDiscounted;
-      const variantPrices = Productslingle.variants.filter(v => v?.price != null && v?.in_stock !== false).map(v => Number(v.price));
-      const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
-
-      // Ölçüyə əsaslanan qiymət (rəngdən asılı olmayaraq)
-      const currentSize = selectedVariantOptions?.size || selectedDerivedSize || selectedSize?.name || null;
-      let sizePriceForCart: number | null = null;
-      if (currentSize) {
-        const sizeLower = currentSize.toLowerCase();
-        const sizeMatch = Productslingle.variants.find(v => {
-          if (!v?.variantKey || v?.price == null) return false;
-          const parts = v.variantKey.toLowerCase().split(/[-_/\s]+/).map(s => s.trim());
-          return parts.some(p => p === sizeLower || (sizeLower.length >= 3 && (p.includes(sizeLower) || sizeLower.includes(p))));
-        });
-        if (sizeMatch?.price) sizePriceForCart = Number(sizeMatch.price);
-      }
-
-      if (baseDiscountedPrice && minVariantPrice && sizePriceForCart && minVariantPrice > 0) {
-        // displayPrice ilə eyni nisbət əsaslı formula
-        finalPrice = Math.round(baseDiscountedPrice * (sizePriceForCart / minVariantPrice) * 100) / 100;
-      }
+    if (false) { // Variant qiymətləndirmə deaktiv - backend dəstəkləmir
     }
 
     if (!userStr) {
@@ -922,7 +901,8 @@ export default function ProductId() {
 
   // Ölçüyə əsaslanan variant qiyməti (rəngdən asılı olmayaraq)
   // Qiymət YALNIZ ölçüyə görə dəyişir, rəng seçimi qiyməti dəyişdirməməlidir
-  const sizeBasedVariantPrice = useMemo(() => {
+  // Hook sırası qorunmalıdır - backend variant qiymətini dəstəkləmədiyi üçün deaktiv
+  useMemo(() => {
     if (!Productslingle?.variants?.length) return null;
 
     // Ölçü mənbəyi: CJ variant_options size, derived size, filter size
@@ -1027,7 +1007,8 @@ export default function ProductId() {
   }, [tarnslation]);
 
   // ✅ useMemo MUST be before early returns (Rules of Hooks)
-  const sizeVariantPrice = useMemo(() => {
+  // Hook sırası qorunmalıdır - backend variant qiymətini dəstəkləmədiyi üçün deaktiv
+  useMemo(() => {
     if (!selectedSize?.name || !Productslingle?.variants?.length) return null;
     const sizeName = selectedSize.name.toLowerCase();
     // Əvvəlcə variant.size field-i ilə dəqiq match
@@ -1069,31 +1050,10 @@ export default function ProductId() {
     ? Math.round(originalPrice * (1 - discountPercent / 100) * 100) / 100
     : Number(Productslingle.discounted_price) || originalPrice;
 
-  // CJ variant sistemi aktivdirsə, discounted_price əsaslı qiymət göstər
-  // Qiymət yalnız ölçüyə görə dəyişir, rəngə görə yox
-  const hasCJVariants = !!Productslingle.variant_options && Object.keys(selectedVariantOptions).length > 0;
-  const displayPrice = (() => {
-    if (hasCJVariants && Productslingle.variants?.length && calculatedDiscountedPrice) {
-      const baseDiscounted = calculatedDiscountedPrice;
-      // Ən ucuz variant qiymətini tap (baza/default variant)
-      const variantPrices = Productslingle.variants
-        .filter(v => v?.price != null && v?.in_stock !== false)
-        .map(v => Number(v.price));
-      const minVariantPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : null;
-      // Qiymət ölçüyə görə dəyişir; ölçü yoxdursa (yalnız rəng/set), seçilmiş variant qiymətini istifadə et
-      const currentVariantPrice = sizeBasedVariantPrice || sizeVariantPrice || (selectedCJVariant?.price ? Number(selectedCJVariant.price) : null);
-
-      if (minVariantPrice && currentVariantPrice && minVariantPrice > 0) {
-        return Math.round(baseDiscounted * (currentVariantPrice / minVariantPrice) * 100) / 100;
-      }
-      return baseDiscounted;
-    }
-    if (hasCJVariants) {
-      return sizeBasedVariantPrice || sizeVariantPrice || calculatedDiscountedPrice || 0;
-    }
-    // Non-CJ: qiymət yalnız ölçüyə görə
-    return sizeVariantPrice || selectedSize?.price || calculatedDiscountedPrice || 0;
-  })();
+  // Backend ilə uyğun qiymət — backend ölçü/variant fərqini nəzərə almır,
+  // sadəcə price * (1 - discount/100) hesablayır. Eyni qiyməti göstəririk ki,
+  // müştəri gördüyünü ödəsin.
+  const displayPrice = calculatedDiscountedPrice;
   const hasDiscount = Productslingle.discount && Number(Productslingle.discount) > 0;
   const cjVariantInStock = selectedCJVariant ? selectedCJVariant.in_stock !== false : true;
 
