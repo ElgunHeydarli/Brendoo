@@ -126,8 +126,8 @@ export default function ProductId() {
 
   // İlk olaraq /productSingle cəhd et, əgər olmadısa /products/:id cəhd et
   const { data: Productslingle, isLoading: ProductslingleLoading } = GETRequest<ProductDetail>(
-    `/productSingle/${productParam}`, 
-    'productSingle', 
+    `/productSingle/${productParam}`,
+    'productSingle',
     [lang, productParam]
   );
   const { data: seoProduct } = GETRequest<SeoApiResponse>(
@@ -752,9 +752,9 @@ export default function ProductId() {
         if (sizeMatch?.price) sizePriceForCart = Number(sizeMatch.price);
       }
 
-      if (baseDiscountedPrice && minVariantPrice && sizePriceForCart) {
-        // displayPrice ilə eyni formula: discounted_price + (ölçü variant - min)
-        finalPrice = baseDiscountedPrice + (sizePriceForCart - minVariantPrice);
+      if (baseDiscountedPrice && minVariantPrice && sizePriceForCart && minVariantPrice > 0) {
+        // displayPrice ilə eyni nisbət əsaslı formula
+        finalPrice = Math.round(baseDiscountedPrice * (sizePriceForCart / minVariantPrice) * 100) / 100;
       }
     }
 
